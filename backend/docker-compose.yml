@@ -1,0 +1,37 @@
+services:
+  backend:
+    build: .
+    env_file:
+      - .env
+    environment:
+      # Dentro de la red de Docker, PostgreSQL se resuelve por el nombre del servicio (db),
+      # nunca por localhost ni por IP fija.
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-fashionstore}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-fashionstore}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fashionstore}
+      POSTGRES_USER: ${POSTGRES_USER:-fashionstore}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fashionstore} -d ${POSTGRES_DB:-fashionstore}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
