@@ -1,0 +1,133 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-white);
+  border-right: 1px solid var(--color-border);
+  padding: 22px 14px;
+  overflow-y: auto;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 8px 20px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.brand__mark {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.03em;
+  color: var(--color-primary);
+}
+
+.brand__tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  transition: background var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    background: var(--color-bg);
+  }
+
+  &.is-active {
+    background: color-mix(in srgb, var(--color-primary) 8%, white);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+}
+
+.nav-item--disabled {
+  color: #b9b9b9;
+  cursor: default;
+  user-select: none;
+
+  &:hover {
+    background: none;
+  }
+}
+
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-group__label {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.nav-group__children {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 6px 30px;
+  border-left: 1px solid var(--color-border);
+  padding-left: 12px;
+}
+
+.nav-child {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+  transition: background var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  &.is-active {
+    background: color-mix(in srgb, var(--color-primary) 8%, white);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+}
+
+.nav-child--disabled {
+  color: #b9b9b9;
+  cursor: default;
+  user-select: none;
+
+  &:hover {
+    background: none;
+    color: #b9b9b9;
+  }
+}

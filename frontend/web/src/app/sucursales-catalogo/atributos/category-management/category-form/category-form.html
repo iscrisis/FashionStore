@@ -1,0 +1,67 @@
+@if (open()) {
+  <div class="drawer-overlay" (click)="close.emit()">
+    <aside class="drawer" (click)="$event.stopPropagation()">
+      <header class="drawer__header">
+        <h2>
+          {{ readonly() ? 'Detalle de categoría' : isEditMode ? 'Editar categoría' : 'Nueva categoría' }}
+        </h2>
+        <button type="button" class="icon-btn" (click)="close.emit()" aria-label="Cerrar">
+          <app-icon name="close" style="width: 16px; height: 16px" />
+        </button>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="drawer__form">
+        <label class="field" [class.has-error]="form.controls.name.invalid && form.controls.name.touched">
+          <span class="field__label">Nombre de categoría *</span>
+          <input type="text" formControlName="name" placeholder="Ej. Vestidos" />
+          @if (form.controls.name.invalid && form.controls.name.touched) {
+            <span class="field__error">El nombre de la categoría es obligatorio.</span>
+          }
+        </label>
+
+        <label class="field">
+          <span class="field__label">Descripción</span>
+          <textarea
+            formControlName="description"
+            rows="3"
+            placeholder="Ej. Vestidos casuales, formales y de temporada."
+          ></textarea>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Imagen representativa (URL)</span>
+          <input type="text" formControlName="imageUrl" placeholder="https://..." />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field__label">Orden de visualización *</span>
+            <input type="number" formControlName="displayOrder" min="1" />
+          </label>
+
+          <label class="field field--switch">
+            <span class="field__label">Estado</span>
+            <span class="switch">
+              <input type="checkbox" formControlName="isActive" />
+              <span class="switch__track"><span class="switch__thumb"></span></span>
+              <span class="switch__text">{{ form.controls.isActive.value ? 'Activa' : 'Inactiva' }}</span>
+            </span>
+          </label>
+        </div>
+
+        <footer class="drawer__footer">
+          @if (readonly()) {
+            <button type="button" class="btn btn--ghost" (click)="close.emit()">Cerrar</button>
+          } @else {
+            <button type="button" class="btn btn--ghost" (click)="close.emit()" [disabled]="submitting()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+              {{ submitting() ? 'Guardando…' : 'Guardar categoría' }}
+            </button>
+          }
+        </footer>
+      </form>
+    </aside>
+  </div>
+}

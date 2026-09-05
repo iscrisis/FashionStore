@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.routers import health
+from modules.P2_UsuariosYAccesos.CU01_IniciarSesion.router import router as cu01_iniciar_sesion_router
+from modules.P2_UsuariosYAccesos.CU05_GestionarUsuariosRoles.router import (
+    router as cu05_usuarios_roles_router,
+)
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -22,6 +26,8 @@ app.add_middleware(
 )
 
 app.include_router(health.router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu01_iniciar_sesion_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu05_usuarios_roles_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/", tags=["root"])

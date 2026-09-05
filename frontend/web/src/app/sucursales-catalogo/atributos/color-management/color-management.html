@@ -1,0 +1,118 @@
+<section class="admin-card section">
+  <div class="section__header">
+    <div>
+      <h3>Colores</h3>
+      <p>Define los colores que podrán asignarse a las variantes de una prenda.</p>
+    </div>
+    <button type="button" class="btn btn--primary" (click)="openCreate()">
+      <app-icon name="plus" style="width: 14px; height: 14px" />
+      Nuevo color
+    </button>
+  </div>
+
+  <div class="table-toolbar section__toolbar">
+    <label class="search-input">
+      <app-icon name="search" />
+      <input
+        type="text"
+        placeholder="Buscar color..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </label>
+
+    <select
+      class="status-select"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="onStatusFilterChange($event)"
+    >
+      <option value="all">Todos</option>
+      <option value="active">Activos</option>
+      <option value="inactive">Inactivos</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="section__body">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudieron cargar los colores</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (colors().length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">Aún no hay colores registrados</span>
+      <span>Crea el primer color para empezar a configurar las variantes.</span>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Color</th>
+            <th>Nombre</th>
+            <th>Código hexadecimal</th>
+            <th>Orden</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (color of colors(); track color.id) {
+            <tr>
+              <td><span class="swatch" [style.background]="color.hexCode"></span></td>
+              <td class="cell-title">{{ color.name }}</td>
+              <td class="cell-secondary">{{ color.hexCode }}</td>
+              <td>{{ color.displayOrder }}</td>
+              <td><app-status-badge [active]="color.isActive" /></td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-actions__trigger"
+                    (click)="toggleMenu(color.id, $event)"
+                    aria-label="Acciones"
+                  >
+                    <app-icon name="dots" />
+                  </button>
+                  @if (openMenuId() === color.id) {
+                    <div class="row-actions__menu" (click)="$event.stopPropagation()">
+                      <button type="button" class="row-actions__item" (click)="openView(color, $event)">
+                        <app-icon name="eye" /> Ver
+                      </button>
+                      <button type="button" class="row-actions__item" (click)="openEdit(color)">
+                        <app-icon name="edit" /> Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="row-actions__item"
+                        [class.row-actions__item--danger]="color.isActive"
+                        (click)="toggleStatus(color, $event)"
+                      >
+                        <app-icon name="power" /> {{ color.isActive ? 'Desactivar' : 'Activar' }}
+                      </button>
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<app-color-form
+  [open]="drawerOpen()"
+  [color]="editingColor()"
+  [readonly]="viewMode()"
+  [submitting]="submitting()"
+  (save)="save($event)"
+  (close)="closeDrawer()"
+/>

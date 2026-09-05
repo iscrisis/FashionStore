@@ -1,0 +1,12 @@
+# Variables de entorno (usadas por Docker Compose en la raíz del repo)
+.env
+.env.*.local
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Cada proyecto (backend/, frontend/web/) mantiene su propio .gitignore
+# con las reglas específicas de Python y Angular.

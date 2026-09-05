@@ -1,0 +1,12 @@
+<div class="dashboard-grid">
+  @for (card of cards; track card.title) {
+    <div class="admin-card dashboard-card">
+      <h3>{{ card.title }}</h3>
+      <p>{{ card.message }}</p>
+    </div>
+  }
+</div>
+
+<div class="admin-card dashboard-hint">
+  <p>Configure FashionStore para comenzar: cree sucursales, categorías y productos desde el menú.</p>
+</div>

@@ -66,9 +66,11 @@ backend/
 ├── .env                      # variables de entorno locales (no versionado)
 ├── .env.example               # plantilla sin credenciales reales
 ├── Dockerfile
-├── docker-compose.yml
 └── requirements.txt
 ```
+
+`docker-compose.yml` vive en la raíz del repositorio (junto a `frontend/`), ya que orquesta
+backend + PostgreSQL + frontend como un solo stack.
 
 ## Requisitos
 
@@ -103,15 +105,20 @@ el código. `localhost` solo aplica al desarrollo local sin Docker.
 
 ## Ejecución con Docker (recomendado)
 
+El `docker-compose.yml` está en la **raíz del repositorio** (no dentro de `backend/`), porque
+orquesta el stack completo. Ejecutar desde ahí:
+
 ```bash
+cd ..   # si estás parado en backend/
 docker compose up --build
 ```
 
-Esto levanta dos servicios:
+Esto levanta tres servicios:
 
 - `db`: PostgreSQL 16 con volumen persistente (`postgres_data`) y healthcheck.
 - `backend`: FastAPI, que espera a que `db` esté saludable antes de iniciar y se conecta a
   través del nombre de servicio `db` (no localhost, no IP fija).
+- `frontend`: Angular (Nginx), en `http://localhost:4200`.
 
 Detener los contenedores:
 

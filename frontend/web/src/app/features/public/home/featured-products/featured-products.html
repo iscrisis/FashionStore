@@ -1,0 +1,17 @@
+<div class="section-header">
+  <h2>Destacados para ti</h2>
+  <a href="/" class="section-link">Ver todos</a>
+</div>
+
+@if (products.length === 0) {
+  <div class="state-block">
+    <span class="state-block__title">No hay prendas publicadas</span>
+    <span>Las prendas que el administrador publique aparecerán aquí.</span>
+  </div>
+} @else {
+  <div class="product-grid">
+    @for (product of products; track product.id) {
+      <app-product-card [product]="product" />
+    }
+  </div>
+}

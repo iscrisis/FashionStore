@@ -1,0 +1,86 @@
+:host {
+  display: block;
+}
+
+.hero {
+  position: relative;
+  height: 220px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  padding: 0 44px;
+  display: flex;
+  align-items: center;
+  // Placeholder de campaña: sustituir por fotografía real de moda cuando esté disponible.
+  background:
+    linear-gradient(105deg, rgba(30, 0, 4, 0.88) 0%, rgba(133, 0, 13, 0.55) 42%, rgba(169, 0, 18, 0.15) 68%),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0 2px, transparent 2px 26px),
+    linear-gradient(120deg, #4a0007, var(--color-primary) 55%, #d1717c 100%);
+}
+
+.hero__text {
+  max-width: 420px;
+  color: var(--color-white);
+}
+
+.hero__text h1 {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+}
+
+.hero__text p {
+  margin-top: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.hero__cta {
+  margin-top: 20px;
+  background: var(--color-white);
+  color: var(--color-primary-dark);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 11px 22px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+
+  &:hover {
+    background: #f2f2f2;
+    transform: translateY(-1px);
+  }
+}
+
+.hero__dots {
+  position: absolute;
+  left: 44px;
+  bottom: 18px;
+  display: flex;
+  gap: 6px;
+}
+
+.hero__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+
+  &.is-active {
+    background: var(--color-white);
+    width: 16px;
+    border-radius: 999px;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    height: auto;
+    min-height: 260px;
+    padding: 28px 24px;
+  }
+
+  .hero__text h1 {
+    font-size: 24px;
+  }
+}

@@ -1,0 +1,44 @@
+:host {
+  display: block;
+}
+
+.card {
+  display: block;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-medium);
+  }
+}
+
+.card__image {
+  aspect-ratio: 3 / 4;
+  background: linear-gradient(160deg, #ded9d2, #c9c2b8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  color: var(--color-text);
+}
+
+.card__name {
+  font-size: 13px;
+  font-weight: 600;
+}

@@ -1,0 +1,127 @@
+<section class="admin-card section">
+  <div class="section__header">
+    <div>
+      <h3>Usuarios y roles</h3>
+      <p>Administra las cuentas internas de FashionStore y sus roles de acceso.</p>
+    </div>
+    <button type="button" class="btn btn--primary" (click)="openCreate()">
+      <app-icon name="plus" style="width: 14px; height: 14px" />
+      Nuevo usuario
+    </button>
+  </div>
+
+  <div class="table-toolbar section__toolbar">
+    <label class="search-input">
+      <app-icon name="search" />
+      <input
+        type="text"
+        placeholder="Buscar por nombre o correo..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </label>
+
+    <select class="status-select" [ngModel]="rolFilter()" (ngModelChange)="onRolFilterChange($event)">
+      <option value="">Todos los roles</option>
+      @for (rol of roles(); track rol.valor) {
+        <option [value]="rol.valor">{{ rol.etiqueta }}</option>
+      }
+      <option value="CLIENTE">Cliente</option>
+    </select>
+
+    <select
+      class="status-select"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="onStatusFilterChange($event)"
+    >
+      <option value="all">Todos los estados</option>
+      <option value="active">Activos</option>
+      <option value="inactive">Inactivos</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="section__body">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudieron cargar los usuarios</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (usuarios().length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">No se encontraron usuarios</span>
+      <span>Crea el primer usuario interno para empezar a asignar roles.</span>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios(); track usuario.id) {
+            <tr>
+              <td class="cell-title">{{ usuario.nombre }}</td>
+              <td class="cell-secondary">{{ usuario.correo }}</td>
+              <td>{{ etiquetaRol(usuario.rol) }}</td>
+              <td><app-status-badge [active]="usuario.is_active" /></td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-actions__trigger"
+                    (click)="toggleMenu(usuario.id, $event)"
+                    aria-label="Acciones"
+                  >
+                    <app-icon name="dots" />
+                  </button>
+                  @if (openMenuId() === usuario.id) {
+                    <div class="row-actions__menu" (click)="$event.stopPropagation()">
+                      <button type="button" class="row-actions__item" (click)="openView(usuario, $event)">
+                        <app-icon name="eye" /> Ver
+                      </button>
+                      @if (usuario.rol !== 'CLIENTE') {
+                        <button type="button" class="row-actions__item" (click)="openEdit(usuario)">
+                          <app-icon name="edit" /> Editar
+                        </button>
+                        <button
+                          type="button"
+                          class="row-actions__item"
+                          [class.row-actions__item--danger]="usuario.is_active"
+                          (click)="toggleStatus(usuario, $event)"
+                        >
+                          <app-icon name="power" /> {{ usuario.is_active ? 'Desactivar' : 'Activar' }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<app-usuario-form
+  [open]="drawerOpen()"
+  [usuario]="editingUsuario()"
+  [roles]="roles()"
+  [readonly]="viewMode()"
+  [submitting]="submitting()"
+  (save)="save($event)"
+  (close)="closeDrawer()"
+/>

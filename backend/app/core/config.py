@@ -24,6 +24,16 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed origins, e.g. "http://localhost:4200,https://app.example.com"
     CORS_ORIGINS: str = ""
 
+    # CU01 - Iniciar sesión (modules/P2_UsuariosYAccesos)
+    JWT_SECRET_KEY: str = "dev-secret-change-me"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 60 * 24
+
+    # Usado únicamente por scripts/seed_admin.py para crear el Administrador inicial.
+    ADMIN_INITIAL_NAME: str = "Administrador FashionStore"
+    ADMIN_INITIAL_EMAIL: str = "admin@fashionstore.com"
+    ADMIN_INITIAL_PASSWORD: str = "changeme"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]

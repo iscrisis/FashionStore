@@ -1,0 +1,71 @@
+@if (open()) {
+  <div class="drawer-overlay" (click)="close.emit()">
+    <aside class="drawer" (click)="$event.stopPropagation()">
+      <header class="drawer__header">
+        <h2>{{ readonly() ? 'Detalle de color' : isEditMode ? 'Editar color' : 'Nuevo color' }}</h2>
+        <button type="button" class="icon-btn" (click)="close.emit()" aria-label="Cerrar">
+          <app-icon name="close" style="width: 16px; height: 16px" />
+        </button>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="drawer__form">
+        <label class="field" [class.has-error]="form.controls.name.invalid && form.controls.name.touched">
+          <span class="field__label">Nombre *</span>
+          <input type="text" formControlName="name" placeholder="Ej. Rojo" />
+          @if (form.controls.name.invalid && form.controls.name.touched) {
+            <span class="field__error">El nombre es obligatorio.</span>
+          }
+        </label>
+
+        <div class="field">
+          <span class="field__label">Código hexadecimal *</span>
+          <div class="color-field-row">
+            <input type="color" [value]="previewColor" (input)="onPickerChange($event)" [disabled]="readonly()" />
+            <input
+              type="text"
+              formControlName="hexCode"
+              placeholder="#C1121F"
+              style="flex: 1"
+              [class.has-error]="form.controls.hexCode.invalid && form.controls.hexCode.touched"
+            />
+          </div>
+          @if (form.controls.hexCode.invalid && form.controls.hexCode.touched) {
+            <span class="field__error">Ingresa un color hexadecimal válido (ej. #C1121F).</span>
+          }
+        </div>
+
+        <div class="color-preview">
+          <span class="swatch" [style.background]="previewColor"></span>
+          <span>Vista previa — {{ form.controls.name.value || 'Sin nombre' }}</span>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Orden</span>
+          <input type="number" formControlName="displayOrder" min="1" />
+        </label>
+
+        <label class="field field--switch">
+          <span class="field__label">Estado</span>
+          <span class="switch">
+            <input type="checkbox" formControlName="isActive" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+            <span class="switch__text">{{ form.controls.isActive.value ? 'Activa' : 'Inactiva' }}</span>
+          </span>
+        </label>
+
+        <footer class="drawer__footer">
+          @if (readonly()) {
+            <button type="button" class="btn btn--ghost" (click)="close.emit()">Cerrar</button>
+          } @else {
+            <button type="button" class="btn btn--ghost" (click)="close.emit()" [disabled]="submitting()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+              {{ submitting() ? 'Guardando…' : 'Guardar color' }}
+            </button>
+          }
+        </footer>
+      </form>
+    </aside>
+  </div>
+}

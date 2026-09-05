@@ -1,0 +1,13 @@
+<div class="hero">
+  <div class="hero__text">
+    <h1>NUEVA COLECCIÓN<br />PRIMAVERA · VERANO</h1>
+    <p>Estilo que te acompaña esta temporada.</p>
+    <button type="button" class="hero__cta">Explorar colección</button>
+  </div>
+
+  <div class="hero__dots">
+    @for (slide of slides; track slide) {
+      <span class="hero__dot" [class.is-active]="slide === activeSlide()"></span>
+    }
+  </div>
+</div>

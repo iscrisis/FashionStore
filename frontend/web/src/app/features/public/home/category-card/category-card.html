@@ -1,0 +1,11 @@
+<a href="/" class="card">
+  <div class="card__image">
+    @if (category().imageUrl) {
+      <img [src]="category().imageUrl" [alt]="category().name" />
+    }
+  </div>
+  <div class="card__footer">
+    <span class="card__name">{{ category().name }}</span>
+    <app-icon name="arrow-right" style="width: 14px; height: 14px" />
+  </div>
+</a>

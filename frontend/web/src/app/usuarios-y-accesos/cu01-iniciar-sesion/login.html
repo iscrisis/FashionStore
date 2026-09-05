@@ -1,0 +1,75 @@
+<div class="login-page">
+  <div class="login-page__visual">
+    <div class="login-page__visual-content">
+      <h2>Bienvenido de nuevo</h2>
+      <p>Inicia sesión y continúa tu experiencia de moda.</p>
+    </div>
+  </div>
+
+  <div class="login-page__form-panel">
+    <div class="login-card">
+      <a routerLink="/" class="login-card__brand">FASHION<br />STORE</a>
+      <h1>Iniciar sesión</h1>
+      <p class="login-card__subtitle">Ingresa tus datos para continuar.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="login-form" novalidate>
+        <label class="field" [class.has-error]="form.controls.correo.invalid && form.controls.correo.touched">
+          <span class="field__label">Correo electrónico</span>
+          <div class="field__control">
+            <app-icon name="mail" class="field__icon" />
+            <input
+              type="email"
+              formControlName="correo"
+              placeholder="tucorreo@ejemplo.com"
+              autocomplete="username"
+            />
+          </div>
+          @if (form.controls.correo.hasError('required') && form.controls.correo.touched) {
+            <span class="field__error">El correo es obligatorio.</span>
+          } @else if (form.controls.correo.hasError('email') && form.controls.correo.touched) {
+            <span class="field__error">Ingresa un correo válido.</span>
+          }
+        </label>
+
+        <label class="field" [class.has-error]="form.controls.password.invalid && form.controls.password.touched">
+          <span class="field__label">Contraseña</span>
+          <div class="field__control">
+            <app-icon name="lock" class="field__icon" />
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              class="field__toggle"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="showPassword()"
+            >
+              <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" style="width: 17px; height: 17px" />
+            </button>
+          </div>
+          @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+            <span class="field__error">La contraseña es obligatoria.</span>
+          }
+        </label>
+
+        @if (errorMessage()) {
+          <p class="login-form__error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        <button type="submit" class="btn btn--primary login-form__submit" [disabled]="submitting()">
+          {{ submitting() ? 'Ingresando…' : 'Iniciar sesión' }}
+        </button>
+      </form>
+
+      <div class="login-card__links">
+        <!-- CU02 (Registrar cliente) y CU03 (Recuperar contraseña): preparado visualmente, sin lógica. -->
+        <span class="login-card__link-inert">¿Olvidaste tu contraseña?</span>
+        <span class="login-card__link-inert">¿No tienes cuenta? Regístrate</span>
+      </div>
+    </div>
+  </div>
+</div>

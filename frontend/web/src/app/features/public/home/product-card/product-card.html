@@ -1,0 +1,20 @@
+<a href="/" class="card">
+  <div class="card__image">
+    @if (product().imageUrl) {
+      <img [src]="product().imageUrl" [alt]="product().name" />
+    }
+    <button
+      type="button"
+      class="card__favorite"
+      [class.is-active]="isFavorite()"
+      (click)="toggleFavorite($event)"
+      aria-label="Guardar en favoritos"
+    >
+      <app-icon name="heart" style="width: 15px; height: 15px" />
+    </button>
+  </div>
+  <div class="card__info">
+    <span class="card__name">{{ product().name }}</span>
+    <span class="card__price">S/ {{ product().price.toFixed(2) }}</span>
+  </div>
+</a>

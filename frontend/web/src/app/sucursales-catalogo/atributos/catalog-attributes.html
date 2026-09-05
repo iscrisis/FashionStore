@@ -1,0 +1,30 @@
+<div class="page-heading">
+  <h2>Categorías, tallas y colores</h2>
+  <p>Configura los datos base utilizados por las prendas del catálogo.</p>
+</div>
+
+<div class="tabs">
+  <button type="button" class="tab" [class.is-active]="activeTab() === 'categories'" (click)="setTab('categories')">
+    Categorías
+  </button>
+  <button type="button" class="tab" [class.is-active]="activeTab() === 'sizes'" (click)="setTab('sizes')">
+    Tallas
+  </button>
+  <button type="button" class="tab" [class.is-active]="activeTab() === 'colors'" (click)="setTab('colors')">
+    Colores
+  </button>
+</div>
+
+<div class="tab-content">
+  @switch (activeTab()) {
+    @case ('categories') {
+      <app-category-management />
+    }
+    @case ('sizes') {
+      <app-size-management />
+    }
+    @case ('colors') {
+      <app-color-management />
+    }
+  }
+</div>

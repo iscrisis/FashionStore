@@ -1,8 +1,15 @@
+# Orquesta el stack completo (backend + PostgreSQL + frontend web) para desarrollo local.
+#
+# Nota sobre variables de entorno: Docker Compose sustituye los ${VAR} de este archivo
+# usando un ".env" ubicado en esta misma carpeta (la raíz del repo). Los contenedores en sí
+# reciben su configuración real desde backend/.env (ver "env_file" de cada servicio). Si
+# cambias POSTGRES_USER/POSTGRES_PASSWORD en backend/.env, actualiza también el .env de la
+# raíz para que ambos coincidan (ver .env.example en la raíz).
 services:
   backend:
-    build: .
+    build: ./backend
     env_file:
-      - .env
+      - ./backend/.env
     environment:
       # Dentro de la red de Docker, PostgreSQL se resuelve por el nombre del servicio (db),
       # nunca por localhost ni por IP fija.
@@ -14,10 +21,18 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  frontend:
+    build: ./frontend/web
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
   db:
     image: postgres:16-alpine
     env_file:
-      - .env
+      - ./backend/.env
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-fashionstore}
       POSTGRES_USER: ${POSTGRES_USER:-fashionstore}

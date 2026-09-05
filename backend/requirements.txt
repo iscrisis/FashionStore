@@ -6,5 +6,9 @@ alembic==1.16.5
 pydantic-settings==2.11.0
 python-dotenv==1.1.1
 
+# CU01 - Iniciar sesión (usuarios_y_accesos): hashing de contraseñas y JWT
+bcrypt==5.0.0
+pyjwt==2.13.0
+
 pytest==8.4.2
 httpx==0.28.1

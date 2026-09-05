@@ -1,0 +1,45 @@
+<div class="brand">
+  <span class="brand__mark">FASHION<br />STORE</span>
+  <span class="brand__tag">Admin</span>
+</div>
+
+<nav class="nav">
+  @for (item of navItems; track item.label) {
+    @if (item.children) {
+      <div class="nav-group">
+        <div class="nav-group__label">
+          <app-icon [name]="item.icon" class="nav-icon" />
+          <span>{{ item.label }}</span>
+        </div>
+        <div class="nav-group__children">
+          @for (child of item.children; track child.label) {
+            @if (child.route) {
+              <a [routerLink]="child.route" routerLinkActive="is-active" class="nav-child">
+                {{ child.label }}
+              </a>
+            } @else {
+              <span class="nav-child nav-child--disabled" [title]="child.label + ' (próximamente)'">
+                {{ child.label }}
+              </span>
+            }
+          }
+        </div>
+      </div>
+    } @else if (item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-item"
+      >
+        <app-icon [name]="item.icon" class="nav-icon" />
+        <span>{{ item.label }}</span>
+      </a>
+    } @else {
+      <span class="nav-item nav-item--disabled" [title]="item.label + ' (próximamente)'">
+        <app-icon [name]="item.icon" class="nav-icon" />
+        <span>{{ item.label }}</span>
+      </span>
+    }
+  }
+</nav>

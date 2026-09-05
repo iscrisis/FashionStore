@@ -1,0 +1,40 @@
+<div class="header">
+  <a href="/" class="brand">
+    <span class="brand__mark">FASHION<br />STORE</span>
+  </a>
+
+  <div class="header__content container">
+    <button type="button" class="menu-toggle" (click)="toggleMobileMenu()" aria-label="Abrir menú">
+      <app-icon name="menu" style="width: 20px; height: 20px" />
+    </button>
+
+    <nav class="nav" [class.is-open]="mobileMenuOpen()">
+      @for (link of navLinks; track link.label) {
+        <a [href]="link.href" class="nav__link">{{ link.label }}</a>
+      }
+    </nav>
+
+    <div class="actions">
+      <button type="button" class="icon-btn" aria-label="Buscar">
+        <app-icon name="search" style="width: 18px; height: 18px" />
+      </button>
+      @if (authService.isAuthenticated()) {
+        <a [routerLink]="destinoCuenta" class="account-link" aria-label="Mi cuenta">
+          <app-icon name="user" style="width: 18px; height: 18px" />
+          <span class="account-link__label">{{ authService.usuario()?.nombre?.split(' ')?.[0] }}</span>
+        </a>
+      } @else {
+        <a routerLink="/login" class="account-link account-link--cta" aria-label="Iniciar sesión">
+          <app-icon name="user" style="width: 18px; height: 18px" />
+          <span class="account-link__label">Iniciar sesión</span>
+        </a>
+      }
+      <button type="button" class="icon-btn" aria-label="Carrito">
+        <app-icon name="bag" style="width: 18px; height: 18px" />
+        @if (cartCount() > 0) {
+          <span class="icon-btn__badge">{{ cartCount() }}</span>
+        }
+      </button>
+    </div>
+  </div>
+</div>

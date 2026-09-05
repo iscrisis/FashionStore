@@ -1,0 +1,22 @@
+@if (dialogService.config(); as config) {
+  <div class="overlay" (click)="dialogService.resolve(false)">
+    <div class="panel" role="alertdialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <h3 class="panel__title">{{ config.title }}</h3>
+      <p class="panel__message">{{ config.message }}</p>
+      <div class="panel__actions">
+        <button type="button" class="btn btn--ghost" (click)="dialogService.resolve(false)">
+          {{ config.cancelText ?? 'Cancelar' }}
+        </button>
+        <button
+          type="button"
+          class="btn"
+          [class.btn--danger]="config.danger"
+          [class.btn--primary]="!config.danger"
+          (click)="dialogService.resolve(true)"
+        >
+          {{ config.confirmText ?? 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

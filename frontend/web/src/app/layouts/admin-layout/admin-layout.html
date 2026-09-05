@@ -1,0 +1,10 @@
+<aside class="admin-layout__sidebar">
+  <app-admin-sidebar />
+</aside>
+
+<div class="admin-layout__main">
+  <app-admin-header [title]="headerTitle()" [subtitle]="headerSubtitle()" />
+  <main class="admin-layout__content">
+    <router-outlet />
+  </main>
+</div>

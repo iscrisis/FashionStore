@@ -1,0 +1,29 @@
+<div class="section-header">
+  <h2>Compra por categorías</h2>
+  <a href="/" class="section-link">Ver todas</a>
+</div>
+
+@if (loading()) {
+  <div class="category-grid">
+    @for (i of [1, 2, 3, 4, 5]; track i) {
+      <div class="skeleton-card"></div>
+    }
+  </div>
+} @else if (hasError()) {
+  <div class="state-block state-block--error">
+    <span class="state-block__title">No se pudieron cargar las categorías</span>
+    <span>Inténtalo nuevamente más tarde.</span>
+    <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+  </div>
+} @else if (categories().length === 0) {
+  <div class="state-block">
+    <span class="state-block__title">Aún no hay categorías activas</span>
+    <span>Las categorías configuradas desde el panel de administración aparecerán aquí.</span>
+  </div>
+} @else {
+  <div class="category-grid">
+    @for (category of categories(); track category.id) {
+      <app-category-card [category]="category" />
+    }
+  </div>
+}
