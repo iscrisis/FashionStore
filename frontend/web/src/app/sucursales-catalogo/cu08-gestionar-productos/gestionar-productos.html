@@ -1,0 +1,151 @@
+<section class="admin-card section">
+  <div class="section__header">
+    <div>
+      <h3>Productos</h3>
+      <p>Gestiona el catálogo de prendas de FashionStore.</p>
+    </div>
+    <button type="button" class="btn btn--primary" (click)="openCreate()">
+      <app-icon name="plus" style="width: 14px; height: 14px" />
+      Nuevo producto
+    </button>
+  </div>
+
+  <div class="table-toolbar section__toolbar">
+    <label class="search-input">
+      <app-icon name="search" />
+      <input
+        type="text"
+        placeholder="Buscar producto..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </label>
+
+    <select
+      class="status-select"
+      [ngModel]="categoriaFilter()"
+      (ngModelChange)="onCategoriaFilterChange($event)"
+    >
+      <option [ngValue]="null">Todas las categorías</option>
+      @for (categoria of categorias(); track categoria.id) {
+        <option [ngValue]="categoria.id">{{ categoria.nombre }}</option>
+      }
+    </select>
+
+    <select
+      class="status-select"
+      [ngModel]="temporadaFilter()"
+      (ngModelChange)="onTemporadaFilterChange($event)"
+    >
+      <option [ngValue]="null">Todas las temporadas</option>
+      @for (temporada of temporadas(); track temporada.id) {
+        <option [ngValue]="temporada.id">{{ temporada.nombre }}</option>
+      }
+    </select>
+
+    <select
+      class="status-select"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="onStatusFilterChange($event)"
+    >
+      <option value="all">Todos los estados</option>
+      <option value="active">Activos</option>
+      <option value="inactive">Inactivos</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="section__body">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudieron cargar los productos</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (productos().length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">Aún no hay productos registrados</span>
+      <span>Crea el primer producto o convierte una propuesta de un proveedor.</span>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Proveedor</th>
+            <th>Categoría</th>
+            <th>Temporada / Colección</th>
+            <th>Precio</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (producto of productos(); track producto.id) {
+            <tr>
+              <td class="cell-title">
+                <div class="product-cell">
+                  @if (producto.imagen_principal_url) {
+                    <img class="thumb" [src]="resolveMediaUrl(producto.imagen_principal_url)" alt="" />
+                  } @else {
+                    <span class="thumb-placeholder">S/I</span>
+                  }
+                  {{ producto.nombre }}
+                </div>
+              </td>
+              <td class="cell-secondary">{{ producto.proveedor.razon_social }}</td>
+              <td class="cell-secondary">{{ producto.categoria.nombre }}</td>
+              <td class="cell-secondary">{{ producto.temporada.nombre }} / {{ producto.coleccion.nombre }}</td>
+              <td class="cell-title">Bs {{ producto.precio_venta }}</td>
+              <td><app-status-badge [active]="producto.is_active" /></td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-actions__trigger"
+                    (click)="toggleMenu(producto.id, $event)"
+                    aria-label="Acciones"
+                  >
+                    <app-icon name="dots" />
+                  </button>
+                  @if (openMenuId() === producto.id) {
+                    <div class="row-actions__menu" (click)="$event.stopPropagation()">
+                      <button type="button" class="row-actions__item" (click)="openView(producto, $event)">
+                        <app-icon name="eye" /> Ver
+                      </button>
+                      <button type="button" class="row-actions__item" (click)="openEdit(producto)">
+                        <app-icon name="edit" /> Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="row-actions__item"
+                        [class.row-actions__item--danger]="producto.is_active"
+                        (click)="toggleStatus(producto, $event)"
+                      >
+                        <app-icon name="power" /> {{ producto.is_active ? 'Desactivar' : 'Activar' }}
+                      </button>
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<app-producto-form
+  [open]="drawerOpen()"
+  [producto]="editingProducto()"
+  [readonly]="viewMode()"
+  [submitting]="submitting()"
+  (save)="save($event)"
+  (close)="closeDrawer()"
+/>

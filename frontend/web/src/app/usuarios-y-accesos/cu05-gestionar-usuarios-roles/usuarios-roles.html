@@ -65,6 +65,7 @@
             <th>Usuario</th>
             <th>Correo</th>
             <th>Rol</th>
+            <th>Sucursal / Proveedor</th>
             <th>Estado</th>
             <th></th>
           </tr>
@@ -75,6 +76,15 @@
               <td class="cell-title">{{ usuario.nombre }}</td>
               <td class="cell-secondary">{{ usuario.correo }}</td>
               <td>{{ etiquetaRol(usuario.rol) }}</td>
+              <td class="cell-secondary">
+                @if (usuario.sucursal) {
+                  {{ usuario.sucursal.nombre }} · {{ usuario.sucursal.ciudad.nombre }}
+                } @else if (usuario.proveedor) {
+                  {{ usuario.proveedor.razon_social }}
+                } @else {
+                  —
+                }
+              </td>
               <td><app-status-badge [active]="usuario.is_active" /></td>
               <td>
                 <div class="row-actions">

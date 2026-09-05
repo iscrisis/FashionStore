@@ -2,7 +2,7 @@
 // CU01 (iniciar sesión) es el primer consumidor. CU02, CU03, CU04 y CU05
 // reutilizarán este mismo modelo — no debe duplicarse por caso de uso.
 
-export type RolUsuario = 'ADMINISTRADOR' | 'ENCARGADO_SUCURSAL' | 'CAJERO' | 'CLIENTE';
+export type RolUsuario = 'ADMINISTRADOR' | 'ENCARGADO_SUCURSAL' | 'CAJERO' | 'PROVEEDOR' | 'CLIENTE';
 
 export interface Usuario {
   id: number;

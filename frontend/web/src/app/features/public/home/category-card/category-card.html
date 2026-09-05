@@ -1,11 +1,17 @@
-<a href="/" class="card">
+<a [routerLink]="['/catalogo']" [queryParams]="{ categoria_id: category().id }" class="card">
   <div class="card__image">
-    @if (category().imageUrl) {
-      <img [src]="category().imageUrl" [alt]="category().name" />
+    @if (category().imagen_url && !imageError()) {
+      <img
+        [src]="resolveMediaUrl(category().imagen_url)"
+        [alt]="category().nombre"
+        (error)="imageError.set(true)"
+      />
+    } @else {
+      <app-icon name="bag" style="width: 28px; height: 28px" />
     }
   </div>
   <div class="card__footer">
-    <span class="card__name">{{ category().name }}</span>
+    <span class="card__name">{{ category().nombre }}</span>
     <app-icon name="arrow-right" style="width: 14px; height: 14px" />
   </div>
 </a>

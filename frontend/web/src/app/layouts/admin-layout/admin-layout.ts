@@ -17,6 +17,7 @@ export class AdminLayout {
 
   protected readonly headerTitle = signal('Panel de administración');
   protected readonly headerSubtitle = signal('');
+  protected readonly sidebarOpen = signal(false);
 
   constructor() {
     this.router.events
@@ -24,8 +25,19 @@ export class AdminLayout {
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         takeUntilDestroyed(),
       )
-      .subscribe(() => this.readHeaderFromRoute());
+      .subscribe(() => {
+        this.readHeaderFromRoute();
+        this.sidebarOpen.set(false);
+      });
     this.readHeaderFromRoute();
+  }
+
+  toggleSidebar(): void {
+    this.sidebarOpen.update((open) => !open);
+  }
+
+  closeSidebar(): void {
+    this.sidebarOpen.set(false);
   }
 
   private readHeaderFromRoute(): void {

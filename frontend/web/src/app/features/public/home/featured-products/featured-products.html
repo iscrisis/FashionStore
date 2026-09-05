@@ -1,16 +1,28 @@
 <div class="section-header">
   <h2>Destacados para ti</h2>
-  <a href="/" class="section-link">Ver todos</a>
+  <a routerLink="/catalogo" class="section-link">Ver todos</a>
 </div>
 
-@if (products.length === 0) {
+@if (loading()) {
+  <div class="product-grid">
+    @for (i of [1, 2, 3, 4]; track i) {
+      <div class="skeleton-card"></div>
+    }
+  </div>
+} @else if (hasError()) {
+  <div class="state-block state-block--error">
+    <span class="state-block__title">No se pudieron cargar los productos</span>
+    <span>Inténtalo nuevamente más tarde.</span>
+    <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+  </div>
+} @else if (products().length === 0) {
   <div class="state-block">
     <span class="state-block__title">No hay prendas publicadas</span>
     <span>Las prendas que el administrador publique aparecerán aquí.</span>
   </div>
 } @else {
   <div class="product-grid">
-    @for (product of products; track product.id) {
+    @for (product of products(); track product.id) {
       <app-product-card [product]="product" />
     }
   </div>

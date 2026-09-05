@@ -1,0 +1,12 @@
+<div class="header-text">
+  <h1>{{ title() }}</h1>
+  @if (subtitle()) {
+    <p>{{ subtitle() }}</p>
+  }
+</div>
+
+<div class="header-actions">
+  <div class="avatar">{{ iniciales }}</div>
+  <span class="profile-name">{{ usuario()?.nombre ?? 'Proveedor' }}</span>
+  <button type="button" class="btn btn--ghost btn--sm" (click)="logout()">Cerrar sesión</button>
+</div>

@@ -1,16 +1,17 @@
-<div class="header-text">
-  <h1>{{ title() }}</h1>
-  @if (subtitle()) {
-    <p>{{ subtitle() }}</p>
-  }
+<div class="header-left">
+  <button type="button" class="menu-toggle" (click)="menuToggle.emit()" aria-label="Abrir menú">
+    <app-icon name="menu" style="width: 20px; height: 20px" />
+  </button>
+
+  <div class="header-text">
+    <h1>{{ title() }}</h1>
+    @if (subtitle()) {
+      <p>{{ subtitle() }}</p>
+    }
+  </div>
 </div>
 
 <div class="header-actions">
-  <button type="button" class="icon-btn" aria-label="Notificaciones">
-    <app-icon name="bell" style="width: 18px; height: 18px" />
-    <span class="badge"></span>
-  </button>
-
   <div class="profile" (click)="toggleMenu()">
     <div class="avatar">{{ iniciales }}</div>
     <div class="profile-text">

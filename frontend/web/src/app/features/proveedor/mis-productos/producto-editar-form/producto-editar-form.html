@@ -1,0 +1,74 @@
+@if (open()) {
+  <div class="drawer-overlay" (click)="close.emit()">
+    <aside class="drawer" (click)="$event.stopPropagation()">
+      <header class="drawer__header">
+        <h2>{{ readonly() ? 'Detalle del producto' : 'Editar producto' }}</h2>
+        <button type="button" class="icon-btn" (click)="close.emit()" aria-label="Cerrar">
+          <app-icon name="close" style="width: 16px; height: 16px" />
+        </button>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="drawer__form">
+        <label class="field" [class.has-error]="form.controls.nombre.invalid && form.controls.nombre.touched">
+          <span class="field__label">Nombre *</span>
+          <input type="text" formControlName="nombre" placeholder="Ej. Chaqueta Denim" />
+          @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+            <span class="field__error">El nombre es obligatorio.</span>
+          }
+        </label>
+
+        <label class="field">
+          <span class="field__label">Descripción</span>
+          <textarea formControlName="descripcion" rows="3" placeholder="Opcional"></textarea>
+        </label>
+
+        <label
+          class="field"
+          [class.has-error]="form.controls.temporada_id.invalid && form.controls.temporada_id.touched"
+        >
+          <span class="field__label">Temporada *</span>
+          <select formControlName="temporada_id">
+            <option [value]="null" disabled>Selecciona una temporada</option>
+            @for (temporada of temporadas(); track temporada.id) {
+              <option [value]="temporada.id">{{ temporada.nombre }}</option>
+            }
+          </select>
+          @if (form.controls.temporada_id.invalid && form.controls.temporada_id.touched) {
+            <span class="field__error">Selecciona una temporada.</span>
+          }
+        </label>
+
+        <label
+          class="field"
+          [class.has-error]="form.controls.coleccion_id.invalid && form.controls.coleccion_id.touched"
+        >
+          <span class="field__label">Colección *</span>
+          <select formControlName="coleccion_id">
+            <option [value]="null" disabled>
+              {{ form.controls.temporada_id.value ? 'Selecciona una colección' : 'Elige una temporada primero' }}
+            </option>
+            @for (coleccion of colecciones(); track coleccion.id) {
+              <option [value]="coleccion.id">{{ coleccion.nombre }}</option>
+            }
+          </select>
+          @if (form.controls.coleccion_id.invalid && form.controls.coleccion_id.touched) {
+            <span class="field__error">Selecciona una colección.</span>
+          }
+        </label>
+
+        <footer class="drawer__footer">
+          @if (readonly()) {
+            <button type="button" class="btn btn--ghost" (click)="close.emit()">Cerrar</button>
+          } @else {
+            <button type="button" class="btn btn--ghost" (click)="close.emit()" [disabled]="submitting()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+              {{ submitting() ? 'Guardando…' : 'Guardar cambios' }}
+            </button>
+          }
+        </footer>
+      </form>
+    </aside>
+  </div>
+}

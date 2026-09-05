@@ -1,0 +1,142 @@
+<section class="admin-card section">
+  <div class="section__header">
+    <div>
+      <h3>Gestionar sucursales</h3>
+      <p>Administra las sucursales físicas de FashionStore.</p>
+    </div>
+    <div class="section__header-actions">
+      <button type="button" class="btn btn--ghost" (click)="openCityManagement()">
+        <app-icon name="settings" style="width: 14px; height: 14px" />
+        Gestionar ciudades
+      </button>
+      <button type="button" class="btn btn--primary" (click)="openCreate()">
+        <app-icon name="plus" style="width: 14px; height: 14px" />
+        Nueva sucursal
+      </button>
+    </div>
+  </div>
+
+  <div class="table-toolbar section__toolbar">
+    <label class="search-input">
+      <app-icon name="search" />
+      <input
+        type="text"
+        placeholder="Buscar por nombre..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </label>
+
+    <select
+      class="status-select"
+      [ngModel]="ciudadFilter()"
+      (ngModelChange)="onCiudadFilterChange($event)"
+    >
+      <option value="">Todas las ciudades</option>
+      @for (ciudad of ciudades(); track ciudad.id) {
+        <option [value]="ciudad.id">{{ ciudad.nombre }}</option>
+      }
+    </select>
+
+    <select
+      class="status-select"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="onStatusFilterChange($event)"
+    >
+      <option value="all">Todos los estados</option>
+      <option value="active">Activas</option>
+      <option value="inactive">Inactivas</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="section__body">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudieron cargar las sucursales</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (sucursales().length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">No se encontraron sucursales</span>
+      <span>Crea la primera sucursal para empezar a operar.</span>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Sucursal</th>
+            <th>Ciudad</th>
+            <th>Dirección</th>
+            <th>Teléfono</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (sucursal of sucursales(); track sucursal.id) {
+            <tr>
+              <td class="cell-title">{{ sucursal.nombre }}</td>
+              <td>{{ sucursal.ciudad.nombre }}</td>
+              <td class="cell-secondary">{{ sucursal.direccion }}</td>
+              <td class="cell-secondary">{{ sucursal.telefono }}</td>
+              <td><app-status-badge [active]="sucursal.is_active" /></td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-actions__trigger"
+                    (click)="toggleMenu(sucursal.id, $event)"
+                    aria-label="Acciones"
+                  >
+                    <app-icon name="dots" />
+                  </button>
+                  @if (openMenuId() === sucursal.id) {
+                    <div class="row-actions__menu" (click)="$event.stopPropagation()">
+                      <button type="button" class="row-actions__item" (click)="openView(sucursal, $event)">
+                        <app-icon name="eye" /> Ver
+                      </button>
+                      <button type="button" class="row-actions__item" (click)="openEdit(sucursal)">
+                        <app-icon name="edit" /> Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="row-actions__item"
+                        [class.row-actions__item--danger]="sucursal.is_active"
+                        (click)="toggleStatus(sucursal, $event)"
+                      >
+                        <app-icon name="power" /> {{ sucursal.is_active ? 'Desactivar' : 'Activar' }}
+                      </button>
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<app-sucursal-form
+  [open]="drawerOpen()"
+  [sucursal]="editingSucursal()"
+  [ciudades]="ciudades()"
+  [readonly]="viewMode()"
+  [submitting]="submitting()"
+  (save)="save($event)"
+  (close)="closeDrawer()"
+/>
+
+<app-ciudad-management
+  [open]="cityManagementOpen()"
+  (close)="closeCityManagement()"
+  (changed)="loadCiudades()"
+/>

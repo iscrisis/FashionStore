@@ -9,44 +9,22 @@
       </header>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="drawer__form">
-        <div class="field-row">
-          <label class="field" [class.has-error]="form.controls.code.invalid && form.controls.code.touched">
-            <span class="field__label">Código *</span>
-            <input type="text" formControlName="code" placeholder="Ej. M" />
-            @if (form.controls.code.invalid && form.controls.code.touched) {
-              <span class="field__error">El código es obligatorio.</span>
-            }
-          </label>
-
-          <label class="field" [class.has-error]="form.controls.name.invalid && form.controls.name.touched">
-            <span class="field__label">Nombre *</span>
-            <input type="text" formControlName="name" placeholder="Ej. Medium" />
-            @if (form.controls.name.invalid && form.controls.name.touched) {
-              <span class="field__error">El nombre es obligatorio.</span>
-            }
-          </label>
-        </div>
-
-        <label class="field">
-          <span class="field__label">Descripción</span>
-          <textarea formControlName="description" rows="2" placeholder="Opcional"></textarea>
+        <label class="field" [class.has-error]="form.controls.nombre.invalid && form.controls.nombre.touched">
+          <span class="field__label">Nombre *</span>
+          <input type="text" formControlName="nombre" placeholder="Ej. M, XL, 38..." />
+          @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+            <span class="field__error">El nombre es obligatorio.</span>
+          }
         </label>
 
-        <div class="field-row">
-          <label class="field">
-            <span class="field__label">Orden *</span>
-            <input type="number" formControlName="displayOrder" min="1" />
-          </label>
-
-          <label class="field field--switch">
-            <span class="field__label">Estado</span>
-            <span class="switch">
-              <input type="checkbox" formControlName="isActive" />
-              <span class="switch__track"><span class="switch__thumb"></span></span>
-              <span class="switch__text">{{ form.controls.isActive.value ? 'Activa' : 'Inactiva' }}</span>
-            </span>
-          </label>
-        </div>
+        <label class="field field--switch">
+          <span class="field__label">Estado</span>
+          <span class="switch">
+            <input type="checkbox" formControlName="is_active" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+            <span class="switch__text">{{ form.controls.is_active.value ? 'Activa' : 'Inactiva' }}</span>
+          </span>
+        </label>
 
         <footer class="drawer__footer">
           @if (readonly()) {

@@ -3,7 +3,10 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  CiudadOpcion,
+  ProveedorOpcion,
   RolDisponible,
+  SucursalOpcion,
   UsuarioActualizarPayload,
   UsuarioAdmin,
   UsuarioCrearPayload,
@@ -14,6 +17,25 @@ import {
 export class UsuarioAdminService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/usuarios`;
+
+  // Ciudad → Sucursal provienen de CU06 (P1_SucursalesYCatalogos): CU05 solo
+  // las consulta para el selector de "Nuevo/Editar usuario", no las administra.
+  ciudades(): Observable<CiudadOpcion[]> {
+    const params = new HttpParams().set('estado', 'active');
+    return this.http.get<CiudadOpcion[]>(`${environment.apiUrl}/ciudades`, { params });
+  }
+
+  sucursalesPorCiudad(ciudadId: number): Observable<SucursalOpcion[]> {
+    const params = new HttpParams().set('ciudad_id', ciudadId).set('estado', 'active');
+    return this.http.get<SucursalOpcion[]>(`${environment.apiUrl}/sucursales`, { params });
+  }
+
+  // Proveedor viene de Gestión de Proveedores (P1_SucursalesYCatalogos): CU05
+  // solo lo consulta para vincular una cuenta PROVEEDOR, no lo administra.
+  proveedores(): Observable<ProveedorOpcion[]> {
+    const params = new HttpParams().set('estado', 'active');
+    return this.http.get<ProveedorOpcion[]>(`${environment.apiUrl}/proveedores`, { params });
+  }
 
   list(query?: UsuariosListQuery): Observable<UsuarioAdmin[]> {
     let params = new HttpParams();

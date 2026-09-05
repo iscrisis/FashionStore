@@ -2,52 +2,68 @@
   <div class="drawer-overlay" (click)="close.emit()">
     <aside class="drawer" (click)="$event.stopPropagation()">
       <header class="drawer__header">
-        <h2>
-          {{ readonly() ? 'Detalle de categoría' : isEditMode ? 'Editar categoría' : 'Nueva categoría' }}
-        </h2>
+        <h2>{{ readonly() ? 'Detalle de categoría' : isEditMode ? 'Editar categoría' : 'Nueva categoría' }}</h2>
         <button type="button" class="icon-btn" (click)="close.emit()" aria-label="Cerrar">
           <app-icon name="close" style="width: 16px; height: 16px" />
         </button>
       </header>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="drawer__form">
-        <label class="field" [class.has-error]="form.controls.name.invalid && form.controls.name.touched">
-          <span class="field__label">Nombre de categoría *</span>
-          <input type="text" formControlName="name" placeholder="Ej. Vestidos" />
-          @if (form.controls.name.invalid && form.controls.name.touched) {
-            <span class="field__error">El nombre de la categoría es obligatorio.</span>
+        <label class="field" [class.has-error]="form.controls.nombre.invalid && form.controls.nombre.touched">
+          <span class="field__label">Nombre *</span>
+          <input type="text" formControlName="nombre" placeholder="Ej. Poleras" />
+          @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+            <span class="field__error">El nombre es obligatorio.</span>
           }
         </label>
 
-        <label class="field">
-          <span class="field__label">Descripción</span>
-          <textarea
-            formControlName="description"
-            rows="3"
-            placeholder="Ej. Vestidos casuales, formales y de temporada."
-          ></textarea>
+        @if (!isEditMode) {
+          <div class="field">
+            <span class="field__label">Imagen</span>
+            <span class="field__hint">Guarda la categoría primero; luego podrás cargar aquí mismo su imagen.</span>
+          </div>
+        } @else {
+          <div class="field">
+            <span class="field__label">Imagen</span>
+            <div class="image-principal">
+              @if (imagenUrl()) {
+                <img [src]="resolveMediaUrl(imagenUrl())" alt="Imagen de la categoría" class="image-principal__preview" />
+              } @else {
+                <div class="image-principal__placeholder">
+                  <app-icon name="catalog" style="width: 22px; height: 22px" />
+                </div>
+              }
+              @if (!readonly()) {
+                <div class="image-principal__actions">
+                  <label class="btn btn--ghost btn--sm image-upload-btn">
+                    {{ subiendoImagen() ? 'Cargando…' : imagenUrl() ? 'Cambiar imagen' : 'Seleccionar imagen' }}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      [disabled]="subiendoImagen()"
+                      (change)="onImagenSeleccionada($event)"
+                    />
+                  </label>
+                  @if (imagenUrl()) {
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="quitarImagen()">Quitar</button>
+                  }
+                </div>
+              }
+            </div>
+            @if (imagenError()) {
+              <span class="field__error">{{ imagenError() }}</span>
+            }
+          </div>
+        }
+
+        <label class="field field--switch">
+          <span class="field__label">Estado</span>
+          <span class="switch">
+            <input type="checkbox" formControlName="is_active" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+            <span class="switch__text">{{ form.controls.is_active.value ? 'Activa' : 'Inactiva' }}</span>
+          </span>
         </label>
-
-        <label class="field">
-          <span class="field__label">Imagen representativa (URL)</span>
-          <input type="text" formControlName="imageUrl" placeholder="https://..." />
-        </label>
-
-        <div class="field-row">
-          <label class="field">
-            <span class="field__label">Orden de visualización *</span>
-            <input type="number" formControlName="displayOrder" min="1" />
-          </label>
-
-          <label class="field field--switch">
-            <span class="field__label">Estado</span>
-            <span class="switch">
-              <input type="checkbox" formControlName="isActive" />
-              <span class="switch__track"><span class="switch__thumb"></span></span>
-              <span class="switch__text">{{ form.controls.isActive.value ? 'Activa' : 'Inactiva' }}</span>
-            </span>
-          </label>
-        </div>
 
         <footer class="drawer__footer">
           @if (readonly()) {

@@ -25,7 +25,10 @@ from .schemas import (
 from .service import (
     CorreoDuplicadoError,
     OperacionNoPermitidaError,
+    ProveedorNoEncontradoError,
+    ProveedorYaVinculadoError,
     RolNoAsignableError,
+    SucursalNoEncontradaError,
     UsuarioNoEncontradoError,
     UsuariosRolesService,
 )
@@ -36,6 +39,7 @@ _ETIQUETAS_ROL = {
     RolUsuario.ADMINISTRADOR: "Administrador general",
     RolUsuario.ENCARGADO_SUCURSAL: "Encargado de sucursal",
     RolUsuario.CAJERO: "Cajero",
+    RolUsuario.PROVEEDOR: "Proveedor",
     RolUsuario.CLIENTE: "Cliente",
 }
 
@@ -78,7 +82,15 @@ def crear_usuario(
     except RolNoAsignableError as exc:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
-            "CLIENTE no se asigna desde este módulo; usa el registro de clientes.",
+            "Rol no asignable desde este módulo.",
+        ) from exc
+    except SucursalNoEncontradaError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "La sucursal indicada no existe.") from exc
+    except ProveedorNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "El proveedor indicado no existe.") from exc
+    except ProveedorYaVinculadoError as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Ese proveedor ya tiene una cuenta de acceso vinculada."
         ) from exc
     except CorreoDuplicadoError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, "Ya existe un usuario con ese correo.") from exc
@@ -95,6 +107,14 @@ def actualizar_usuario(
         return UsuariosRolesService(db).actualizar_datos(usuario_id, payload)
     except UsuarioNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Usuario no encontrado.") from exc
+    except SucursalNoEncontradaError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "La sucursal indicada no existe.") from exc
+    except ProveedorNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "El proveedor indicado no existe.") from exc
+    except ProveedorYaVinculadoError as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Ese proveedor ya tiene una cuenta de acceso vinculada."
+        ) from exc
     except CorreoDuplicadoError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, "Ya existe un usuario con ese correo.") from exc
 
@@ -113,12 +133,7 @@ def cambiar_rol(
     except RolNoAsignableError as exc:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
-            "CLIENTE no se asigna desde este módulo.",
-        ) from exc
-    except OperacionNoPermitidaError as exc:
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            "No puedes quitar el rol de administrador al último administrador activo.",
+            "Rol no asignable desde este módulo.",
         ) from exc
 
 

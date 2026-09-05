@@ -1,9 +1,17 @@
-<aside class="admin-layout__sidebar">
+<aside class="admin-layout__sidebar" [class.is-open]="sidebarOpen()">
   <app-admin-sidebar />
 </aside>
 
+@if (sidebarOpen()) {
+  <div class="admin-layout__backdrop" (click)="closeSidebar()"></div>
+}
+
 <div class="admin-layout__main">
-  <app-admin-header [title]="headerTitle()" [subtitle]="headerSubtitle()" />
+  <app-admin-header
+    [title]="headerTitle()"
+    [subtitle]="headerSubtitle()"
+    (menuToggle)="toggleSidebar()"
+  />
   <main class="admin-layout__content">
     <router-outlet />
   </main>

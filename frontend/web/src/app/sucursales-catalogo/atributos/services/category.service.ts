@@ -8,21 +8,17 @@ import { Category, CategoryPayload } from '../models/category.model';
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiUrl}/categories`;
+  private readonly baseUrl = `${environment.apiUrl}/categorias`;
 
   list(query?: CatalogListQuery): Observable<Category[]> {
     let params = new HttpParams();
     if (query?.search) {
       params = params.set('search', query.search);
     }
-    if (query?.status && query.status !== 'all') {
-      params = params.set('status', query.status);
+    if (query?.estado && query.estado !== 'all') {
+      params = params.set('estado', query.estado);
     }
     return this.http.get<Category[]>(this.baseUrl, { params });
-  }
-
-  get(id: number): Observable<Category> {
-    return this.http.get<Category>(`${this.baseUrl}/${id}`);
   }
 
   create(payload: CategoryPayload): Observable<Category> {
@@ -34,6 +30,16 @@ export class CategoryService {
   }
 
   setActive(id: number, isActive: boolean): Observable<Category> {
-    return this.http.patch<Category>(`${this.baseUrl}/${id}/status`, { isActive });
+    return this.http.patch<Category>(`${this.baseUrl}/${id}/estado`, { is_active: isActive });
+  }
+
+  setImagen(id: number, archivo: File): Observable<Category> {
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+    return this.http.post<Category>(`${this.baseUrl}/${id}/imagen`, formData);
+  }
+
+  removeImagen(id: number): Observable<Category> {
+    return this.http.delete<Category>(`${this.baseUrl}/${id}/imagen`);
   }
 }

@@ -7,7 +7,13 @@ from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 
 from .repository import UsuariosRolesRepository
-from .schemas import ROLES_INTERNOS, UsuarioActualizar, UsuarioCrear
+from .schemas import (
+    ROLES_CON_PROVEEDOR,
+    ROLES_CON_SUCURSAL,
+    ROLES_INTERNOS,
+    UsuarioActualizar,
+    UsuarioCrear,
+)
 
 
 class UsuarioNoEncontradoError(Exception):
@@ -19,11 +25,24 @@ class CorreoDuplicadoError(Exception):
 
 
 class RolNoAsignableError(Exception):
-    """CLIENTE no se asigna desde CU05 (pertenece a CU02 — Registrar cliente)."""
+    """CLIENTE (CU02), ADMINISTRADOR (cuenta única) o un cambio de rol entre
+    grupo "sucursal" y grupo "proveedor" (requeriría re-vincular la cuenta)."""
+
+
+class SucursalNoEncontradaError(Exception):
+    """La sucursal indicada no existe."""
+
+
+class ProveedorNoEncontradoError(Exception):
+    """El proveedor indicado no existe."""
+
+
+class ProveedorYaVinculadoError(Exception):
+    """Ese proveedor ya tiene una cuenta de acceso vinculada."""
 
 
 class OperacionNoPermitidaError(Exception):
-    """Auto-bloqueo del administrador o remoción del último ADMINISTRADOR activo."""
+    """Auto-desactivación bloqueada."""
 
 
 class UsuariosRolesService:
@@ -37,13 +56,27 @@ class UsuariosRolesService:
 
     def obtener(self, usuario_id: int) -> Usuario:
         usuario = self._repo.get_by_id(usuario_id)
-        if usuario is None:
+        # El Administrador General queda fuera de CU05 por completo: no aparece,
+        # no se edita, no se desactiva ni se reasigna de rol. Se comporta como si
+        # no existiera para este caso de uso (igual que listar() en repository.py).
+        if usuario is None or usuario.rol == RolUsuario.ADMINISTRADOR:
             raise UsuarioNoEncontradoError
         return usuario
 
     def crear(self, datos: UsuarioCrear) -> Usuario:
         if datos.rol not in ROLES_INTERNOS:
             raise RolNoAsignableError
+
+        # El esquema (UsuarioCrear) ya garantiza cuál campo debe venir según el
+        # rol; aquí solo se valida que el id recibido exista de verdad.
+        if datos.sucursal_id is not None and self._repo.get_sucursal(datos.sucursal_id) is None:
+            raise SucursalNoEncontradaError
+
+        if datos.proveedor_id is not None:
+            if self._repo.get_proveedor(datos.proveedor_id) is None:
+                raise ProveedorNoEncontradoError
+            if self._repo.proveedor_ya_vinculado(datos.proveedor_id):
+                raise ProveedorYaVinculadoError
 
         if self._repo.get_by_correo(datos.correo) is not None:
             raise CorreoDuplicadoError
@@ -54,6 +87,8 @@ class UsuariosRolesService:
             password_hash=hash_password(datos.password),
             rol=datos.rol,
             is_active=datos.is_active,
+            sucursal_id=datos.sucursal_id,
+            proveedor_id=datos.proveedor_id,
         )
         return self._repo.crear(usuario)
 
@@ -63,6 +98,19 @@ class UsuariosRolesService:
         existente = self._repo.get_by_correo(datos.correo.strip().lower())
         if existente is not None and existente.id != usuario.id:
             raise CorreoDuplicadoError
+
+        # A diferencia de crear(), aquí el rol no viene en el payload: se usa
+        # el rol ya guardado en el usuario para saber qué campo es obligatorio.
+        if usuario.rol in ROLES_CON_SUCURSAL:
+            if datos.sucursal_id is None or self._repo.get_sucursal(datos.sucursal_id) is None:
+                raise SucursalNoEncontradaError
+            usuario.sucursal_id = datos.sucursal_id
+        elif usuario.rol in ROLES_CON_PROVEEDOR:
+            if datos.proveedor_id is None or self._repo.get_proveedor(datos.proveedor_id) is None:
+                raise ProveedorNoEncontradoError
+            if self._repo.proveedor_ya_vinculado(datos.proveedor_id, excluyendo_usuario_id=usuario.id):
+                raise ProveedorYaVinculadoError
+            usuario.proveedor_id = datos.proveedor_id
 
         usuario.nombre = datos.nombre.strip()
         usuario.correo = datos.correo.strip().lower()
@@ -74,13 +122,12 @@ class UsuariosRolesService:
 
         usuario = self.obtener(usuario_id)
 
-        es_ultimo_admin = (
-            usuario.rol == RolUsuario.ADMINISTRADOR
-            and nuevo_rol != RolUsuario.ADMINISTRADOR
-            and self._repo.contar_administradores_activos(excluyendo_id=usuario.id) == 0
-        )
-        if es_ultimo_admin:
-            raise OperacionNoPermitidaError
+        # Cambiar entre el grupo "sucursal" y el grupo "proveedor" dejaría a la
+        # cuenta sin el vínculo que su nuevo rol exige (este endpoint no recibe
+        # sucursal_id/proveedor_id) — se rechaza; hay que editarlo con el otro
+        # vínculo ya elegido, o recrear la cuenta.
+        if (usuario.rol in ROLES_CON_SUCURSAL) != (nuevo_rol in ROLES_CON_SUCURSAL):
+            raise RolNoAsignableError
 
         usuario.rol = nuevo_rol
         return self._repo.guardar(usuario)
@@ -88,10 +135,6 @@ class UsuariosRolesService:
     def cambiar_estado(self, usuario_id: int, activo: bool, actor: Usuario) -> Usuario:
         usuario = self.obtener(usuario_id)
 
-        # No hace falta además contar administradores activos aquí: para llegar a este
-        # endpoint el actor ya debe ser un ADMINISTRADOR activo (require_admin), así que
-        # desactivar a alguien más nunca deja el sistema en cero administradores — el único
-        # camino real hacia ese escenario es la autodesactivación, ya bloqueada arriba.
         if not activo and usuario.id == actor.id:
             raise OperacionNoPermitidaError
 

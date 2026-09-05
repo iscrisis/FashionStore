@@ -1,0 +1,149 @@
+<div class="container detalle-page">
+  @if (loading()) {
+    <div class="detalle-skeleton">
+      <div class="skeleton-block skeleton-block--gallery"></div>
+      <div class="skeleton-block skeleton-block--info"></div>
+    </div>
+  } @else if (notFound() || !producto()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">Prenda no encontrada</span>
+      <span>Puede que ya no esté disponible.</span>
+      <a routerLink="/catalogo" class="btn btn--ghost btn--sm">Volver al catálogo</a>
+    </div>
+  } @else {
+    <a routerLink="/catalogo" class="back-link">
+      <app-icon name="arrow-right" style="width: 13px; height: 13px; transform: rotate(180deg)" />
+      Volver al catálogo
+    </a>
+
+    <div class="detalle">
+      <div class="gallery">
+        <div class="gallery__main">
+          @if (imagenActivaUrl() && !erroredUrls().has(imagenActivaUrl()!)) {
+            <img
+              [src]="resolveMediaUrl(imagenActivaUrl())"
+              [alt]="producto()!.nombre"
+              (error)="marcarImagenRota(imagenActivaUrl()!)"
+            />
+          } @else {
+            <div class="gallery__placeholder">
+              <app-icon name="products" style="width: 40px; height: 40px" />
+            </div>
+          }
+        </div>
+        @if (galeria.length > 1) {
+          <div class="gallery__thumbs">
+            @for (url of galeria; track url) {
+              <button
+                type="button"
+                class="gallery__thumb"
+                [class.is-active]="url === imagenActivaUrl()"
+                (click)="seleccionarImagen(url)"
+              >
+                @if (!erroredUrls().has(url)) {
+                  <img [src]="resolveMediaUrl(url)" alt="" (error)="marcarImagenRota(url)" />
+                } @else {
+                  <div class="gallery__thumb-placeholder">
+                    <app-icon name="products" style="width: 16px; height: 16px" />
+                  </div>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="info">
+        <span class="info__categoria">{{ producto()!.categoria.nombre }}</span>
+        <h1 class="info__nombre">{{ producto()!.nombre }}</h1>
+        <span class="info__precio">Bs {{ producto()!.precio_venta.toFixed(2) }}</span>
+
+        @if (producto()!.descripcion) {
+          <p class="info__descripcion">{{ producto()!.descripcion }}</p>
+        }
+
+        <span class="info__coleccion">{{ producto()!.temporada.nombre }} · {{ producto()!.coleccion.nombre }}</span>
+
+        @if (producto()!.colores.length > 0) {
+          <div class="info__group">
+            <span class="info__label">Color</span>
+            <div class="chip-list">
+              @for (color of producto()!.colores; track color.id) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.chip--checked]="color.id === colorSeleccionadoId()"
+                  (click)="seleccionarColor(color.id)"
+                >
+                  {{ color.nombre }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        @if (producto()!.tallas.length > 0) {
+          <div class="info__group">
+            <span class="info__label">Talla</span>
+            <div class="chip-list">
+              @for (talla of producto()!.tallas; track talla.id) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.chip--checked]="talla.id === tallaSeleccionadaId()"
+                  (click)="seleccionarTalla(talla.id)"
+                >
+                  {{ talla.nombre }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="disponibilidad">
+          <span class="info__label">Disponibilidad en tiendas</span>
+
+          <label class="disponibilidad__ciudad">
+            <span class="disponibilidad__ciudad-label">Ciudad</span>
+            <select
+              [ngModel]="ciudadId()"
+              (ngModelChange)="onCiudadChange($event)"
+              [disabled]="loadingCiudades() || ciudades().length === 0"
+            >
+              @if (ciudades().length === 0) {
+                <option [ngValue]="null">Sin ciudades disponibles</option>
+              }
+              @for (ciudad of ciudades(); track ciudad.id) {
+                <option [ngValue]="ciudad.id">{{ ciudad.nombre }}</option>
+              }
+            </select>
+          </label>
+
+          @if (loadingCiudades() || loadingSucursales()) {
+            <div class="disponibilidad__sucursales">
+              <div class="skeleton-sucursal"></div>
+              <div class="skeleton-sucursal"></div>
+            </div>
+          } @else if (errorSucursales()) {
+            <div class="state-block state-block--error">
+              <span>{{ errorSucursales() }}</span>
+              <button type="button" class="btn btn--ghost btn--sm" (click)="loadSucursales()">Reintentar</button>
+            </div>
+          } @else if (sucursales().length === 0) {
+            <span class="disponibilidad__vacio">Sin sucursales en esta ciudad.</span>
+          } @else {
+            <div class="disponibilidad__sucursales">
+              @for (sucursal of sucursales(); track sucursal.id) {
+                <div class="sucursal-card">
+                  <span class="sucursal-card__nombre">{{ sucursal.nombre }}</span>
+                  <span class="sucursal-card__direccion">{{ sucursal.direccion }}</span>
+                  <span class="sucursal-card__telefono">{{ sucursal.telefono }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

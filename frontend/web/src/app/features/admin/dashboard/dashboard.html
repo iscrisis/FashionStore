@@ -1,56 +1,12 @@
-<div class="dashboard-welcome">
-  <h2>Bienvenido, {{ authService.usuario()?.nombre ?? 'Administrador' }}</h2>
-  <p>Gestiona la configuración y operaciones de FashionStore desde este panel.</p>
+<div class="dashboard-grid">
+  @for (card of cards; track card.title) {
+    <div class="admin-card dashboard-card">
+      <h3>{{ card.title }}</h3>
+      <p>{{ card.message }}</p>
+    </div>
+  }
 </div>
 
-@if (loading()) {
-  <div class="dashboard-grid">
-    <div class="skeleton-row"></div>
-    <div class="skeleton-row"></div>
-    <div class="skeleton-row"></div>
-  </div>
-} @else if (errorMessage()) {
-  <div class="admin-card state-block state-block--error">
-    <span class="state-block__title">No se pudieron cargar los datos</span>
-    <span>{{ errorMessage() }}</span>
-  </div>
-} @else {
-  <div class="dashboard-grid">
-    <div class="admin-card dashboard-stat">
-      <span class="dashboard-stat__icon dashboard-stat__icon--success">
-        <app-icon name="users" style="width: 18px; height: 18px" />
-      </span>
-      <div class="dashboard-stat__text">
-        <span class="dashboard-stat__value">{{ usuariosActivos() }}</span>
-        <span class="dashboard-stat__label">Usuarios activos</span>
-      </div>
-    </div>
-
-    <div class="admin-card dashboard-stat">
-      <span class="dashboard-stat__icon dashboard-stat__icon--muted">
-        <app-icon name="power" style="width: 18px; height: 18px" />
-      </span>
-      <div class="dashboard-stat__text">
-        <span class="dashboard-stat__value">{{ usuariosInactivos() }}</span>
-        <span class="dashboard-stat__label">Usuarios inactivos</span>
-      </div>
-    </div>
-
-    <div class="admin-card dashboard-stat">
-      <span class="dashboard-stat__icon dashboard-stat__icon--primary">
-        <app-icon name="settings" style="width: 18px; height: 18px" />
-      </span>
-      <div class="dashboard-stat__text">
-        <span class="dashboard-stat__value">{{ rolesDisponibles() }}</span>
-        <span class="dashboard-stat__label">Roles disponibles</span>
-      </div>
-    </div>
-  </div>
-}
-
 <div class="admin-card dashboard-hint">
-  <p>
-    Desde <strong>Usuarios y acceso → Usuarios y roles</strong> puedes crear cuentas internas,
-    asignarles un rol y activar o desactivar su acceso al sistema.
-  </p>
+  <p>Configure FashionStore para comenzar: cree sucursales, categorías y productos desde el menú.</p>
 </div>

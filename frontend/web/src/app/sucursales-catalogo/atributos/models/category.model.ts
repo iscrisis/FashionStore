@@ -1,10 +1,11 @@
 export interface Category {
   id: number;
-  name: string;
-  description: string | null;
-  imageUrl: string | null;
-  displayOrder: number;
-  isActive: boolean;
+  nombre: string;
+  imagen_url: string | null;
+  is_active: boolean;
 }
 
-export type CategoryPayload = Omit<Category, 'id'>;
+export interface CategoryPayload {
+  nombre: string;
+  is_active?: boolean;
+}

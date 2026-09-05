@@ -1,0 +1,28 @@
+:host {
+  display: contents;
+}
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+}
+
+// El drawer tiene max-width: 92vw; en pantallas muy angostas, correo y
+// teléfono lado a lado no caben cómodamente — se apilan solo aquí.
+@media (max-width: 420px) {
+  .field-row {
+    flex-direction: column;
+    gap: 18px;
+  }
+}

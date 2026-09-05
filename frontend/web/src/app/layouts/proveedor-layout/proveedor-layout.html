@@ -1,0 +1,10 @@
+<aside class="proveedor-layout__sidebar">
+  <app-proveedor-sidebar />
+</aside>
+
+<div class="proveedor-layout__main">
+  <app-proveedor-header [title]="headerTitle()" [subtitle]="headerSubtitle()" />
+  <main class="proveedor-layout__content">
+    <router-outlet />
+  </main>
+</div>

@@ -7,6 +7,7 @@ import { ConfirmDialogService } from '../../../core/ui/confirm-dialog/confirm-di
 import { Icon } from '../../../core/ui/icon/icon';
 import { StatusBadge } from '../../../core/ui/status-badge/status-badge';
 import { ToastService } from '../../../core/ui/toast/toast.service';
+import { resolveMediaUrl } from '../../../core/utils/resolve-media-url';
 import { CategoryForm } from './category-form/category-form';
 
 @Component({
@@ -16,6 +17,8 @@ import { CategoryForm } from './category-form/category-form';
   styleUrl: './category-management.scss',
 })
 export class CategoryManagement {
+  protected readonly resolveMediaUrl = resolveMediaUrl;
+
   private readonly categoryService = inject(CategoryService);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
@@ -60,7 +63,7 @@ export class CategoryManagement {
     this.loading.set(true);
     this.errorMessage.set(null);
     this.categoryService
-      .list({ search: this.searchTerm() || undefined, status: this.statusFilter() })
+      .list({ search: this.searchTerm() || undefined, estado: this.statusFilter() })
       .subscribe({
         next: (categories) => {
           this.categories.set(categories);
@@ -122,9 +125,13 @@ export class CategoryManagement {
         );
         this.load();
       },
-      error: () => {
+      error: (err) => {
         this.submitting.set(false);
-        this.toast.error('No se pudo guardar la categoría. Intenta nuevamente.');
+        if (err.status === 409) {
+          this.toast.error('Ya existe una categoría con ese nombre.');
+        } else {
+          this.toast.error('No se pudo guardar la categoría. Intenta nuevamente.');
+        }
       },
     });
   }
@@ -133,7 +140,7 @@ export class CategoryManagement {
     event.stopPropagation();
     this.openMenuId.set(null);
 
-    if (category.isActive) {
+    if (category.is_active) {
       const confirmed = await this.confirmDialog.confirm({
         title: '¿Desactivar categoría?',
         message: 'La categoría dejará de estar disponible para nuevas prendas.',
@@ -145,10 +152,10 @@ export class CategoryManagement {
       }
     }
 
-    this.categoryService.setActive(category.id, !category.isActive).subscribe({
+    this.categoryService.setActive(category.id, !category.is_active).subscribe({
       next: () => {
         this.toast.success(
-          category.isActive ? 'Categoría desactivada.' : 'Categoría activada correctamente.',
+          category.is_active ? 'Categoría desactivada.' : 'Categoría activada correctamente.',
         );
         this.load();
       },

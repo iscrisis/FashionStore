@@ -26,9 +26,9 @@
       [ngModel]="statusFilter()"
       (ngModelChange)="onStatusFilterChange($event)"
     >
-      <option value="all">Todos</option>
-      <option value="active">Activos</option>
-      <option value="inactive">Inactivos</option>
+      <option value="all">Todos los estados</option>
+      <option value="active">Activas</option>
+      <option value="inactive">Inactivas</option>
     </select>
   </div>
 
@@ -54,10 +54,7 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th>Imagen</th>
             <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Orden</th>
             <th>Estado</th>
             <th></th>
           </tr>
@@ -65,17 +62,17 @@
         <tbody>
           @for (category of categories(); track category.id) {
             <tr>
-              <td>
-                @if (category.imageUrl) {
-                  <img class="thumb" [src]="category.imageUrl" [alt]="category.name" />
-                } @else {
-                  <span class="thumb-placeholder">S/I</span>
-                }
+              <td class="cell-title">
+                <div class="category-cell">
+                  @if (category.imagen_url) {
+                    <img class="thumb" [src]="resolveMediaUrl(category.imagen_url)" alt="" />
+                  } @else {
+                    <span class="thumb-placeholder">S/I</span>
+                  }
+                  {{ category.nombre }}
+                </div>
               </td>
-              <td class="cell-title">{{ category.name }}</td>
-              <td class="cell-secondary">{{ category.description || '—' }}</td>
-              <td>{{ category.displayOrder }}</td>
-              <td><app-status-badge [active]="category.isActive" /></td>
+              <td><app-status-badge [active]="category.is_active" /></td>
               <td>
                 <div class="row-actions">
                   <button
@@ -97,10 +94,10 @@
                       <button
                         type="button"
                         class="row-actions__item"
-                        [class.row-actions__item--danger]="category.isActive"
+                        [class.row-actions__item--danger]="category.is_active"
                         (click)="toggleStatus(category, $event)"
                       >
-                        <app-icon name="power" /> {{ category.isActive ? 'Desactivar' : 'Activar' }}
+                        <app-icon name="power" /> {{ category.is_active ? 'Desactivar' : 'Activar' }}
                       </button>
                     </div>
                   }

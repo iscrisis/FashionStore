@@ -14,6 +14,11 @@ services:
       # Dentro de la red de Docker, PostgreSQL se resuelve por el nombre del servicio (db),
       # nunca por localhost ni por IP fija.
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-fashionstore}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-fashionstore}
+    volumes:
+      # Imágenes subidas por el Administrador (CU08/CU09, ver app/core/image_storage.py).
+      # Sin este volumen, reconstruir la imagen del backend borra los archivos aunque
+      # PostgreSQL siga teniendo la referencia -- las URLs quedarían apuntando a nada.
+      - backend_uploads:/app/uploads
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:
@@ -50,3 +55,4 @@ services:
 
 volumes:
   postgres_data:
+  backend_uploads:

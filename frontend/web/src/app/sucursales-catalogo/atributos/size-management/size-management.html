@@ -2,7 +2,7 @@
   <div class="section__header">
     <div>
       <h3>Tallas</h3>
-      <p>Define las tallas disponibles para las prendas.</p>
+      <p>Administra las tallas disponibles para las prendas del catálogo.</p>
     </div>
     <button type="button" class="btn btn--primary" (click)="openCreate()">
       <app-icon name="plus" style="width: 14px; height: 14px" />
@@ -26,9 +26,9 @@
       [ngModel]="statusFilter()"
       (ngModelChange)="onStatusFilterChange($event)"
     >
-      <option value="all">Todos</option>
-      <option value="active">Activos</option>
-      <option value="inactive">Inactivos</option>
+      <option value="all">Todos los estados</option>
+      <option value="active">Activas</option>
+      <option value="inactive">Inactivas</option>
     </select>
   </div>
 
@@ -47,16 +47,14 @@
   } @else if (sizes().length === 0) {
     <div class="state-block">
       <span class="state-block__title">Aún no hay tallas registradas</span>
-      <span>Crea la primera talla para empezar a configurar las prendas.</span>
+      <span>Crea la primera talla para empezar a organizar el catálogo.</span>
     </div>
   } @else {
     <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Código</th>
             <th>Nombre</th>
-            <th>Orden</th>
             <th>Estado</th>
             <th></th>
           </tr>
@@ -64,10 +62,8 @@
         <tbody>
           @for (size of sizes(); track size.id) {
             <tr>
-              <td class="cell-title">{{ size.code }}</td>
-              <td>{{ size.name }}</td>
-              <td>{{ size.displayOrder }}</td>
-              <td><app-status-badge [active]="size.isActive" /></td>
+              <td class="cell-title">{{ size.nombre }}</td>
+              <td><app-status-badge [active]="size.is_active" /></td>
               <td>
                 <div class="row-actions">
                   <button
@@ -89,10 +85,10 @@
                       <button
                         type="button"
                         class="row-actions__item"
-                        [class.row-actions__item--danger]="size.isActive"
+                        [class.row-actions__item--danger]="size.is_active"
                         (click)="toggleStatus(size, $event)"
                       >
-                        <app-icon name="power" /> {{ size.isActive ? 'Desactivar' : 'Activar' }}
+                        <app-icon name="power" /> {{ size.is_active ? 'Desactivar' : 'Activar' }}
                       </button>
                     </div>
                   }

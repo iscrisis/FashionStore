@@ -1,4 +1,4 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { Icon } from '../../../core/ui/icon/icon';
@@ -15,6 +15,7 @@ export class AdminHeader {
 
   readonly title = input('Panel de administración');
   readonly subtitle = input('');
+  readonly menuToggle = output<void>();
 
   protected readonly usuario = this.authService.usuario;
   protected readonly menuOpen = signal(false);

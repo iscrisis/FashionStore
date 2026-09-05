@@ -59,19 +59,21 @@ export class SizeManagement {
   load(): void {
     this.loading.set(true);
     this.errorMessage.set(null);
-    this.sizeService.list({ search: this.searchTerm() || undefined, status: this.statusFilter() }).subscribe({
-      next: (sizes) => {
-        this.sizes.set(sizes);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.sizes.set([]);
-        this.errorMessage.set(
-          'No se pudo conectar con el servidor. Verifica que la API esté disponible e inténtalo nuevamente.',
-        );
-      },
-    });
+    this.sizeService
+      .list({ search: this.searchTerm() || undefined, estado: this.statusFilter() })
+      .subscribe({
+        next: (sizes) => {
+          this.sizes.set(sizes);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.loading.set(false);
+          this.sizes.set([]);
+          this.errorMessage.set(
+            'No se pudo conectar con el servidor. Verifica que la API esté disponible e inténtalo nuevamente.',
+          );
+        },
+      });
   }
 
   openCreate(): void {
@@ -118,9 +120,13 @@ export class SizeManagement {
         this.toast.success(editing ? 'Talla actualizada correctamente.' : 'Talla creada correctamente.');
         this.load();
       },
-      error: () => {
+      error: (err) => {
         this.submitting.set(false);
-        this.toast.error('No se pudo guardar la talla. Intenta nuevamente.');
+        if (err.status === 409) {
+          this.toast.error('Ya existe una talla con ese nombre.');
+        } else {
+          this.toast.error('No se pudo guardar la talla. Intenta nuevamente.');
+        }
       },
     });
   }
@@ -129,7 +135,7 @@ export class SizeManagement {
     event.stopPropagation();
     this.openMenuId.set(null);
 
-    if (size.isActive) {
+    if (size.is_active) {
       const confirmed = await this.confirmDialog.confirm({
         title: '¿Desactivar talla?',
         message: 'La talla dejará de estar disponible para nuevas prendas.',
@@ -141,9 +147,9 @@ export class SizeManagement {
       }
     }
 
-    this.sizeService.setActive(size.id, !size.isActive).subscribe({
+    this.sizeService.setActive(size.id, !size.is_active).subscribe({
       next: () => {
-        this.toast.success(size.isActive ? 'Talla desactivada.' : 'Talla activada correctamente.');
+        this.toast.success(size.is_active ? 'Talla desactivada.' : 'Talla activada correctamente.');
         this.load();
       },
       error: () => this.toast.error('No se pudo actualizar el estado de la talla.'),

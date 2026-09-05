@@ -7,6 +7,36 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.menu-toggle {
+  display: none;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text);
+  transition: background var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-primary) 8%, white);
+    color: var(--color-primary);
+  }
+}
+
+.header-text {
+  min-width: 0;
+}
+
 .header-text h1 {
   font-size: 18px;
   font-weight: 600;
@@ -23,34 +53,6 @@
   display: flex;
   align-items: center;
   gap: 16px;
-}
-
-.icon-btn {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--color-border);
-  background: var(--color-white);
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--transition-fast);
-
-  &:hover {
-    background: var(--color-bg);
-  }
-}
-
-.badge {
-  position: absolute;
-  top: 7px;
-  right: 8px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-primary);
 }
 
 .profile {
@@ -125,5 +127,25 @@
 
   &--danger {
     color: var(--color-danger);
+  }
+}
+
+@media (max-width: 900px) {
+  .menu-toggle {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  :host {
+    padding: 14px 16px;
+  }
+
+  .header-text p {
+    display: none;
+  }
+
+  .profile-text {
+    display: none;
   }
 }

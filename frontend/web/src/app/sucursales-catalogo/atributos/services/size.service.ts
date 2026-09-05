@@ -8,21 +8,17 @@ import { Size, SizePayload } from '../models/size.model';
 @Injectable({ providedIn: 'root' })
 export class SizeService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiUrl}/sizes`;
+  private readonly baseUrl = `${environment.apiUrl}/tallas`;
 
   list(query?: CatalogListQuery): Observable<Size[]> {
     let params = new HttpParams();
     if (query?.search) {
       params = params.set('search', query.search);
     }
-    if (query?.status && query.status !== 'all') {
-      params = params.set('status', query.status);
+    if (query?.estado && query.estado !== 'all') {
+      params = params.set('estado', query.estado);
     }
     return this.http.get<Size[]>(this.baseUrl, { params });
-  }
-
-  get(id: number): Observable<Size> {
-    return this.http.get<Size>(`${this.baseUrl}/${id}`);
   }
 
   create(payload: SizePayload): Observable<Size> {
@@ -34,6 +30,6 @@ export class SizeService {
   }
 
   setActive(id: number, isActive: boolean): Observable<Size> {
-    return this.http.patch<Size>(`${this.baseUrl}/${id}/status`, { isActive });
+    return this.http.patch<Size>(`${this.baseUrl}/${id}/estado`, { is_active: isActive });
   }
 }

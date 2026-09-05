@@ -1,0 +1,168 @@
+:host {
+  display: contents;
+}
+
+// Producto tiene más campos que el resto de formularios del catálogo -- un
+// poco más ancho que el drawer estándar (440px), siempre dentro de 92vw.
+.producto-drawer {
+  width: 560px;
+}
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+}
+
+.field textarea {
+  min-height: 72px;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 12.5px;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+}
+
+.chip--checked {
+  background: color-mix(in srgb, var(--color-primary) 10%, white);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+// Input de archivo nativo oculto detrás de un botón con el mismo estilo que
+// el resto de acciones secundarias del formulario.
+.image-upload-btn {
+  position: relative;
+  width: fit-content;
+  overflow: hidden;
+  cursor: pointer;
+
+  input[type='file'] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+.image-principal {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.image-principal__preview {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.image-principal__placeholder {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius-sm);
+  background: var(--color-card-bg);
+  border: 1px dashed var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.image-grid__item {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+    border: 1px solid var(--color-border);
+  }
+}
+
+.image-grid__remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+    color: var(--color-white);
+  }
+}
+
+// El drawer tiene max-width: 92vw; en pantallas angostas, los pares de
+// campos lado a lado no caben cómodamente -- se apilan solo aquí.
+@media (max-width: 480px) {
+  .field-row {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .image-principal {
+    gap: 10px;
+  }
+}

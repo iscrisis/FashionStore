@@ -47,7 +47,12 @@ export class Login {
     this.authService.login(correo, password).subscribe({
       next: (response) => {
         this.submitting.set(false);
-        const destino = response.usuario.rol === 'ADMINISTRADOR' ? '/admin' : '/';
+        let destino = '/';
+        if (response.usuario.rol === 'ADMINISTRADOR') {
+          destino = '/admin';
+        } else if (response.usuario.rol === 'PROVEEDOR') {
+          destino = '/proveedor';
+        }
         this.router.navigateByUrl(destino);
       },
       error: (error: HttpErrorResponse) => {

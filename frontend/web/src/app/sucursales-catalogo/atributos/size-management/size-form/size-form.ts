@@ -21,11 +21,8 @@ export class SizeForm {
   private readonly fb = inject(FormBuilder);
 
   protected readonly form = this.fb.nonNullable.group({
-    code: ['', [Validators.required, Validators.maxLength(10)]],
-    name: ['', [Validators.required, Validators.maxLength(60)]],
-    description: [''],
-    displayOrder: [1, [Validators.required, Validators.min(1)]],
-    isActive: [true],
+    nombre: ['', [Validators.required, Validators.maxLength(80)]],
+    is_active: [true],
   });
 
   constructor() {
@@ -35,15 +32,9 @@ export class SizeForm {
       }
       const size = this.size();
       if (size) {
-        this.form.reset({
-          code: size.code,
-          name: size.name,
-          description: size.description ?? '',
-          displayOrder: size.displayOrder,
-          isActive: size.isActive,
-        });
+        this.form.reset({ nombre: size.nombre, is_active: size.is_active });
       } else {
-        this.form.reset({ code: '', name: '', description: '', displayOrder: 1, isActive: true });
+        this.form.reset({ nombre: '', is_active: true });
       }
 
       if (this.readonly()) {
@@ -67,12 +58,6 @@ export class SizeForm {
       return;
     }
     const value = this.form.getRawValue();
-    this.save.emit({
-      code: value.code.trim().toUpperCase(),
-      name: value.name.trim(),
-      description: value.description.trim() || null,
-      displayOrder: value.displayOrder,
-      isActive: value.isActive,
-    });
+    this.save.emit({ nombre: value.nombre.trim(), is_active: value.is_active });
   }
 }

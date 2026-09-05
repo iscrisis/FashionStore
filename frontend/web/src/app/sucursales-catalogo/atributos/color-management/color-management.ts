@@ -60,7 +60,7 @@ export class ColorManagement {
     this.loading.set(true);
     this.errorMessage.set(null);
     this.colorService
-      .list({ search: this.searchTerm() || undefined, status: this.statusFilter() })
+      .list({ search: this.searchTerm() || undefined, estado: this.statusFilter() })
       .subscribe({
         next: (colors) => {
           this.colors.set(colors);
@@ -120,9 +120,13 @@ export class ColorManagement {
         this.toast.success(editing ? 'Color actualizado correctamente.' : 'Color creado correctamente.');
         this.load();
       },
-      error: () => {
+      error: (err) => {
         this.submitting.set(false);
-        this.toast.error('No se pudo guardar el color. Intenta nuevamente.');
+        if (err.status === 409) {
+          this.toast.error('Ya existe un color con ese nombre.');
+        } else {
+          this.toast.error('No se pudo guardar el color. Intenta nuevamente.');
+        }
       },
     });
   }
@@ -131,10 +135,10 @@ export class ColorManagement {
     event.stopPropagation();
     this.openMenuId.set(null);
 
-    if (color.isActive) {
+    if (color.is_active) {
       const confirmed = await this.confirmDialog.confirm({
         title: '¿Desactivar color?',
-        message: 'El color dejará de estar disponible para nuevas variantes de prenda.',
+        message: 'El color dejará de estar disponible para nuevas prendas.',
         confirmText: 'Desactivar',
         danger: true,
       });
@@ -143,9 +147,9 @@ export class ColorManagement {
       }
     }
 
-    this.colorService.setActive(color.id, !color.isActive).subscribe({
+    this.colorService.setActive(color.id, !color.is_active).subscribe({
       next: () => {
-        this.toast.success(color.isActive ? 'Color desactivado.' : 'Color activado correctamente.');
+        this.toast.success(color.is_active ? 'Color desactivado.' : 'Color activado correctamente.');
         this.load();
       },
       error: () => this.toast.error('No se pudo actualizar el estado del color.'),

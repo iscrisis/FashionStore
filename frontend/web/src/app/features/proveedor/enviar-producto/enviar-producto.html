@@ -1,0 +1,75 @@
+<section class="admin-card section form-page">
+  <div class="section__header">
+    <div>
+      <h3>Enviar producto</h3>
+      <p>Comparte la información de una prenda que ofreces a FashionStore.</p>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-page__body">
+    <label class="field" [class.has-error]="form.controls.nombre.invalid && form.controls.nombre.touched">
+      <span class="field__label">Nombre *</span>
+      <input type="text" formControlName="nombre" placeholder="Ej. Chaqueta Denim Clásica" />
+      @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+        <span class="field__error">El nombre es obligatorio.</span>
+      }
+    </label>
+
+    <label class="field">
+      <span class="field__label">Descripción</span>
+      <textarea formControlName="descripcion" rows="4" placeholder="Detalles de la prenda (opcional)"></textarea>
+    </label>
+
+    <div class="field-row">
+      <label
+        class="field"
+        [class.has-error]="form.controls.temporada_id.invalid && form.controls.temporada_id.touched"
+      >
+        <span class="field__label">Temporada *</span>
+        <select formControlName="temporada_id">
+          <option [value]="null" disabled>Selecciona una temporada</option>
+          @for (temporada of temporadas(); track temporada.id) {
+            <option [value]="temporada.id">{{ temporada.nombre }}</option>
+          }
+        </select>
+        @if (form.controls.temporada_id.invalid && form.controls.temporada_id.touched) {
+          <span class="field__error">Selecciona una temporada.</span>
+        }
+      </label>
+
+      <label
+        class="field"
+        [class.has-error]="form.controls.coleccion_id.invalid && form.controls.coleccion_id.touched"
+      >
+        <span class="field__label">Colección *</span>
+        <select formControlName="coleccion_id">
+          <option [value]="null" disabled>
+            {{ form.controls.temporada_id.value ? 'Selecciona una colección' : 'Elige una temporada primero' }}
+          </option>
+          @for (coleccion of colecciones(); track coleccion.id) {
+            <option [value]="coleccion.id">{{ coleccion.nombre }}</option>
+          }
+        </select>
+        @if (form.controls.coleccion_id.invalid && form.controls.coleccion_id.touched) {
+          <span class="field__error">Selecciona una colección.</span>
+        }
+      </label>
+    </div>
+
+    <label class="field field--switch">
+      <span class="field__label">Disponibilidad</span>
+      <span class="switch">
+        <input type="checkbox" formControlName="disponibilidad" />
+        <span class="switch__track"><span class="switch__thumb"></span></span>
+        <span class="switch__text">{{ form.controls.disponibilidad.value ? 'Disponible' : 'No disponible' }}</span>
+      </span>
+    </label>
+
+    <footer class="form-page__footer">
+      <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+        <app-icon name="plus" style="width: 14px; height: 14px" />
+        {{ submitting() ? 'Enviando…' : 'Enviar producto' }}
+      </button>
+    </footer>
+  </form>
+</section>

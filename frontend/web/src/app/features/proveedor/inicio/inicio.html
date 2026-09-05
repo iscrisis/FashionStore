@@ -1,0 +1,43 @@
+<section class="admin-card welcome">
+  <h3>¡Bienvenido{{ usuario()?.nombre ? ', ' + usuario()!.nombre : '' }}!</h3>
+  <p>Desde aquí puedes enviar y administrar la información de tus prendas para FashionStore.</p>
+</section>
+
+<div class="stats-grid">
+  <div class="admin-card stat-card">
+    <span class="stat-card__icon"><app-icon name="products" style="width: 18px; height: 18px" /></span>
+    <div>
+      <span class="stat-card__value">{{ loading() ? '—' : totalProductos() }}</span>
+      <span class="stat-card__label">Productos enviados</span>
+    </div>
+  </div>
+
+  <div class="admin-card stat-card">
+    <span class="stat-card__icon"><app-icon name="power" style="width: 18px; height: 18px" /></span>
+    <div>
+      <span class="stat-card__value">{{ loading() ? '—' : disponibles() }}</span>
+      <span class="stat-card__label">Disponibles</span>
+    </div>
+  </div>
+
+  <div class="admin-card stat-card">
+    <span class="stat-card__icon"><app-icon name="eye" style="width: 18px; height: 18px" /></span>
+    <div>
+      <span class="stat-card__value">{{ loading() ? '—' : activos() }}</span>
+      <span class="stat-card__label">Activos</span>
+    </div>
+  </div>
+</div>
+
+<section class="admin-card section quick-links">
+  <h3>Accesos rápidos</h3>
+  <div class="quick-links__grid">
+    <a routerLink="/proveedor/enviar-producto" class="btn btn--primary">
+      <app-icon name="plus" style="width: 14px; height: 14px" />
+      Enviar producto
+    </a>
+    <a routerLink="/proveedor/mis-productos" class="btn btn--ghost">Ver mis productos</a>
+    <a routerLink="/proveedor/disponibilidad" class="btn btn--ghost">Actualizar disponibilidad</a>
+    <a routerLink="/proveedor/mi-perfil" class="btn btn--ghost">Mi perfil</a>
+  </div>
+</section>

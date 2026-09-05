@@ -8,21 +8,17 @@ import { ColorItem, ColorPayload } from '../models/color.model';
 @Injectable({ providedIn: 'root' })
 export class ColorService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiUrl}/colors`;
+  private readonly baseUrl = `${environment.apiUrl}/colores`;
 
   list(query?: CatalogListQuery): Observable<ColorItem[]> {
     let params = new HttpParams();
     if (query?.search) {
       params = params.set('search', query.search);
     }
-    if (query?.status && query.status !== 'all') {
-      params = params.set('status', query.status);
+    if (query?.estado && query.estado !== 'all') {
+      params = params.set('estado', query.estado);
     }
     return this.http.get<ColorItem[]>(this.baseUrl, { params });
-  }
-
-  get(id: number): Observable<ColorItem> {
-    return this.http.get<ColorItem>(`${this.baseUrl}/${id}`);
   }
 
   create(payload: ColorPayload): Observable<ColorItem> {
@@ -34,6 +30,6 @@ export class ColorService {
   }
 
   setActive(id: number, isActive: boolean): Observable<ColorItem> {
-    return this.http.patch<ColorItem>(`${this.baseUrl}/${id}/status`, { isActive });
+    return this.http.patch<ColorItem>(`${this.baseUrl}/${id}/estado`, { is_active: isActive });
   }
 }

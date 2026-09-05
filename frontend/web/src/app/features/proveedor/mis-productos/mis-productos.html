@@ -1,0 +1,106 @@
+<section class="admin-card section">
+  <div class="section__header">
+    <div>
+      <h3>Mis productos</h3>
+      <p>Consulta y edita la información de las prendas que enviaste a FashionStore.</p>
+    </div>
+  </div>
+
+  <div class="table-toolbar section__toolbar">
+    <select
+      class="status-select"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="onStatusFilterChange($event)"
+    >
+      <option value="all">Todos los estados</option>
+      <option value="active">Activos</option>
+      <option value="inactive">Inactivos</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="section__body">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudieron cargar tus productos</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (productosFiltrados.length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">Aún no enviaste productos</span>
+      <span>Usa "Enviar producto" en el menú para registrar la primera prenda.</span>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Temporada</th>
+            <th>Colección</th>
+            <th>Disponibilidad</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (producto of productosFiltrados; track producto.id) {
+            <tr>
+              <td class="cell-title">{{ producto.nombre }}</td>
+              <td class="cell-secondary">{{ producto.temporada.nombre }}</td>
+              <td class="cell-secondary">{{ producto.coleccion.nombre }}</td>
+              <td>
+                <app-status-badge [active]="producto.disponibilidad" />
+              </td>
+              <td><app-status-badge [active]="producto.is_active" /></td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-actions__trigger"
+                    (click)="toggleMenu(producto.id, $event)"
+                    aria-label="Acciones"
+                  >
+                    <app-icon name="dots" />
+                  </button>
+                  @if (openMenuId() === producto.id) {
+                    <div class="row-actions__menu" (click)="$event.stopPropagation()">
+                      <button type="button" class="row-actions__item" (click)="openView(producto, $event)">
+                        <app-icon name="eye" /> Ver
+                      </button>
+                      <button type="button" class="row-actions__item" (click)="openEdit(producto)">
+                        <app-icon name="edit" /> Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="row-actions__item"
+                        [class.row-actions__item--danger]="producto.is_active"
+                        (click)="toggleStatus(producto, $event)"
+                      >
+                        <app-icon name="power" /> {{ producto.is_active ? 'Desactivar' : 'Activar' }}
+                      </button>
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<app-producto-editar-form
+  [open]="drawerOpen()"
+  [producto]="editingProducto()"
+  [readonly]="viewMode()"
+  [submitting]="submitting()"
+  (save)="save($event)"
+  (close)="closeDrawer()"
+/>

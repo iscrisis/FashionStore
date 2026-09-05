@@ -1,0 +1,50 @@
+<section class="admin-card section">
+  <div class="section__header">
+    <div>
+      <h3>Disponibilidad</h3>
+      <p>Informa qué prendas tienes disponibles actualmente para FashionStore.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="section__body">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudo cargar la disponibilidad</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (productos().length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">No tienes productos activos</span>
+      <span>Envía un producto para poder informar su disponibilidad.</span>
+    </div>
+  } @else {
+    <ul class="disponibilidad-list">
+      @for (producto of productos(); track producto.id) {
+        <li class="disponibilidad-item">
+          <div class="disponibilidad-item__info">
+            <span class="disponibilidad-item__nombre">{{ producto.nombre }}</span>
+            <span class="disponibilidad-item__meta">
+              {{ producto.temporada.nombre }} · {{ producto.coleccion.nombre }}
+            </span>
+          </div>
+          <label class="switch">
+            <input
+              type="checkbox"
+              [checked]="producto.disponibilidad"
+              [disabled]="savingId() === producto.id"
+              (change)="toggle(producto)"
+            />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+            <span class="switch__text">{{ producto.disponibilidad ? 'Disponible' : 'No disponible' }}</span>
+          </label>
+        </li>
+      }
+    </ul>
+  }
+</section>

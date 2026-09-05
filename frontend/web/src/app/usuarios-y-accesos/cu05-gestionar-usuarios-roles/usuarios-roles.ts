@@ -138,7 +138,12 @@ export class UsuariosRoles {
 
     if (editing) {
       const requests = [
-        this.usuarioService.update(editing.id, { nombre: payload.nombre, correo: payload.correo }),
+        this.usuarioService.update(editing.id, {
+          nombre: payload.nombre,
+          correo: payload.correo,
+          sucursal_id: payload.sucursal_id,
+          proveedor_id: payload.proveedor_id,
+        }),
       ];
       if (payload.rol !== editing.rol) {
         requests.push(this.usuarioService.changeRole(editing.id, payload.rol));
@@ -170,6 +175,8 @@ export class UsuariosRoles {
     this.submitting.set(false);
     if (err.status === 409) {
       this.toast.error('Ya existe un usuario con ese correo.');
+    } else if (err.status === 422) {
+      this.toast.error('Revisa la sucursal o el proveedor seleccionado para este rol.');
     } else {
       this.toast.error('No se pudo guardar el usuario. Intenta nuevamente.');
     }

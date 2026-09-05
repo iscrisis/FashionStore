@@ -1,0 +1,72 @@
+@if (open()) {
+  <div class="drawer-overlay" (click)="close.emit()">
+    <aside class="drawer" (click)="$event.stopPropagation()">
+      <header class="drawer__header">
+        <h2>{{ readonly() ? 'Detalle de temporada' : isEditMode ? 'Editar temporada' : 'Nueva temporada' }}</h2>
+        <button type="button" class="icon-btn" (click)="close.emit()" aria-label="Cerrar">
+          <app-icon name="close" style="width: 16px; height: 16px" />
+        </button>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="drawer__form">
+        <label class="field" [class.has-error]="form.controls.nombre.invalid && form.controls.nombre.touched">
+          <span class="field__label">Nombre *</span>
+          <input type="text" formControlName="nombre" placeholder="Ej. Primavera-Verano 2026" />
+          @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+            <span class="field__error">El nombre es obligatorio.</span>
+          }
+        </label>
+
+        <div class="field-row">
+          <label
+            class="field"
+            [class.has-error]="form.controls.fecha_inicio.invalid && form.controls.fecha_inicio.touched"
+          >
+            <span class="field__label">Fecha de inicio *</span>
+            <input type="date" formControlName="fecha_inicio" />
+            @if (form.controls.fecha_inicio.invalid && form.controls.fecha_inicio.touched) {
+              <span class="field__error">Obligatoria.</span>
+            }
+          </label>
+
+          <label
+            class="field"
+            [class.has-error]="form.controls.fecha_fin.invalid && form.controls.fecha_fin.touched"
+          >
+            <span class="field__label">Fecha de fin *</span>
+            <input type="date" formControlName="fecha_fin" />
+            @if (form.controls.fecha_fin.invalid && form.controls.fecha_fin.touched) {
+              <span class="field__error">Obligatoria.</span>
+            }
+          </label>
+        </div>
+
+        @if (form.hasError('rangoInvalido') && form.controls.fecha_fin.touched) {
+          <span class="field__error">La fecha de fin no puede ser anterior a la fecha de inicio.</span>
+        }
+
+        <label class="field field--switch">
+          <span class="field__label">Estado</span>
+          <span class="switch">
+            <input type="checkbox" formControlName="is_active" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+            <span class="switch__text">{{ form.controls.is_active.value ? 'Activa' : 'Inactiva' }}</span>
+          </span>
+        </label>
+
+        <footer class="drawer__footer">
+          @if (readonly()) {
+            <button type="button" class="btn btn--ghost" (click)="close.emit()">Cerrar</button>
+          } @else {
+            <button type="button" class="btn btn--ghost" (click)="close.emit()" [disabled]="submitting()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+              {{ submitting() ? 'Guardando…' : 'Guardar temporada' }}
+            </button>
+          }
+        </footer>
+      </form>
+    </aside>
+  </div>
+}

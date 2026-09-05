@@ -31,6 +31,28 @@
   gap: 14px;
 }
 
+.skeleton-card {
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--color-card-bg) 25%,
+    color-mix(in srgb, var(--color-card-bg) 50%, white) 37%,
+    var(--color-card-bg) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
 @media (max-width: 900px) {
   .product-grid {
     grid-template-columns: repeat(3, 1fr);

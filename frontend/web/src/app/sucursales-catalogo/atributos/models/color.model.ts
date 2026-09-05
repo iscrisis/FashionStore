@@ -1,9 +1,10 @@
 export interface ColorItem {
   id: number;
-  name: string;
-  hexCode: string;
-  displayOrder: number;
-  isActive: boolean;
+  nombre: string;
+  is_active: boolean;
 }
 
-export type ColorPayload = Omit<ColorItem, 'id'>;
+export interface ColorPayload {
+  nombre: string;
+  is_active?: boolean;
+}

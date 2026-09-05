@@ -14,6 +14,20 @@ from app.db.base import Base  # noqa: E402
 
 # Import model modules here as they are created so their tables are
 # registered on Base.metadata and picked up by `alembic revision --autogenerate`.
+from modules.P1_SucursalesYCatalogos.Models.categoria import Categoria  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.ciudad import Ciudad  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.coleccion import Coleccion  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.color import Color  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.producto import Producto  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.producto_color import producto_colores  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.producto_imagen import ProductoImagen  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.producto_proveedor import ProductoProveedor  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.producto_talla import producto_tallas  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.producto_variante import ProductoVariante  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.proveedor import Proveedor  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.sucursal import Sucursal  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.talla import Talla  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.temporada import Temporada  # noqa: E402,F401
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario  # noqa: E402,F401
 
 # this is the Alembic Config object, which provides

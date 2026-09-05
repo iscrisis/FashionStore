@@ -1,7 +1,15 @@
-<a href="/" class="card">
+<a [routerLink]="['/producto', product().id]" class="card">
   <div class="card__image">
-    @if (product().imageUrl) {
-      <img [src]="product().imageUrl" [alt]="product().name" />
+    @if (product().imagen_principal_url && !imageError()) {
+      <img
+        [src]="resolveMediaUrl(product().imagen_principal_url)"
+        [alt]="product().nombre"
+        (error)="imageError.set(true)"
+      />
+    } @else {
+      <div class="card__placeholder">
+        <app-icon name="products" style="width: 26px; height: 26px" />
+      </div>
     }
     <button
       type="button"
@@ -14,7 +22,7 @@
     </button>
   </div>
   <div class="card__info">
-    <span class="card__name">{{ product().name }}</span>
-    <span class="card__price">S/ {{ product().price.toFixed(2) }}</span>
+    <span class="card__name">{{ product().nombre }}</span>
+    <span class="card__price">Bs {{ product().precio_venta.toFixed(2) }}</span>
   </div>
 </a>

@@ -1,0 +1,84 @@
+@if (open()) {
+  <div class="drawer-overlay" (click)="close.emit()">
+    <aside class="drawer" (click)="$event.stopPropagation()">
+      <header class="drawer__header">
+        <h2>Gestionar ciudades</h2>
+        <button type="button" class="icon-btn" (click)="close.emit()" aria-label="Cerrar">
+          <app-icon name="close" style="width: 16px; height: 16px" />
+        </button>
+      </header>
+
+      <div class="drawer__form">
+        <form [formGroup]="form" (ngSubmit)="submitCrear()" class="field-row">
+          <label class="field" [class.has-error]="form.controls.nombre.invalid && form.controls.nombre.touched">
+            <span class="field__label">Nombre *</span>
+            <input type="text" formControlName="nombre" placeholder="Ej. Sucre" />
+          </label>
+
+          <label
+            class="field"
+            [class.has-error]="form.controls.departamento.invalid && form.controls.departamento.touched"
+          >
+            <span class="field__label">Departamento *</span>
+            <input type="text" formControlName="departamento" placeholder="Ej. Chuquisaca" />
+          </label>
+        </form>
+
+        <label class="field field--switch">
+          <span class="field__label">Estado</span>
+          <span class="switch">
+            <input type="checkbox" [formControl]="form.controls.is_active" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+            <span class="switch__text">{{ form.controls.is_active.value ? 'Activa' : 'Inactiva' }}</span>
+          </span>
+        </label>
+
+        <button
+          type="button"
+          class="btn btn--primary btn--sm"
+          [disabled]="submitting()"
+          (click)="submitCrear()"
+        >
+          <app-icon name="plus" style="width: 14px; height: 14px" />
+          {{ submitting() ? 'Guardando…' : 'Agregar ciudad' }}
+        </button>
+
+        @if (loading()) {
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row"></div>
+        } @else if (ciudades().length === 0) {
+          <div class="state-block">
+            <span class="state-block__title">Aún no hay ciudades registradas</span>
+          </div>
+        } @else {
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Departamento</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (ciudad of ciudades(); track ciudad.id) {
+                  <tr>
+                    <td class="cell-title">{{ ciudad.nombre }}</td>
+                    <td class="cell-secondary">{{ ciudad.departamento }}</td>
+                    <td><app-status-badge [active]="ciudad.is_active" /></td>
+                    <td>
+                      <button type="button" class="btn btn--ghost btn--sm" (click)="toggleStatus(ciudad)">
+                        {{ ciudad.is_active ? 'Desactivar' : 'Activar' }}
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </aside>
+  </div>
+}

@@ -29,7 +29,7 @@
 
         @if (!isEditMode) {
           <label class="field" [class.has-error]="form.controls.password.invalid && form.controls.password.touched">
-            <span class="field__label">Contraseña *</span>
+            <span class="field__label">Contraseña inicial *</span>
             <input type="password" formControlName="password" placeholder="Mínimo 8 caracteres" />
             @if (form.controls.password.invalid && form.controls.password.touched) {
               <span class="field__error">La contraseña debe tener al menos 8 caracteres.</span>
@@ -49,6 +49,62 @@
             <span class="field__error">Selecciona un rol.</span>
           }
         </label>
+
+        @if (mostrarSucursal) {
+          <div class="field-row">
+            <label
+              class="field"
+              [class.has-error]="form.controls.ciudad_id.invalid && form.controls.ciudad_id.touched"
+            >
+              <span class="field__label">Ciudad *</span>
+              <select formControlName="ciudad_id">
+                <option [value]="null" disabled>Selecciona una ciudad</option>
+                @for (ciudad of ciudades(); track ciudad.id) {
+                  <option [value]="ciudad.id">{{ ciudad.nombre }}</option>
+                }
+              </select>
+              @if (form.controls.ciudad_id.invalid && form.controls.ciudad_id.touched) {
+                <span class="field__error">Selecciona una ciudad.</span>
+              }
+            </label>
+
+            <label
+              class="field"
+              [class.has-error]="form.controls.sucursal_id.invalid && form.controls.sucursal_id.touched"
+            >
+              <span class="field__label">Sucursal *</span>
+              <select formControlName="sucursal_id">
+                <option [value]="null" disabled>
+                  {{ form.controls.ciudad_id.value ? 'Selecciona una sucursal' : 'Elige una ciudad primero' }}
+                </option>
+                @for (sucursal of sucursales(); track sucursal.id) {
+                  <option [value]="sucursal.id">{{ sucursal.nombre }}</option>
+                }
+              </select>
+              @if (form.controls.sucursal_id.invalid && form.controls.sucursal_id.touched) {
+                <span class="field__error">Selecciona una sucursal.</span>
+              }
+            </label>
+          </div>
+        }
+
+        @if (mostrarProveedor) {
+          <label
+            class="field"
+            [class.has-error]="form.controls.proveedor_id.invalid && form.controls.proveedor_id.touched"
+          >
+            <span class="field__label">Proveedor *</span>
+            <select formControlName="proveedor_id">
+              <option [value]="null" disabled>Selecciona un proveedor</option>
+              @for (proveedor of proveedores(); track proveedor.id) {
+                <option [value]="proveedor.id">{{ proveedor.razon_social }}</option>
+              }
+            </select>
+            @if (form.controls.proveedor_id.invalid && form.controls.proveedor_id.touched) {
+              <span class="field__error">Selecciona el proveedor al que pertenece esta cuenta.</span>
+            }
+          </label>
+        }
 
         <label class="field field--switch">
           <span class="field__label">Estado</span>

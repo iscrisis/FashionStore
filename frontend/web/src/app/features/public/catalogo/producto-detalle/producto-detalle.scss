@@ -1,0 +1,310 @@
+:host {
+  display: block;
+}
+
+.detalle-page {
+  padding-top: 20px;
+  padding-bottom: 48px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 16px;
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+
+.detalle {
+  display: grid;
+  // La galería no debe crecer al 50% del contenedor en pantallas anchas
+  // (se veía enorme y pixelada) -- se limita a un ancho de foto de producto
+  // razonable y la columna de info toma el resto.
+  grid-template-columns: minmax(240px, 380px) 1fr;
+  gap: 36px;
+  align-items: start;
+}
+
+.gallery__main {
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: linear-gradient(160deg, #f0eeea, #ddd6cb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.gallery__placeholder {
+  color: var(--color-text-secondary);
+}
+
+.gallery__thumbs {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.gallery__thumb {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  padding: 0;
+  background: none;
+  cursor: pointer;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &.is-active {
+    border-color: var(--color-primary);
+    border-width: 2px;
+  }
+}
+
+.gallery__thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  background: linear-gradient(160deg, #f0eeea, #ddd6cb);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.info__categoria {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.info__nombre {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.info__precio {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+}
+
+.info__descripcion {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.info__coleccion {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.info__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.info__label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 12.5px;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+}
+
+.chip--checked {
+  background: color-mix(in srgb, var(--color-primary) 10%, white);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+// Disponibilidad en tiendas (CU07 -- Ciudad -> Sucursales) integrada dentro
+// del mismo detalle. Sin stock: cada tarjeta queda lista para que CU12
+// agregue después su disponibilidad, sin inventar cantidades ahora.
+.disponibilidad {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.disponibilidad__ciudad {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 280px;
+}
+
+.disponibilidad__ciudad-label {
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+}
+
+.disponibilidad__ciudad select {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  font-size: 13px;
+  color: var(--color-text);
+  background: var(--color-white);
+  outline: none;
+  width: 100%;
+
+  &:focus {
+    border-color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.disponibilidad__sucursales {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.disponibilidad__vacio {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.sucursal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  min-width: 0;
+}
+
+.sucursal-card__nombre {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text);
+  overflow-wrap: break-word;
+}
+
+.sucursal-card__direccion,
+.sucursal-card__telefono {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+  overflow-wrap: break-word;
+}
+
+.skeleton-sucursal {
+  height: 64px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--color-card-bg) 25%,
+    color-mix(in srgb, var(--color-card-bg) 50%, white) 37%,
+    var(--color-card-bg) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+.detalle-skeleton {
+  display: grid;
+  grid-template-columns: minmax(240px, 380px) 1fr;
+  gap: 36px;
+}
+
+.skeleton-block {
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--color-card-bg) 25%,
+    color-mix(in srgb, var(--color-card-bg) 50%, white) 37%,
+    var(--color-card-bg) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+.skeleton-block--gallery {
+  aspect-ratio: 3 / 4;
+}
+
+.skeleton-block--info {
+  height: 320px;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@media (max-width: 780px) {
+  .detalle,
+  .detalle-skeleton {
+    grid-template-columns: 1fr;
+  }
+
+  .disponibilidad__ciudad {
+    max-width: none;
+  }
+}

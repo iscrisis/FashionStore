@@ -1,0 +1,118 @@
+<section class="admin-card section">
+  <div class="section__header">
+    <div>
+      <h3>Proveedores</h3>
+      <p>Administra los proveedores externos de FashionStore.</p>
+    </div>
+    <button type="button" class="btn btn--primary" (click)="openCreate()">
+      <app-icon name="plus" style="width: 14px; height: 14px" />
+      Nuevo proveedor
+    </button>
+  </div>
+
+  <div class="table-toolbar section__toolbar">
+    <label class="search-input">
+      <app-icon name="search" />
+      <input
+        type="text"
+        placeholder="Buscar por razón social, contacto o correo..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </label>
+
+    <select
+      class="status-select"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="onStatusFilterChange($event)"
+    >
+      <option value="all">Todos los estados</option>
+      <option value="active">Activos</option>
+      <option value="inactive">Inactivos</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="section__body">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudieron cargar los proveedores</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (proveedores().length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">Aún no hay proveedores registrados</span>
+      <span>Crea el primer proveedor para empezar a operar.</span>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Razón social</th>
+            <th>Contacto</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (proveedor of proveedores(); track proveedor.id) {
+            <tr>
+              <td class="cell-title">{{ proveedor.razon_social }}</td>
+              <td class="cell-secondary">{{ proveedor.nombre_contacto }}</td>
+              <td class="cell-secondary">{{ proveedor.correo }}</td>
+              <td class="cell-secondary">{{ proveedor.telefono }}</td>
+              <td><app-status-badge [active]="proveedor.is_active" /></td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-actions__trigger"
+                    (click)="toggleMenu(proveedor.id, $event)"
+                    aria-label="Acciones"
+                  >
+                    <app-icon name="dots" />
+                  </button>
+                  @if (openMenuId() === proveedor.id) {
+                    <div class="row-actions__menu" (click)="$event.stopPropagation()">
+                      <button type="button" class="row-actions__item" (click)="openView(proveedor, $event)">
+                        <app-icon name="eye" /> Ver
+                      </button>
+                      <button type="button" class="row-actions__item" (click)="openEdit(proveedor)">
+                        <app-icon name="edit" /> Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="row-actions__item"
+                        [class.row-actions__item--danger]="proveedor.is_active"
+                        (click)="toggleStatus(proveedor, $event)"
+                      >
+                        <app-icon name="power" /> {{ proveedor.is_active ? 'Desactivar' : 'Activar' }}
+                      </button>
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<app-proveedor-form
+  [open]="drawerOpen()"
+  [proveedor]="editingProveedor()"
+  [readonly]="viewMode()"
+  [submitting]="submitting()"
+  (save)="save($event)"
+  (close)="closeDrawer()"
+/>

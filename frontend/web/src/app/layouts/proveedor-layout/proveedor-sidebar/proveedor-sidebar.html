@@ -1,0 +1,18 @@
+<div class="brand">
+  <span class="brand__mark">FASHION<br />STORE</span>
+  <span class="brand__tag">Proveedor</span>
+</div>
+
+<nav class="nav">
+  @for (item of navItems; track item.route) {
+    <a
+      [routerLink]="item.route"
+      routerLinkActive="is-active"
+      [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+      class="nav-item"
+    >
+      <app-icon [name]="item.icon" class="nav-icon" />
+      <span>{{ item.label }}</span>
+    </a>
+  }
+</nav>

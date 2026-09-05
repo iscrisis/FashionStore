@@ -2,7 +2,7 @@
   <div class="section__header">
     <div>
       <h3>Colores</h3>
-      <p>Define los colores que podrán asignarse a las variantes de una prenda.</p>
+      <p>Administra los colores disponibles para las prendas del catálogo.</p>
     </div>
     <button type="button" class="btn btn--primary" (click)="openCreate()">
       <app-icon name="plus" style="width: 14px; height: 14px" />
@@ -26,7 +26,7 @@
       [ngModel]="statusFilter()"
       (ngModelChange)="onStatusFilterChange($event)"
     >
-      <option value="all">Todos</option>
+      <option value="all">Todos los estados</option>
       <option value="active">Activos</option>
       <option value="inactive">Inactivos</option>
     </select>
@@ -47,17 +47,14 @@
   } @else if (colors().length === 0) {
     <div class="state-block">
       <span class="state-block__title">Aún no hay colores registrados</span>
-      <span>Crea el primer color para empezar a configurar las variantes.</span>
+      <span>Crea el primer color para empezar a organizar el catálogo.</span>
     </div>
   } @else {
     <div class="table-scroll">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Color</th>
             <th>Nombre</th>
-            <th>Código hexadecimal</th>
-            <th>Orden</th>
             <th>Estado</th>
             <th></th>
           </tr>
@@ -65,11 +62,8 @@
         <tbody>
           @for (color of colors(); track color.id) {
             <tr>
-              <td><span class="swatch" [style.background]="color.hexCode"></span></td>
-              <td class="cell-title">{{ color.name }}</td>
-              <td class="cell-secondary">{{ color.hexCode }}</td>
-              <td>{{ color.displayOrder }}</td>
-              <td><app-status-badge [active]="color.isActive" /></td>
+              <td class="cell-title">{{ color.nombre }}</td>
+              <td><app-status-badge [active]="color.is_active" /></td>
               <td>
                 <div class="row-actions">
                   <button
@@ -91,10 +85,10 @@
                       <button
                         type="button"
                         class="row-actions__item"
-                        [class.row-actions__item--danger]="color.isActive"
+                        [class.row-actions__item--danger]="color.is_active"
                         (click)="toggleStatus(color, $event)"
                       >
-                        <app-icon name="power" /> {{ color.isActive ? 'Desactivar' : 'Activar' }}
+                        <app-icon name="power" /> {{ color.is_active ? 'Desactivar' : 'Activar' }}
                       </button>
                     </div>
                   }

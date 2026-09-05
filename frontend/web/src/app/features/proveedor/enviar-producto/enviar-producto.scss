@@ -1,0 +1,31 @@
+:host {
+  display: block;
+}
+
+.form-page__body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 560px;
+  margin-top: 18px;
+}
+
+.form-page__footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+@media (max-width: 480px) {
+  .field-row {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .form-page__footer {
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}

@@ -1,0 +1,80 @@
+<section class="admin-card section form-page">
+  <div class="section__header">
+    <div>
+      <h3>Mi perfil</h3>
+      <p>Consulta y edita los datos de contacto de tu empresa.</p>
+    </div>
+    @if (perfil()) {
+      <app-status-badge [active]="perfil()!.is_active" />
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="section__body">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudo cargar tu perfil</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-page__body">
+      <label
+        class="field"
+        [class.has-error]="form.controls.razon_social.invalid && form.controls.razon_social.touched"
+      >
+        <span class="field__label">Razón social *</span>
+        <input type="text" formControlName="razon_social" />
+        @if (form.controls.razon_social.invalid && form.controls.razon_social.touched) {
+          <span class="field__error">La razón social es obligatoria.</span>
+        }
+      </label>
+
+      <label
+        class="field"
+        [class.has-error]="form.controls.nombre_contacto.invalid && form.controls.nombre_contacto.touched"
+      >
+        <span class="field__label">Nombre de contacto *</span>
+        <input type="text" formControlName="nombre_contacto" />
+        @if (form.controls.nombre_contacto.invalid && form.controls.nombre_contacto.touched) {
+          <span class="field__error">El nombre de contacto es obligatorio.</span>
+        }
+      </label>
+
+      <div class="field-row">
+        <label
+          class="field"
+          [class.has-error]="form.controls.correo.invalid && form.controls.correo.touched"
+        >
+          <span class="field__label">Correo *</span>
+          <input type="email" formControlName="correo" />
+          @if (form.controls.correo.hasError('required') && form.controls.correo.touched) {
+            <span class="field__error">El correo es obligatorio.</span>
+          } @else if (form.controls.correo.hasError('email') && form.controls.correo.touched) {
+            <span class="field__error">Ingresa un correo válido.</span>
+          }
+        </label>
+
+        <label
+          class="field"
+          [class.has-error]="form.controls.telefono.invalid && form.controls.telefono.touched"
+        >
+          <span class="field__label">Teléfono *</span>
+          <input type="text" formControlName="telefono" />
+          @if (form.controls.telefono.invalid && form.controls.telefono.touched) {
+            <span class="field__error">Ingresa un teléfono válido.</span>
+          }
+        </label>
+      </div>
+
+      <footer class="form-page__footer">
+        <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+          {{ submitting() ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </footer>
+    </form>
+  }
+</section>

@@ -1,0 +1,24 @@
+<div class="page-heading">
+  <h2>Temporadas y colecciones</h2>
+  <p>Configura las temporadas de FashionStore y las colecciones que agrupan.</p>
+</div>
+
+<div class="tabs">
+  <button type="button" class="tab" [class.is-active]="activeTab() === 'temporadas'" (click)="setTab('temporadas')">
+    Temporadas
+  </button>
+  <button type="button" class="tab" [class.is-active]="activeTab() === 'colecciones'" (click)="setTab('colecciones')">
+    Colecciones
+  </button>
+</div>
+
+<div class="tab-content">
+  @switch (activeTab()) {
+    @case ('temporadas') {
+      <app-temporada-management />
+    }
+    @case ('colecciones') {
+      <app-coleccion-management />
+    }
+  }
+</div>

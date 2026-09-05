@@ -13,14 +13,16 @@ from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 client = TestClient(app)
 
 
-def _create_test_user(correo: str, password: str, is_active: bool = True) -> Usuario:
+def _create_test_user(
+    correo: str, password: str, is_active: bool = True, rol: RolUsuario = RolUsuario.ADMINISTRADOR
+) -> Usuario:
     db = SessionLocal()
     try:
         usuario = Usuario(
             nombre="Usuario de prueba",
             correo=correo,
             password_hash=hash_password(password),
-            rol=RolUsuario.ADMINISTRADOR,
+            rol=rol,
             is_active=is_active,
         )
         db.add(usuario)
@@ -79,6 +81,27 @@ def test_login_con_correo_inexistente_es_rechazado():
         json={"correo": "no-existe@fashionstore.com", "password": "cualquiera"},
     )
     assert response.status_code == 401
+
+
+def test_login_reutilizable_por_cualquier_actor_humano_incluido_proveedor():
+    # CU01 debe autenticar a los 5 roles humanos por igual, sin lógica de
+    # navegación web ni datos específicos de Angular en la respuesta —
+    # necesario para que Flutter (orientado a CLIENTE) consuma el mismo
+    # endpoint sin cambios.
+    correo = f"test-{uuid.uuid4().hex[:8]}@fashionstore.com"
+    password = "ClaveSegura123!"
+    usuario = _create_test_user(correo, password, rol=RolUsuario.PROVEEDOR)
+
+    try:
+        response = client.post("/api/v1/auth/login", json={"correo": correo, "password": password})
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["usuario"]["rol"] == "PROVEEDOR"
+        assert set(body.keys()) == {"access_token", "token_type", "usuario"}
+        assert set(body["usuario"].keys()) == {"id", "nombre", "correo", "rol"}
+    finally:
+        _delete_test_user(usuario.id)
 
 
 def test_login_con_usuario_inactivo_es_rechazado():
