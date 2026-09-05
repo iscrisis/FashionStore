@@ -37,7 +37,11 @@ export class AdminSidebar {
     { label: 'Proveedores', icon: 'suppliers' },
     { label: 'Reservas', icon: 'reservations' },
     { label: 'Ventas', icon: 'sales' },
-    { label: 'Usuarios y roles', icon: 'users', route: '/admin/usuarios-roles' },
+    {
+      label: 'Usuarios y acceso',
+      icon: 'users',
+      children: [{ label: 'Usuarios y roles', route: '/admin/usuarios-roles' }],
+    },
     { label: 'Reportes', icon: 'reports' },
   ];
 }
