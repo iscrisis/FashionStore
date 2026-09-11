@@ -1,0 +1,20 @@
+# El proyecto "fashionstore-api" en Vercel despliega desde la raíz del
+# monorepo (ver pyproject.toml -> [tool.vercel] entrypoint). Sin este archivo,
+# Vercel empaqueta todo el repo (frontend/ + mobile/ + backend/.venv superan
+# el límite de 500 MB por función). Solo se necesita backend/ para la API.
+frontend/
+mobile/
+.git/
+
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+backend/tests/
+backend/uploads/
+backend/.env
+backend/.env.local
+backend/.env.example
+backend/Dockerfile
+backend/_avast_/

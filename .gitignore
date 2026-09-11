@@ -10,3 +10,5 @@ Thumbs.db
 
 # Cada proyecto (backend/, frontend/web/) mantiene su propio .gitignore
 # con las reglas específicas de Python y Angular.
+.vercel
+.env*
