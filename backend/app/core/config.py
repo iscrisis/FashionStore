@@ -11,6 +11,15 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
+        # Vercel (y otros paneles) a veces dejan una variable definida pero
+        # vacía en vez de simplemente no crearla. Sin esto, pydantic trata ""
+        # como un valor real -- int("") revienta con un ValidationError
+        # críptico y tumba toda la app al importar app.main (ver BACKEND_PORT).
+        # Con esto, "" se trata como "no definida": los campos con default
+        # (BACKEND_PORT, JWT_EXPIRE_MINUTES, etc.) usan su default, y los
+        # campos obligatorios (DATABASE_URL) fallan con un mensaje claro de
+        # "field required" en vez de un error de parseo confuso.
+        env_ignore_empty=True,
     )
 
     APP_NAME: str = "FashionStore API"

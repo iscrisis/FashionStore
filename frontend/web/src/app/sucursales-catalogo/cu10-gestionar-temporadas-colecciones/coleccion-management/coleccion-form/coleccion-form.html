@@ -47,6 +47,63 @@
           </span>
         </label>
 
+        @if (!isEditMode) {
+          <div class="field">
+            <span class="field__label">Colección destacada del Home</span>
+            <span class="field__hint">Guarda la colección primero; luego podrás marcarla como destacada aquí mismo.</span>
+          </div>
+        } @else {
+          <label class="field field--switch">
+            <span class="field__label">Mostrar como colección destacada en inicio</span>
+            <span class="switch">
+              <input
+                type="checkbox"
+                [checked]="esDestacada()"
+                [disabled]="readonly() || actualizandoDestacada()"
+                (change)="onDestacadaChange($event)"
+              />
+              <span class="switch__track"><span class="switch__thumb"></span></span>
+              <span class="switch__text">{{ esDestacada() ? 'Sí' : 'No' }}</span>
+            </span>
+          </label>
+
+          @if (esDestacada()) {
+            <div class="field">
+              <span class="field__label">Imagen destacada del inicio</span>
+              <span class="field__hint">Se usa únicamente en el banner principal del Home. Idealmente PNG o WEBP con fondo transparente.</span>
+              <div class="image-principal">
+                @if (imagenDestacadaUrl()) {
+                  <img
+                    [src]="resolveMediaUrl(imagenDestacadaUrl())"
+                    alt="Imagen destacada del inicio"
+                    class="image-principal__preview"
+                  />
+                } @else {
+                  <div class="image-principal__placeholder">
+                    <app-icon name="catalog" style="width: 22px; height: 22px" />
+                  </div>
+                }
+                @if (!readonly()) {
+                  <div class="image-principal__actions">
+                    <label class="btn btn--ghost btn--sm image-upload-btn">
+                      {{ subiendoImagen() ? 'Cargando…' : imagenDestacadaUrl() ? 'Cambiar imagen' : 'Subir imagen' }}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        [disabled]="subiendoImagen()"
+                        (change)="onImagenSeleccionada($event)"
+                      />
+                    </label>
+                  </div>
+                }
+              </div>
+              @if (imagenError()) {
+                <span class="field__error">{{ imagenError() }}</span>
+              }
+            </div>
+          }
+        }
+
         <footer class="drawer__footer">
           @if (readonly()) {
             <button type="button" class="btn btn--ghost" (click)="close.emit()">Cerrar</button>

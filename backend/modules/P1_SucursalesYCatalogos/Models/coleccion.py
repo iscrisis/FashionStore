@@ -22,4 +22,9 @@ class Coleccion(Base):
     descripcion: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
+    # Colección destacada del Home (CU10): a lo sumo una fila la tiene en True
+    # -- ver el índice único parcial en la migración y ColeccionesRepository.
+    es_destacada_inicio: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    imagen_destacada_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     temporada: Mapped[Temporada] = relationship(lazy="joined")

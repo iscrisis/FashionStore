@@ -5,7 +5,8 @@ import { Icon } from '../../../core/ui/icon/icon';
 
 interface PublicNavLink {
   label: string;
-  href: string;
+  path: string;
+  fragment?: string;
 }
 
 @Component({
@@ -17,15 +18,15 @@ interface PublicNavLink {
 export class PublicHeader {
   protected readonly authService = inject(AuthService);
 
-  // Navegación principal del sitio: NO proviene del CU09 (categorías del catálogo).
-  // Se define aparte porque agrupa categorías, colecciones y ofertas con criterios propios.
+  // Cada entrada apunta a una vista/sección real: "Categorías" lleva a la
+  // sección "Compra por categorías" del Home (id="categorias") y
+  // "Colecciones" reutiliza el catálogo (CU11), donde ya existe un filtro con
+  // las colecciones reales de CU10.
   protected readonly navLinks: PublicNavLink[] = [
-    { label: 'Mujer', href: '/' },
-    { label: 'Hombre', href: '/' },
-    { label: 'Niños', href: '/' },
-    { label: 'Colecciones', href: '/' },
-    { label: 'Ofertas', href: '/' },
-    { label: 'Novedades', href: '/' },
+    { label: 'Inicio', path: '/' },
+    { label: 'Catálogo', path: '/catalogo' },
+    { label: 'Categorías', path: '/', fragment: 'categorias' },
+    { label: 'Colecciones', path: '/catalogo' },
   ];
 
   protected readonly mobileMenuOpen = signal(false);
@@ -34,6 +35,10 @@ export class PublicHeader {
 
   toggleMobileMenu(): void {
     this.mobileMenuOpen.update((open) => !open);
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen.set(false);
   }
 
   protected get destinoCuenta(): string {

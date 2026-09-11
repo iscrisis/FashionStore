@@ -4,7 +4,7 @@ Consulta los mismos modelos que expone modules/P1_SucursalesYCatalogos/Models;
 no crea tablas ni modelos paralelos.
 """
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from modules.P1_SucursalesYCatalogos.Models.coleccion import Coleccion
@@ -91,3 +91,19 @@ class ColeccionesRepository:
         self.db.commit()
         self.db.refresh(coleccion)
         return coleccion
+
+    def desmarcar_destacadas(self, excluyendo_id: int) -> None:
+        """Pone es_destacada_inicio=False en cualquier otra colección que lo
+        tuviera en True, para que al marcar una nueva quede solo una."""
+        stmt = (
+            update(Coleccion)
+            .where(Coleccion.es_destacada_inicio.is_(True), Coleccion.id != excluyendo_id)
+            .values(es_destacada_inicio=False)
+        )
+        self.db.execute(stmt)
+
+    def obtener_destacada_activa(self) -> Coleccion | None:
+        stmt = select(Coleccion).where(
+            Coleccion.es_destacada_inicio.is_(True), Coleccion.is_active.is_(True)
+        )
+        return self.db.execute(stmt).scalars().first()

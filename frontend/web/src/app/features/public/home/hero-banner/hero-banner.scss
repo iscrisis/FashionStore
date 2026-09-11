@@ -4,20 +4,22 @@
 
 .hero {
   position: relative;
-  height: 220px;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  padding: 0 44px;
+  padding: 36px 44px;
+  min-height: 220px;
   display: flex;
   align-items: center;
-  // Placeholder de campaña: sustituir por fotografía real de moda cuando esté disponible.
-  background:
-    linear-gradient(105deg, rgba(30, 0, 4, 0.88) 0%, rgba(133, 0, 13, 0.55) 42%, rgba(169, 0, 18, 0.15) 68%),
-    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0 2px, transparent 2px 26px),
-    linear-gradient(120deg, #4a0007, var(--color-primary) 55%, #d1717c 100%);
+  justify-content: space-between;
+  gap: 32px;
+  // El burdeos es el fondo del propio Hero (no de la imagen): la imagen de
+  // modelos, si existe, se integra encima -- con fondo transparente si la
+  // subieron en PNG/WEBP sin fondo -- sin ninguna caja/rectángulo detrás.
+  background: linear-gradient(120deg, #4a0007, var(--color-primary) 55%, #d1717c 100%);
 }
 
 .hero__text {
+  flex: 1 1 320px;
   max-width: 420px;
   color: var(--color-white);
 }
@@ -29,13 +31,8 @@
   letter-spacing: 0.01em;
 }
 
-.hero__text p {
-  margin-top: 12px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.88);
-}
-
 .hero__cta {
+  display: inline-block;
   margin-top: 20px;
   background: var(--color-white);
   color: var(--color-primary-dark);
@@ -52,35 +49,34 @@
   }
 }
 
-.hero__dots {
-  position: absolute;
-  left: 44px;
-  bottom: 18px;
-  display: flex;
-  gap: 6px;
-}
-
-.hero__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.45);
-
-  &.is-active {
-    background: var(--color-white);
-    width: 16px;
-    border-radius: 999px;
-  }
+.hero__image {
+  flex: 0 1 340px;
+  align-self: stretch;
+  max-height: 260px;
+  // contain (no cover): nunca recorta ni deforma la foto de modelos, y
+  // preserva la transparencia si el archivo es PNG/WEBP sin fondo.
+  object-fit: contain;
+  object-position: center;
 }
 
 @media (max-width: 720px) {
   .hero {
-    height: auto;
-    min-height: 260px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
     padding: 28px 24px;
+  }
+
+  .hero__text {
+    max-width: none;
   }
 
   .hero__text h1 {
     font-size: 24px;
+  }
+
+  .hero__image {
+    width: 100%;
+    max-height: 200px;
   }
 }

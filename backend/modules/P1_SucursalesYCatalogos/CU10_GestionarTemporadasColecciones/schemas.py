@@ -52,6 +52,8 @@ class ColeccionOut(BaseModel):
     nombre: str
     descripcion: str | None
     is_active: bool
+    es_destacada_inicio: bool
+    imagen_destacada_url: str | None
     temporada: TemporadaOut
 
 
@@ -91,3 +93,17 @@ class ColeccionActualizar(_ColeccionDatosBase):
 
 class CambiarEstadoRequest(BaseModel):
     is_active: bool
+
+
+class ColeccionDestacadaRequest(BaseModel):
+    es_destacada_inicio: bool
+
+
+class ColeccionDestacadaPublicaOut(BaseModel):
+    """Lo único que necesita el Home público para armar el hero: a qué
+    colección enlazar y qué imagen mostrar. Sin datos administrativos."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    imagen_destacada_url: str | None

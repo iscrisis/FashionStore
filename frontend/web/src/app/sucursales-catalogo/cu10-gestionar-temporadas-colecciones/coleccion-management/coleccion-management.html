@@ -75,7 +75,12 @@
         <tbody>
           @for (coleccion of colecciones(); track coleccion.id) {
             <tr>
-              <td class="cell-title">{{ coleccion.nombre }}</td>
+              <td class="cell-title">
+                {{ coleccion.nombre }}
+                @if (coleccion.es_destacada_inicio) {
+                  <span class="badge badge--featured">Destacada</span>
+                }
+              </td>
               <td>{{ coleccion.temporada.nombre }}</td>
               <td class="cell-secondary">{{ coleccion.descripcion || '—' }}</td>
               <td><app-status-badge [active]="coleccion.is_active" /></td>
@@ -125,4 +130,5 @@
   [submitting]="submitting()"
   (save)="save($event)"
   (close)="closeDrawer()"
+  (refresh)="load()"
 />

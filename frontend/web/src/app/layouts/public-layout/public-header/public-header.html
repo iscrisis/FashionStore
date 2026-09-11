@@ -10,7 +10,12 @@
 
     <nav class="nav" [class.is-open]="mobileMenuOpen()">
       @for (link of navLinks; track link.label) {
-        <a [href]="link.href" class="nav__link">{{ link.label }}</a>
+        <a
+          [routerLink]="link.path"
+          [fragment]="link.fragment"
+          class="nav__link"
+          (click)="closeMobileMenu()"
+        >{{ link.label }}</a>
       }
     </nav>
 

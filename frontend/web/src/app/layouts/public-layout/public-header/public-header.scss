@@ -36,6 +36,10 @@
   display: flex;
   align-items: center;
   gap: 30px;
+  // Separa el contenido del bloque del logo y del borde derecho: sin este
+  // padding, "Inicio" queda pegado justo al límite del logo (sin aire) y
+  // el bloque de acciones queda pegado al borde de la ventana.
+  padding: 0 24px;
 }
 
 .menu-toggle {

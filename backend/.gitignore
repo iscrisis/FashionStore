@@ -25,6 +25,9 @@ alembic/versions/__pycache__/
 # Imágenes subidas por el Administrador (CU08/CU09) -- ver app/core/image_storage.py
 uploads/
 
+# Vercel
+.vercel/
+
 # IDE
 .vscode/
 .idea/
@@ -35,3 +38,5 @@ Thumbs.db
 
 # Logs
 *.log
+.vercel
+.env*

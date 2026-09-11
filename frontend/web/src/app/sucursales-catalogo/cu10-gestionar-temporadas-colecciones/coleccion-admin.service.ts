@@ -34,4 +34,16 @@ export class ColeccionAdminService {
   setActive(id: number, isActive: boolean): Observable<Coleccion> {
     return this.http.patch<Coleccion>(`${this.baseUrl}/${id}/estado`, { is_active: isActive });
   }
+
+  setDestacadaInicio(id: number, destacada: boolean): Observable<Coleccion> {
+    return this.http.patch<Coleccion>(`${this.baseUrl}/${id}/destacada-inicio`, {
+      es_destacada_inicio: destacada,
+    });
+  }
+
+  setImagenDestacada(id: number, archivo: File): Observable<Coleccion> {
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+    return this.http.post<Coleccion>(`${this.baseUrl}/${id}/imagen-destacada`, formData);
+  }
 }

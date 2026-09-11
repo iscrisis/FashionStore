@@ -420,3 +420,127 @@ def test_listar_colecciones_filtra_por_temporada_y_busqueda():
         _delete_test_coleccion(beta["id"])
         _delete_test_temporada(temporada_a.id)
         _delete_test_temporada(temporada_b.id)
+
+
+# --------------------------------------------------------------------------
+# Colección destacada del Home
+# --------------------------------------------------------------------------
+
+_CONTENIDO_IMAGEN_FALSA = b"contenido-de-prueba-no-es-una-imagen-real"
+
+
+def test_marcar_destacada_desmarca_la_anterior():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    temporada = _create_test_temporada()
+    headers = _auth_headers(admin)
+    primera = client.post(
+        "/api/v1/colecciones",
+        headers=headers,
+        json={"nombre": f"Destacada A-{uuid.uuid4().hex[:6]}", "temporada_id": temporada.id},
+    ).json()
+    segunda = client.post(
+        "/api/v1/colecciones",
+        headers=headers,
+        json={"nombre": f"Destacada B-{uuid.uuid4().hex[:6]}", "temporada_id": temporada.id},
+    ).json()
+    try:
+        marcar_primera = client.patch(
+            f"/api/v1/colecciones/{primera['id']}/destacada-inicio",
+            headers=headers,
+            json={"es_destacada_inicio": True},
+        )
+        assert marcar_primera.status_code == 200
+        assert marcar_primera.json()["es_destacada_inicio"] is True
+
+        marcar_segunda = client.patch(
+            f"/api/v1/colecciones/{segunda['id']}/destacada-inicio",
+            headers=headers,
+            json={"es_destacada_inicio": True},
+        )
+        assert marcar_segunda.status_code == 200
+        assert marcar_segunda.json()["es_destacada_inicio"] is True
+
+        primera_actualizada = client.get(f"/api/v1/colecciones?search=Destacada A", headers=headers)
+        assert primera_actualizada.json()[0]["es_destacada_inicio"] is False
+    finally:
+        _delete_test_user(admin.id)
+        _delete_test_coleccion(primera["id"])
+        _delete_test_coleccion(segunda["id"])
+        _delete_test_temporada(temporada.id)
+
+
+def test_coleccion_destacada_publica_sin_marcar_devuelve_null():
+    response = client.get("/api/v1/colecciones/destacada")
+    assert response.status_code == 200
+    # Puede haber una destacada de otra prueba/entorno; solo garantizamos que
+    # el endpoint es público y responde 200 sin token.
+    assert response.json() is None or "id" in response.json()
+
+
+def test_coleccion_destacada_publica_expone_la_marcada_y_su_imagen():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    temporada = _create_test_temporada()
+    headers = _auth_headers(admin)
+    coleccion = client.post(
+        "/api/v1/colecciones",
+        headers=headers,
+        json={"nombre": f"Publica-{uuid.uuid4().hex[:6]}", "temporada_id": temporada.id},
+    ).json()
+    try:
+        client.patch(
+            f"/api/v1/colecciones/{coleccion['id']}/destacada-inicio",
+            headers=headers,
+            json={"es_destacada_inicio": True},
+        )
+        subida = client.post(
+            f"/api/v1/colecciones/{coleccion['id']}/imagen-destacada",
+            headers=headers,
+            files={"archivo": ("modelos.webp", _CONTENIDO_IMAGEN_FALSA, "image/webp")},
+        )
+        assert subida.status_code == 200
+        assert subida.json()["imagen_destacada_url"] is not None
+
+        publica = client.get("/api/v1/colecciones/destacada")
+        assert publica.status_code == 200
+        cuerpo = publica.json()
+        assert cuerpo["id"] == coleccion["id"]
+        assert cuerpo["imagen_destacada_url"] == subida.json()["imagen_destacada_url"]
+        assert set(cuerpo.keys()) == {"id", "imagen_destacada_url"}
+    finally:
+        client.patch(
+            f"/api/v1/colecciones/{coleccion['id']}/destacada-inicio",
+            headers=headers,
+            json={"es_destacada_inicio": False},
+        )
+        _delete_test_user(admin.id)
+        _delete_test_coleccion(coleccion["id"])
+        _delete_test_temporada(temporada.id)
+
+
+def test_coleccion_destacada_pero_inactiva_no_aparece_en_publico():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    temporada = _create_test_temporada()
+    headers = _auth_headers(admin)
+    coleccion = client.post(
+        "/api/v1/colecciones",
+        headers=headers,
+        json={"nombre": f"Inactiva-{uuid.uuid4().hex[:6]}", "temporada_id": temporada.id},
+    ).json()
+    try:
+        client.patch(
+            f"/api/v1/colecciones/{coleccion['id']}/destacada-inicio",
+            headers=headers,
+            json={"es_destacada_inicio": True},
+        )
+        client.patch(
+            f"/api/v1/colecciones/{coleccion['id']}/estado", headers=headers, json={"is_active": False}
+        )
+
+        publica = client.get("/api/v1/colecciones/destacada")
+        assert publica.status_code == 200
+        cuerpo = publica.json()
+        assert cuerpo is None or cuerpo["id"] != coleccion["id"]
+    finally:
+        _delete_test_user(admin.id)
+        _delete_test_coleccion(coleccion["id"])
+        _delete_test_temporada(temporada.id)

@@ -9,6 +9,11 @@ python-dotenv==1.1.1
 # CU08/CU09 - carga de imágenes (UploadFile/FormData): ver app/core/image_storage.py
 python-multipart==0.0.20
 
+# CU08/CU09 en producción (Vercel) - almacenamiento persistente de imágenes vía
+# Vercel Blob (el filesystem de las funciones serverless es efímero). Solo se
+# usa si la variable de entorno VERCEL está definida -- ver app/core/image_storage.py.
+vercel==0.10.0
+
 # CU01 - Iniciar sesión (usuarios_y_accesos): hashing de contraseñas y JWT
 bcrypt==5.0.0
 pyjwt==2.13.0

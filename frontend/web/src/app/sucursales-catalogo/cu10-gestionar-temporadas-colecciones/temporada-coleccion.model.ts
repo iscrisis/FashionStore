@@ -20,6 +20,8 @@ export interface Coleccion {
   nombre: string;
   descripcion: string | null;
   is_active: boolean;
+  es_destacada_inicio: boolean;
+  imagen_destacada_url: string | null;
   temporada: Temporada;
 }
 

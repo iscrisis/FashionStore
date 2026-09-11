@@ -1,7 +1,9 @@
 """Reglas de negocio de CU10 — Gestionar temporadas y colecciones."""
 
+from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
+from app.core.image_storage import eliminar_archivo_imagen, guardar_archivo_imagen
 from modules.P1_SucursalesYCatalogos.Models.coleccion import Coleccion
 from modules.P1_SucursalesYCatalogos.Models.temporada import Temporada
 
@@ -112,3 +114,23 @@ class ColeccionesService:
         coleccion = self.obtener(coleccion_id)
         coleccion.is_active = activo
         return self._repo.guardar(coleccion)
+
+    def establecer_destacada_inicio(self, coleccion_id: int, destacada: bool) -> Coleccion:
+        coleccion = self.obtener(coleccion_id)
+        if destacada:
+            self._repo.desmarcar_destacadas(excluyendo_id=coleccion_id)
+        coleccion.es_destacada_inicio = destacada
+        return self._repo.guardar(coleccion)
+
+    def establecer_imagen_destacada(
+        self, coleccion_id: int, archivo: UploadFile, contenido: bytes
+    ) -> Coleccion:
+        coleccion = self.obtener(coleccion_id)
+        url_anterior = coleccion.imagen_destacada_url
+        coleccion.imagen_destacada_url = guardar_archivo_imagen("colecciones", archivo, contenido)
+        coleccion = self._repo.guardar(coleccion)
+        eliminar_archivo_imagen(url_anterior)
+        return coleccion
+
+    def obtener_destacada_publica(self) -> Coleccion | None:
+        return self._repo.obtener_destacada_activa()

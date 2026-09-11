@@ -6,11 +6,13 @@ nuevo. La API es JSON puro: no devuelve rutas Angular ni depende del frontend,
 para que Flutter pueda consumirla igual más adelante.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_roles
+from app.core.image_storage import MAX_TAMANO_BYTES, ImagenDemasiadoGrandeError, ImagenInvalidaError
 from app.db.session import get_db
+from modules.P1_SucursalesYCatalogos.Models.coleccion import Coleccion
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 
@@ -18,6 +20,8 @@ from .schemas import (
     CambiarEstadoRequest,
     ColeccionActualizar,
     ColeccionCrear,
+    ColeccionDestacadaPublicaOut,
+    ColeccionDestacadaRequest,
     ColeccionOut,
     TemporadaActualizar,
     TemporadaCrear,
@@ -164,3 +168,57 @@ def cambiar_estado_coleccion(
         return ColeccionesService(db).cambiar_estado(coleccion_id, payload.is_active)
     except RegistroNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Colección no encontrada.") from exc
+
+
+@router_colecciones.patch("/{coleccion_id}/destacada-inicio", response_model=ColeccionOut)
+def establecer_destacada_inicio(
+    coleccion_id: int,
+    payload: ColeccionDestacadaRequest,
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+) -> ColeccionOut:
+    """Marca/desmarca esta colección como la destacada del Home. Al marcar
+    una, el servicio desmarca automáticamente cualquier otra -- nunca hay
+    más de una a la vez (ver también el índice único parcial en la BD)."""
+    try:
+        return ColeccionesService(db).establecer_destacada_inicio(
+            coleccion_id, payload.es_destacada_inicio
+        )
+    except RegistroNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Colección no encontrada.") from exc
+
+
+@router_colecciones.post("/{coleccion_id}/imagen-destacada", response_model=ColeccionOut)
+async def establecer_imagen_destacada_coleccion(
+    coleccion_id: int,
+    archivo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    _: Usuario = Depends(require_admin),
+) -> ColeccionOut:
+    contenido = await archivo.read()
+    try:
+        return ColeccionesService(db).establecer_imagen_destacada(coleccion_id, archivo, contenido)
+    except RegistroNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Colección no encontrada.") from exc
+    except ImagenInvalidaError as exc:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            "La imagen debe ser un archivo JPG, JPEG, PNG o WEBP.",
+        ) from exc
+    except ImagenDemasiadoGrandeError as exc:
+        raise HTTPException(
+            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            f"La imagen no puede superar los {MAX_TAMANO_BYTES // (1024 * 1024)} MB.",
+        ) from exc
+
+
+# --------------------------------------------------------------------------
+# Lectura pública -- consumida por el Home (Angular) y, más adelante, Flutter.
+# Sin autenticación, igual que CU11. Vive aquí (no en CU11) porque la
+# colección destacada es un dato propio de CU10, no del catálogo de prendas.
+# --------------------------------------------------------------------------
+
+
+@router_colecciones.get("/destacada", response_model=ColeccionDestacadaPublicaOut | None)
+def obtener_coleccion_destacada(db: Session = Depends(get_db)) -> Coleccion | None:
+    return ColeccionesService(db).obtener_destacada_publica()

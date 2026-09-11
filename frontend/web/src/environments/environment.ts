@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  // En producción, este valor se reemplaza mediante la configuración de build/hosting
-  // del entorno cloud correspondiente (no se debe apuntar nunca a localhost).
-  apiUrl: '/api/v1',
+  // Backend FastAPI desplegado en Vercel (proyecto "fashionstore-api",
+  // independiente de este frontend). Nunca debe apuntar a localhost.
+  apiUrl: 'https://fashionstore-api.vercel.app/api/v1',
 };
