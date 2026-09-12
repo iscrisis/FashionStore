@@ -1,0 +1,94 @@
+<div class="restablecer-page">
+  <div class="restablecer-card">
+    <a routerLink="/" class="restablecer-card__brand">FASHION<br />STORE</a>
+    <h1>Restablecer contraseña</h1>
+
+    @if (enlaceInvalido()) {
+      <div class="restablecer-confirmacion restablecer-confirmacion--error">
+        <app-icon name="lock" class="restablecer-confirmacion__icon" />
+        <p>Este enlace no es válido. Solicita uno nuevo desde "¿Olvidaste tu contraseña?".</p>
+      </div>
+    } @else if (!exito()) {
+      <p class="restablecer-card__subtitle">Elige una nueva contraseña para tu cuenta.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="restablecer-form" novalidate>
+        <label class="field" [class.has-error]="form.controls.password.invalid && form.controls.password.touched">
+          <span class="field__label">Nueva contraseña</span>
+          <div class="field__control">
+            <app-icon name="lock" class="field__icon" />
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="Mínimo 8 caracteres"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="field__toggle"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="showPassword()"
+            >
+              <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" style="width: 17px; height: 17px" />
+            </button>
+          </div>
+          @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+            <span class="field__error">La contraseña es obligatoria.</span>
+          } @else if (form.controls.password.hasError('minlength') && form.controls.password.touched) {
+            <span class="field__error">La contraseña debe tener al menos 8 caracteres.</span>
+          }
+        </label>
+
+        <label
+          class="field"
+          [class.has-error]="
+            (form.controls.confirmarPassword.invalid || form.hasError('passwordsNoCoinciden')) &&
+            form.controls.confirmarPassword.touched
+          "
+        >
+          <span class="field__label">Confirmar contraseña</span>
+          <div class="field__control">
+            <app-icon name="lock" class="field__icon" />
+            <input
+              [type]="showConfirmarPassword() ? 'text' : 'password'"
+              formControlName="confirmarPassword"
+              placeholder="Repite tu contraseña"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="field__toggle"
+              (click)="toggleConfirmarPasswordVisibility()"
+              [attr.aria-label]="showConfirmarPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="showConfirmarPassword()"
+            >
+              <app-icon [name]="showConfirmarPassword() ? 'eye-off' : 'eye'" style="width: 17px; height: 17px" />
+            </button>
+          </div>
+          @if (form.controls.confirmarPassword.hasError('required') && form.controls.confirmarPassword.touched) {
+            <span class="field__error">Confirma tu contraseña.</span>
+          } @else if (form.hasError('passwordsNoCoinciden') && form.controls.confirmarPassword.touched) {
+            <span class="field__error">Las contraseñas no coinciden.</span>
+          }
+        </label>
+
+        @if (errorMessage()) {
+          <p class="restablecer-form__error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        <button type="submit" class="btn btn--primary restablecer-form__submit" [disabled]="submitting()">
+          {{ submitting() ? 'Actualizando…' : 'Actualizar contraseña' }}
+        </button>
+      </form>
+    } @else {
+      <div class="restablecer-confirmacion">
+        <app-icon name="lock" class="restablecer-confirmacion__icon" />
+        <p>Tu contraseña se actualizó correctamente.</p>
+      </div>
+    }
+
+    <div class="restablecer-card__links">
+      <a routerLink="/login" class="restablecer-card__link">Volver a iniciar sesión</a>
+    </div>
+  </div>
+</div>

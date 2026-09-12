@@ -1,0 +1,49 @@
+<div class="recuperar-page">
+  <div class="recuperar-card">
+    <a routerLink="/" class="recuperar-card__brand">FASHION<br />STORE</a>
+    <h1>Recuperar contraseña</h1>
+
+    @if (!enviado()) {
+      <p class="recuperar-card__subtitle">
+        Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="recuperar-form" novalidate>
+        <label class="field" [class.has-error]="form.controls.correo.invalid && form.controls.correo.touched">
+          <span class="field__label">Correo electrónico</span>
+          <div class="field__control">
+            <app-icon name="mail" class="field__icon" />
+            <input
+              type="email"
+              formControlName="correo"
+              placeholder="tucorreo@ejemplo.com"
+              autocomplete="username"
+            />
+          </div>
+          @if (form.controls.correo.hasError('required') && form.controls.correo.touched) {
+            <span class="field__error">El correo es obligatorio.</span>
+          } @else if (form.controls.correo.hasError('email') && form.controls.correo.touched) {
+            <span class="field__error">Ingresa un correo válido.</span>
+          }
+        </label>
+
+        @if (errorMessage()) {
+          <p class="recuperar-form__error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        <button type="submit" class="btn btn--primary recuperar-form__submit" [disabled]="submitting()">
+          {{ submitting() ? 'Enviando…' : 'Enviar enlace' }}
+        </button>
+      </form>
+    } @else {
+      <div class="recuperar-confirmacion">
+        <app-icon name="mail" class="recuperar-confirmacion__icon" />
+        <p>{{ mensajeGenerico }}</p>
+      </div>
+    }
+
+    <div class="recuperar-card__links">
+      <a routerLink="/login" class="recuperar-card__link">Volver a iniciar sesión</a>
+    </div>
+  </div>
+</div>
