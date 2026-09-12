@@ -12,6 +12,10 @@ proveedor_id referencia a Proveedor (modules/P1_SucursalesYCatalogos/Models),
 tampoco lo duplica: una cuenta con rol PROVEEDOR queda ligada a SU proveedor
 (Usuario → Proveedor), nunca a una sucursal. Es unique porque cada proveedor
 tiene una única cuenta de acceso.
+
+telefono lo captura CU02 (registrar cliente) como celular de contacto del
+Cliente, y CU04 (actualizar perfil) lo consulta/edita. Permite NULL porque
+las cuentas internas (creadas por CU05) no lo exigen.
 """
 
 from datetime import datetime
@@ -42,6 +46,7 @@ class Usuario(Base):
     proveedor_id: Mapped[int | None] = mapped_column(
         ForeignKey("proveedores.id"), unique=True, nullable=True
     )
+    telefono: Mapped[str | None] = mapped_column(String(30), nullable=True)
 
     sucursal: Mapped[Sucursal | None] = relationship(lazy="joined")
     proveedor: Mapped[Proveedor | None] = relationship(lazy="joined")
