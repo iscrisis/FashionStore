@@ -1,0 +1,64 @@
+<div class="perfil-page">
+  <div class="perfil-card">
+    <h1>Mi perfil</h1>
+    <p class="perfil-card__subtitle">Consulta y actualiza tus datos personales.</p>
+
+    @if (cargando()) {
+      <p class="perfil-card__loading">Cargando tus datos…</p>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" class="perfil-form" novalidate>
+        <label class="field" [class.has-error]="form.controls.nombre.invalid && form.controls.nombre.touched">
+          <span class="field__label">Nombre</span>
+          <div class="field__control">
+            <app-icon name="user" class="field__icon" />
+            <input type="text" formControlName="nombre" placeholder="Tu nombre completo" autocomplete="name" />
+          </div>
+          @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+            <span class="field__error">Ingresa tu nombre completo.</span>
+          }
+        </label>
+
+        <label class="field" [class.has-error]="form.controls.correo.invalid && form.controls.correo.touched">
+          <span class="field__label">Correo electrónico</span>
+          <div class="field__control">
+            <app-icon name="mail" class="field__icon" />
+            <input
+              type="email"
+              formControlName="correo"
+              placeholder="tucorreo@ejemplo.com"
+              autocomplete="email"
+            />
+          </div>
+          @if (form.controls.correo.hasError('required') && form.controls.correo.touched) {
+            <span class="field__error">El correo es obligatorio.</span>
+          } @else if (form.controls.correo.hasError('email') && form.controls.correo.touched) {
+            <span class="field__error">Ingresa un correo válido.</span>
+          }
+        </label>
+
+        <label class="field" [class.has-error]="form.controls.telefono.invalid && form.controls.telefono.touched">
+          <span class="field__label">Teléfono</span>
+          <div class="field__control">
+            <app-icon name="user" class="field__icon" />
+            <input type="tel" formControlName="telefono" placeholder="Ej. 70012345" autocomplete="tel" />
+          </div>
+          @if (form.controls.telefono.invalid && form.controls.telefono.touched) {
+            <span class="field__error">Ingresa un número de teléfono válido.</span>
+          }
+        </label>
+
+        @if (errorMessage()) {
+          <p class="perfil-form__error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        <button type="submit" class="btn btn--primary perfil-form__submit" [disabled]="submitting()">
+          {{ submitting() ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </form>
+    }
+
+    <div class="perfil-card__links">
+      <a routerLink="/" class="perfil-card__link">Volver a la tienda</a>
+    </div>
+  </div>
+</div>

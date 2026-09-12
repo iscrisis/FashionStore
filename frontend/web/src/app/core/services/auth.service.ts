@@ -3,9 +3,11 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  ActualizarPerfilRequest,
   ForgotPasswordRequest,
   LoginResponse,
   MensajeGenericoResponse,
+  MiPerfilResponse,
   ResetPasswordRequest,
   RolUsuario,
   Usuario,
@@ -57,6 +59,19 @@ export class AuthService {
     );
   }
 
+  // CU04 -- Actualizar perfil. GET/PUT "/auth/me": el backend identifica al
+  // usuario por el JWT (interceptor ya adjunta el Bearer token, ver
+  // core/interceptors/auth.interceptor.ts) -- nunca se envía un id.
+  obtenerMiPerfil(): Observable<MiPerfilResponse> {
+    return this.http.get<MiPerfilResponse>(`${environment.apiUrl}/auth/me`);
+  }
+
+  actualizarMiPerfil(datos: ActualizarPerfilRequest): Observable<MiPerfilResponse> {
+    return this.http
+      .put<MiPerfilResponse>(`${environment.apiUrl}/auth/me`, datos)
+      .pipe(tap((usuario) => this.actualizarUsuarioEnSesion(usuario)));
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
@@ -78,6 +93,13 @@ export class AuthService {
     localStorage.setItem(USER_KEY, JSON.stringify(response.usuario));
     this._token.set(response.access_token);
     this._usuario.set(response.usuario);
+  }
+
+  // CU04 -- Actualiza solo los datos de sesión ya guardados (nombre/correo),
+  // sin tocar el token: el JWT sigue siendo válido, la sesión no se reinicia.
+  private actualizarUsuarioEnSesion(usuario: Usuario): void {
+    localStorage.setItem(USER_KEY, JSON.stringify(usuario));
+    this._usuario.set(usuario);
   }
 
   private leerTokenAlmacenado(): string | null {

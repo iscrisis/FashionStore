@@ -27,13 +27,16 @@ from modules.P1_SucursalesYCatalogos.CU10_GestionarTemporadasColecciones.router 
     router_colecciones as cu10_colecciones_router,
     router_temporadas as cu10_temporadas_router,
 )
-from modules.P1_SucursalesYCatalogos.GestionProveedores.router import (
+from modules.P3_ProveedoresEInventario.CU13_GestionarProveedores.router import (
     router as gestion_proveedores_router,
     router_panel as panel_proveedor_router,
 )
 from modules.P2_UsuariosYAccesos.CU01_IniciarSesion.router import router as cu01_iniciar_sesion_router
 from modules.P2_UsuariosYAccesos.CU03_RecuperarContrasena.router import (
     router as cu03_recuperar_contrasena_router,
+)
+from modules.P2_UsuariosYAccesos.CU04_ActualizarPerfil.router import (
+    router as cu04_actualizar_perfil_router,
 )
 from modules.P2_UsuariosYAccesos.CU05_GestionarUsuariosRoles.router import (
     router as cu05_usuarios_roles_router,
@@ -59,6 +62,7 @@ app.add_middleware(
 app.include_router(health.router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu01_iniciar_sesion_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu03_recuperar_contrasena_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu04_actualizar_perfil_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu05_usuarios_roles_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu06_ciudades_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu06_sucursales_router, prefix=settings.API_V1_PREFIX)

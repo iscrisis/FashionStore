@@ -42,6 +42,15 @@ export class PublicHeader {
   }
 
   protected get destinoCuenta(): string {
-    return this.authService.hasRole('ADMINISTRADOR') ? '/admin' : '/';
+    // CU04 -- Actualizar perfil: el CLIENTE va a "Mi perfil" (sigue dentro de
+    // la tienda pública, no es un panel). ADMINISTRADOR conserva su acceso
+    // directo al panel de administración, sin tocar esa lógica.
+    if (this.authService.hasRole('ADMINISTRADOR')) {
+      return '/admin';
+    }
+    if (this.authService.hasRole('CLIENTE')) {
+      return '/mi-perfil';
+    }
+    return '/';
   }
 }
