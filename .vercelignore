@@ -1,0 +1,26 @@
+# IMPORTANTE: este archivo se aplica a nivel de repositorio, es decir a TODOS
+# los proyectos de Vercel conectados a este repo (fashionstore-api Y
+# fashionstore-web), sin importar el "Root Directory" de cada uno. NO excluir
+# aqui "frontend/" -- rompe el build de fashionstore-web (root = frontend/web).
+#
+# El proyecto "fashionstore-api" despliega desde la raíz del monorepo (ver
+# pyproject.toml -> [tool.vercel] entrypoint). Sin ignorar mobile/ (Flutter,
+# ~1.1 GB) el bundle de la función Python supera el límite de 500 MB.
+# frontend/ (con node_modules) se deja sin excluir a propósito porque
+# fashionstore-web lo necesita; de todas formas el bundle de la API queda muy
+# por debajo del límite (~295 MB) incluyéndolo.
+mobile/
+.git/
+
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+backend/tests/
+backend/uploads/
+backend/.env
+backend/.env.local
+backend/.env.example
+backend/Dockerfile
+backend/_avast_/

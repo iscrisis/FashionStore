@@ -1,0 +1,33 @@
+[project]
+name = "fashionstore-api"
+version = "0.1.0"
+requires-python = ">=3.12"
+# En cuanto existe un pyproject.toml, Vercel lo usa como única fuente de
+# dependencias e ignora backend/requirements.txt (comprobado: sin esta lista,
+# el deploy falla en runtime con "ModuleNotFoundError: No module named
+# 'fastapi'"). Debe mantenerse en sync con backend/requirements.txt --
+# pytest/httpx no se incluyen porque son solo para tests, no para runtime.
+dependencies = [
+    "fastapi==0.118.0",
+    "uvicorn[standard]==0.37.0",
+    "sqlalchemy==2.0.44",
+    "psycopg[binary]==3.2.10",
+    "alembic==1.16.5",
+    "pydantic-settings==2.11.0",
+    "python-dotenv==1.1.1",
+    "python-multipart==0.0.20",
+    "vercel==0.10.0",
+    "bcrypt==5.0.0",
+    "pyjwt==2.13.0",
+]
+
+[tool.vercel]
+# El proyecto "fashionstore-api" en Vercel despliega desde la raíz del
+# repositorio (monorepo), no desde backend/. Con dos archivos candidatos
+# exponiendo `app` (backend/api/index.py y backend/app/main.py, además de
+# varios backend/tests/test_*.py que también importan `app`), Vercel no puede
+# elegir uno solo y falla con "No FastAPI entrypoint found in default
+# locations". Este entrypoint explícito desambigua señalando siempre a
+# backend/api/index.py, que a su vez importa la app real desde
+# backend/app/main.py sin modificarla.
+entrypoint = "backend.api.index:app"
