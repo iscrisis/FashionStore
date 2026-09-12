@@ -21,3 +21,18 @@ export interface LoginResponse {
   token_type: string;
   usuario: Usuario;
 }
+
+// CU03 -- Recuperar contraseña.
+export interface ForgotPasswordRequest {
+  correo: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  new_password: string;
+  confirmar_password: string;
+}
+
+export interface MensajeGenericoResponse {
+  message: string;
+}

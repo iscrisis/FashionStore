@@ -43,6 +43,25 @@ class Settings(BaseSettings):
     ADMIN_INITIAL_EMAIL: str = "admin@fashionstore.com"
     ADMIN_INITIAL_PASSWORD: str = "changeme"
 
+    # CU03 - Recuperar contraseña: SMTP estándar para enviar el correo real con
+    # el enlace de restablecimiento (ver app/integrations/mailer.py). Vacíos
+    # por defecto: sin MAIL_HOST/MAIL_FROM configurados, el envío falla de
+    # forma explícita en vez de intentar conectarse a un servidor inexistente.
+    MAIL_HOST: str = ""
+    MAIL_PORT: int = 587
+    MAIL_USERNAME: str = ""
+    MAIL_PASSWORD: str = ""
+    MAIL_FROM: str = ""
+    MAIL_USE_TLS: bool = True
+
+    # Minutos de validez del token de CU03 antes de expirar.
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # URL pública del frontend Angular. CU03 la usa para construir el enlace
+    # de restablecimiento que se envía por correo -- nunca hardcodear
+    # localhost: en producción se define vía variable de entorno.
+    FRONTEND_URL: str = "http://localhost:4200"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]

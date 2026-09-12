@@ -28,6 +28,7 @@ from modules.P1_SucursalesYCatalogos.Models.proveedor import Proveedor  # noqa: 
 from modules.P1_SucursalesYCatalogos.Models.sucursal import Sucursal  # noqa: E402,F401
 from modules.P1_SucursalesYCatalogos.Models.talla import Talla  # noqa: E402,F401
 from modules.P1_SucursalesYCatalogos.Models.temporada import Temporada  # noqa: E402,F401
+from modules.P2_UsuariosYAccesos.Models.password_reset_token import PasswordResetToken  # noqa: E402,F401
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario  # noqa: E402,F401
 
 # this is the Alembic Config object, which provides

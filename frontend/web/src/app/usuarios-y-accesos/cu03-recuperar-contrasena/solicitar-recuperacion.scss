@@ -1,0 +1,160 @@
+:host {
+  display: block;
+}
+
+// Misma estética centrada que login/registro (ver cu01-iniciar-sesion/login.scss
+// y cu02-registrar-cliente/registro.scss): tarjeta blanca con sombra sobre un
+// fondo degradado rojo muy sutil, sin depender de ninguna imagen.
+.recuperar-page {
+  min-height: calc(100vh - 58px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background:
+    radial-gradient(
+      circle at 12% 8%,
+      color-mix(in srgb, var(--color-primary) 7%, transparent) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 88% 92%,
+      color-mix(in srgb, var(--color-primary) 6%, transparent) 0%,
+      transparent 50%
+    ),
+    var(--color-bg);
+}
+
+.recuperar-card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-medium);
+  padding: 40px 36px;
+}
+
+.recuperar-card__brand {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-primary);
+  letter-spacing: 0.04em;
+}
+
+.recuperar-card h1 {
+  margin-top: 22px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.recuperar-card__subtitle {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.recuperar-form {
+  width: 100%;
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: left;
+}
+
+.field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  input {
+    padding-left: 38px !important;
+  }
+}
+
+.field__icon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.recuperar-form__submit {
+  width: 100%;
+  justify-content: center;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  margin-top: 4px;
+}
+
+.recuperar-form__error {
+  margin: -6px 0 0;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-bg);
+  font-size: 12.5px;
+  color: var(--color-danger);
+  text-align: left;
+}
+
+.recuperar-confirmacion {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+
+  p {
+    font-size: 13px;
+    color: var(--color-text);
+    line-height: 1.5;
+  }
+}
+
+.recuperar-confirmacion__icon {
+  width: 34px;
+  height: 34px;
+  color: var(--color-primary);
+}
+
+.recuperar-card__links {
+  margin-top: 24px;
+  padding-top: 20px;
+  width: 100%;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: center;
+}
+
+.recuperar-card__link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--color-primary-hover);
+    text-decoration: underline;
+  }
+}
+
+@media (max-width: 480px) {
+  .recuperar-page {
+    padding: 28px 16px;
+  }
+
+  .recuperar-card {
+    padding: 32px 24px;
+  }
+}

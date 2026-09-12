@@ -20,6 +20,22 @@ export const routes: Routes = [
         title: 'Iniciar sesión · Fashion Store',
       },
       {
+        path: 'recuperar-contrasena',
+        loadComponent: () =>
+          import('./usuarios-y-accesos/cu03-recuperar-contrasena/solicitar-recuperacion').then(
+            (m) => m.SolicitarRecuperacion,
+          ),
+        title: 'Recuperar contraseña · Fashion Store',
+      },
+      {
+        path: 'restablecer-contrasena',
+        loadComponent: () =>
+          import('./usuarios-y-accesos/cu03-recuperar-contrasena/restablecer-contrasena').then(
+            (m) => m.RestablecerContrasena,
+          ),
+        title: 'Restablecer contraseña · Fashion Store',
+      },
+      {
         path: 'catalogo',
         loadComponent: () =>
           import('./features/public/catalogo/catalogo-page/catalogo-page').then(

@@ -32,6 +32,9 @@ from modules.P1_SucursalesYCatalogos.GestionProveedores.router import (
     router_panel as panel_proveedor_router,
 )
 from modules.P2_UsuariosYAccesos.CU01_IniciarSesion.router import router as cu01_iniciar_sesion_router
+from modules.P2_UsuariosYAccesos.CU03_RecuperarContrasena.router import (
+    router as cu03_recuperar_contrasena_router,
+)
 from modules.P2_UsuariosYAccesos.CU05_GestionarUsuariosRoles.router import (
     router as cu05_usuarios_roles_router,
 )
@@ -55,6 +58,7 @@ app.add_middleware(
 
 app.include_router(health.router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu01_iniciar_sesion_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu03_recuperar_contrasena_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu05_usuarios_roles_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu06_ciudades_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu06_sucursales_router, prefix=settings.API_V1_PREFIX)

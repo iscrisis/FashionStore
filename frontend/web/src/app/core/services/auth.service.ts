@@ -3,7 +3,10 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  ForgotPasswordRequest,
   LoginResponse,
+  MensajeGenericoResponse,
+  ResetPasswordRequest,
   RolUsuario,
   Usuario,
 } from '../../usuarios-y-accesos/shared/models/usuario.model';
@@ -34,6 +37,24 @@ export class AuthService {
     return this.http
       .post<LoginResponse>(`${environment.apiUrl}/auth/login`, { correo, password })
       .pipe(tap((response) => this.guardarSesion(response)));
+  }
+
+  // CU03 -- Recuperar contraseña. A diferencia de login(), no guarda sesión
+  // ni token: son pasos previos a poder iniciar sesión por CU01, no un inicio
+  // de sesión en sí.
+  forgotPassword(correo: string): Observable<MensajeGenericoResponse> {
+    const payload: ForgotPasswordRequest = { correo };
+    return this.http.post<MensajeGenericoResponse>(
+      `${environment.apiUrl}/auth/forgot-password`,
+      payload,
+    );
+  }
+
+  resetPassword(datos: ResetPasswordRequest): Observable<MensajeGenericoResponse> {
+    return this.http.post<MensajeGenericoResponse>(
+      `${environment.apiUrl}/auth/reset-password`,
+      datos,
+    );
   }
 
   logout(): void {
