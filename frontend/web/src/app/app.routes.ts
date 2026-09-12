@@ -36,6 +36,13 @@ export const routes: Routes = [
         title: 'Restablecer contraseña · Fashion Store',
       },
       {
+        path: 'mi-perfil',
+        loadComponent: () =>
+          import('./usuarios-y-accesos/cu04-actualizar-perfil/mi-perfil').then((m) => m.MiPerfil),
+        canActivate: [authGuard],
+        title: 'Mi perfil · Fashion Store',
+      },
+      {
         path: 'catalogo',
         loadComponent: () =>
           import('./features/public/catalogo/catalogo-page/catalogo-page').then(

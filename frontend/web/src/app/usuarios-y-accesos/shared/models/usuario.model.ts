@@ -36,3 +36,17 @@ export interface ResetPasswordRequest {
 export interface MensajeGenericoResponse {
   message: string;
 }
+
+// CU04 -- Actualizar perfil. Extiende Usuario (id/nombre/correo/rol) con
+// telefono, igual que MiPerfilResponse en el backend extiende UsuarioPublico.
+export interface MiPerfilResponse extends Usuario {
+  telefono: string | null;
+}
+
+// Deliberadamente sin "rol": el backend nunca lo acepta desde este endpoint
+// (ver ActualizarPerfilRequest en CU04_ActualizarPerfil/schemas.py).
+export interface ActualizarPerfilRequest {
+  nombre: string;
+  correo: string;
+  telefono: string;
+}
