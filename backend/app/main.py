@@ -27,7 +27,7 @@ from modules.P1_SucursalesYCatalogos.CU10_GestionarTemporadasColecciones.router 
     router_colecciones as cu10_colecciones_router,
     router_temporadas as cu10_temporadas_router,
 )
-from modules.P1_SucursalesYCatalogos.GestionProveedores.router import (
+from modules.P3_ProveedoresEInventario.CU13_GestionarProveedores.router import (
     router as gestion_proveedores_router,
     router_panel as panel_proveedor_router,
 )
