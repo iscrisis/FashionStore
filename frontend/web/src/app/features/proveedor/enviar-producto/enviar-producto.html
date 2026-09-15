@@ -20,40 +20,24 @@
       <textarea formControlName="descripcion" rows="4" placeholder="Detalles de la prenda (opcional)"></textarea>
     </label>
 
-    <div class="field-row">
-      <label
-        class="field"
-        [class.has-error]="form.controls.temporada_id.invalid && form.controls.temporada_id.touched"
-      >
-        <span class="field__label">Temporada *</span>
-        <select formControlName="temporada_id">
-          <option [value]="null" disabled>Selecciona una temporada</option>
-          @for (temporada of temporadas(); track temporada.id) {
-            <option [value]="temporada.id">{{ temporada.nombre }}</option>
-          }
-        </select>
-        @if (form.controls.temporada_id.invalid && form.controls.temporada_id.touched) {
-          <span class="field__error">Selecciona una temporada.</span>
-        }
-      </label>
-
-      <label
-        class="field"
-        [class.has-error]="form.controls.coleccion_id.invalid && form.controls.coleccion_id.touched"
-      >
-        <span class="field__label">Colección *</span>
-        <select formControlName="coleccion_id">
-          <option [value]="null" disabled>
-            {{ form.controls.temporada_id.value ? 'Selecciona una colección' : 'Elige una temporada primero' }}
-          </option>
-          @for (coleccion of colecciones(); track coleccion.id) {
-            <option [value]="coleccion.id">{{ coleccion.nombre }}</option>
-          }
-        </select>
-        @if (form.controls.coleccion_id.invalid && form.controls.coleccion_id.touched) {
-          <span class="field__error">Selecciona una colección.</span>
-        }
-      </label>
+    <div class="field">
+      <span class="field__label">Imagen de referencia</span>
+      @if (imagenPreviewUrl(); as preview) {
+        <div class="imagen-preview">
+          <img [src]="preview" alt="Vista previa" />
+          <button type="button" class="imagen-preview__quitar" (click)="quitarImagen()">
+            <app-icon name="close" style="width: 13px; height: 13px" />
+            Quitar
+          </button>
+        </div>
+      } @else {
+        <label class="imagen-picker">
+          <app-icon name="products" style="width: 22px; height: 22px" />
+          <span>Subir imagen (JPG, PNG o WEBP)</span>
+          <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onImagenSeleccionada($event)" hidden />
+        </label>
+      }
+      <span class="field__hint">Es solo una referencia para el Administrador; no es la imagen final del catálogo.</span>
     </div>
 
     <label class="field field--switch">

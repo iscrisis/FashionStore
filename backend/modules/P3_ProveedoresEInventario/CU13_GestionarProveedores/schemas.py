@@ -1,6 +1,7 @@
 """Contratos de entrada/salida de Gestión de Proveedores."""
 
 import re
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -76,40 +77,40 @@ class CambiarEstadoRequest(BaseModel):
 
 # --------------------------------------------------------------------------
 # Panel propio del Proveedor
+#
+# El proveedor solo propone nombre/descripción/imagen de referencia/
+# disponibilidad: categoría, temporada, colección, precio, tallas y colores
+# son decisiones internas de FashionStore que el Administrador completa al
+# convertir la propuesta en un Producto real (ver CU08). Por eso
+# ProductoProveedorCrear/Actualizar ya no piden temporada_id/coleccion_id.
 # --------------------------------------------------------------------------
 
 
-class TemporadaResumen(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class VariantesPorColorOut(BaseModel):
+    """Variantes ya aprobadas (Producto/ProductoVariante), agrupadas por
+    color para que el proveedor las vea en solo lectura -- ej. "Negro: S, M,
+    L". Solo tiene sentido cuando estado == APROBADO."""
 
-    id: int
-    nombre: str
-
-
-class ColeccionResumen(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    nombre: str
+    color: str
+    tallas: list[str]
 
 
 class ProductoProveedorOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int
     nombre: str
     descripcion: str | None
+    imagen_url: str | None
     disponibilidad: bool
     is_active: bool
-    temporada: TemporadaResumen
-    coleccion: ColeccionResumen
+    # Decisión del Administrador sobre esta propuesta -- ver
+    # modules.P1_SucursalesYCatalogos.Models.producto_proveedor.EstadoProductoProveedor.
+    estado: Literal["PENDIENTE", "APROBADO", "RECHAZADO"]
+    variantes: list[VariantesPorColorOut] = []
 
 
 class _ProductoProveedorDatosBase(BaseModel):
     nombre: str
     descripcion: str | None = None
-    temporada_id: int
-    coleccion_id: int
 
     @field_validator("nombre")
     @classmethod

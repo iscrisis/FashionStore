@@ -1,0 +1,8 @@
+<section class="admin-card welcome">
+  <h3>¡Bienvenido{{ usuario()?.nombre ? ', ' + usuario()!.nombre : '' }}!</h3>
+  <p>
+    La gestión de stock por sucursal todavía se está preparando. Por ahora puedes
+    revisar y actualizar tus datos de contacto en tu perfil.
+  </p>
+  <a routerLink="/mi-perfil" class="btn btn--primary">Ir a mi perfil</a>
+</section>

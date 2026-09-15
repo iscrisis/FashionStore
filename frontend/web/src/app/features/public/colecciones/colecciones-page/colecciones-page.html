@@ -1,0 +1,43 @@
+<div class="container colecciones-page">
+  <div class="page-header">
+    <h1>Colecciones</h1>
+    <p>Explora las colecciones activas de FashionStore.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="coleccion-grid">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="skeleton-card"></div>
+      }
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudo cargar las colecciones</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (colecciones().length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">Todavía no hay colecciones disponibles</span>
+      <span>Vuelve a revisar más adelante.</span>
+    </div>
+  } @else {
+    <div class="coleccion-grid">
+      @for (coleccion of colecciones(); track coleccion.id) {
+        <div class="coleccion-card">
+          <div class="coleccion-card__body">
+            <span class="coleccion-card__name">{{ coleccion.nombre }}</span>
+            @if (coleccion.descripcion) {
+              <p class="coleccion-card__desc">{{ coleccion.descripcion }}</p>
+            }
+          </div>
+          <a
+            [routerLink]="['/catalogo']"
+            [queryParams]="{ coleccion_id: coleccion.id }"
+            class="btn btn--primary btn--sm"
+          >Ver colección</a>
+        </div>
+      }
+    </div>
+  }
+</div>

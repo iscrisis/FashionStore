@@ -1,0 +1,147 @@
+<section class="admin-card section">
+  <div class="section__header">
+    <div>
+      <h3>Propuestas de proveedores</h3>
+      <p>Revisa, aprueba o rechaza las prendas que los proveedores ofrecen a FashionStore.</p>
+    </div>
+  </div>
+
+  <div class="table-toolbar section__toolbar">
+    <select class="status-select" [ngModel]="filtroEstado()" (ngModelChange)="onFiltroChange($event)">
+      <option value="PENDIENTE">Pendientes</option>
+      <option value="APROBADO">Aprobadas</option>
+      <option value="RECHAZADO">Rechazadas</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="section__body">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudieron cargar las propuestas</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (propuestas().length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">
+        {{
+          filtroEstado() === 'PENDIENTE'
+            ? 'Sin propuestas pendientes'
+            : filtroEstado() === 'APROBADO'
+              ? 'Sin propuestas aprobadas'
+              : 'Sin propuestas rechazadas'
+        }}
+      </span>
+      <span>Las propuestas que envíen los proveedores aparecerán aquí.</span>
+    </div>
+  } @else {
+    <div class="lista-propuestas">
+      @for (propuesta of propuestas(); track propuesta.id) {
+        <button type="button" class="propuesta-row" (click)="abrirRevision(propuesta)">
+          @if (propuesta.imagen_url) {
+            <img [src]="resolveMediaUrl(propuesta.imagen_url)" alt="" class="propuesta-row__imagen" />
+          } @else {
+            <div class="propuesta-row__imagen propuesta-row__imagen--placeholder">
+              <app-icon name="products" style="width: 16px; height: 16px" />
+            </div>
+          }
+          <span class="propuesta-row__info">
+            <span class="propuesta-row__nombre">{{ propuesta.nombre }}</span>
+            <span class="propuesta-row__meta">{{ propuesta.proveedor.razon_social }}</span>
+            @if (propuesta.descripcion) {
+              <span class="propuesta-row__descripcion">{{ propuesta.descripcion }}</span>
+            }
+          </span>
+          <app-status-badge [active]="propuesta.disponibilidad" />
+          <span
+            class="badge"
+            [class.badge--active]="propuesta.estado === 'APROBADO'"
+            [class.badge--inactive]="propuesta.estado !== 'APROBADO'"
+          >
+            {{
+              propuesta.estado === 'PENDIENTE'
+                ? 'Pendiente'
+                : propuesta.estado === 'APROBADO'
+                  ? 'Aprobada'
+                  : 'Rechazada'
+            }}
+          </span>
+        </button>
+      }
+    </div>
+  }
+</section>
+
+@if (revisando(); as p) {
+  <div class="drawer-overlay" (click)="cerrarRevision()">
+    <aside class="drawer" (click)="$event.stopPropagation()">
+      <header class="drawer__header">
+        <h2>Revisar propuesta</h2>
+        <button type="button" class="icon-btn" (click)="cerrarRevision()" aria-label="Cerrar">
+          <app-icon name="close" style="width: 16px; height: 16px" />
+        </button>
+      </header>
+
+      <div class="drawer__form">
+        @if (p.imagen_url) {
+          <img [src]="resolveMediaUrl(p.imagen_url)" alt="" class="revision__imagen" />
+        } @else {
+          <div class="revision__imagen revision__imagen--placeholder">
+            <app-icon name="products" style="width: 28px; height: 28px" />
+          </div>
+        }
+
+        <div class="field">
+          <span class="field__label">Proveedor</span>
+          <span class="revision__valor">{{ p.proveedor.razon_social }}</span>
+        </div>
+
+        <div class="field">
+          <span class="field__label">Nombre</span>
+          <span class="revision__valor">{{ p.nombre }}</span>
+        </div>
+
+        <div class="field">
+          <span class="field__label">Descripción</span>
+          <span class="revision__valor">{{ p.descripcion || 'Sin descripción' }}</span>
+        </div>
+
+        <div class="field">
+          <span class="field__label">Disponibilidad declarada</span>
+          <app-status-badge [active]="p.disponibilidad" />
+        </div>
+
+        <footer class="drawer__footer">
+          @if (p.estado === 'PENDIENTE') {
+            <button
+              type="button"
+              class="btn btn--ghost"
+              [disabled]="rechazandoId() === p.id"
+              (click)="rechazar(p)"
+            >
+              {{ rechazandoId() === p.id ? 'Rechazando…' : 'Rechazar propuesta' }}
+            </button>
+            <button type="button" class="btn btn--primary" (click)="iniciarAprobacion()">
+              Aprobar propuesta
+            </button>
+          } @else {
+            <button type="button" class="btn btn--ghost" (click)="cerrarRevision()">Cerrar</button>
+          }
+        </footer>
+      </div>
+    </aside>
+  </div>
+}
+
+<app-producto-form
+  [open]="aprobando() !== null"
+  [propuestaPreseleccionada]="aprobando()"
+  [submitting]="submittingAprobar()"
+  (save)="guardarAprobacion($event)"
+  (close)="cerrarAprobacion()"
+/>

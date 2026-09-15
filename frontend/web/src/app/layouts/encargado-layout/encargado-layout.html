@@ -1,0 +1,10 @@
+<aside class="encargado-layout__sidebar">
+  <app-encargado-sidebar />
+</aside>
+
+<div class="encargado-layout__main">
+  <app-encargado-header [title]="headerTitle()" [subtitle]="headerSubtitle()" />
+  <main class="encargado-layout__content">
+    <router-outlet />
+  </main>
+</div>

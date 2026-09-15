@@ -7,17 +7,17 @@ para que Flutter pueda consumirla igual más adelante (aunque el panel de
 Proveedor en sí es un paso posterior).
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_roles
+from app.core.image_storage import MAX_TAMANO_BYTES, ImagenDemasiadoGrandeError, ImagenInvalidaError
 from app.db.session import get_db
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 
 from .schemas import (
     CambiarEstadoRequest,
-    ColeccionResumen,
     DisponibilidadRequest,
     ProductoProveedorActualizar,
     ProductoProveedorCrear,
@@ -25,17 +25,14 @@ from .schemas import (
     ProveedorActualizar,
     ProveedorCrear,
     ProveedorOut,
-    TemporadaResumen,
 )
 from .service import (
-    ColeccionNoEncontradaError,
-    ColeccionNoPerteneceATemporadaError,
     PanelProveedorService,
     ProductoNoEncontradoError,
+    ProductoRechazadoError,
     ProveedorNoEncontradoError,
     ProveedoresService,
     RazonSocialDuplicadaError,
-    TemporadaNoEncontradaError,
 )
 
 require_admin = require_roles(RolUsuario.ADMINISTRADOR)
@@ -149,24 +146,6 @@ def actualizar_mi_perfil(
         ) from exc
 
 
-@router_panel.get("/temporadas", response_model=list[TemporadaResumen])
-def listar_temporadas_disponibles(
-    db: Session = Depends(get_db), actor: Usuario = Depends(require_proveedor)
-) -> list[TemporadaResumen]:
-    _proveedor_id_del_actor(actor)
-    return PanelProveedorService(db).temporadas_disponibles()
-
-
-@router_panel.get("/colecciones", response_model=list[ColeccionResumen])
-def listar_colecciones_disponibles(
-    temporada_id: int = Query(...),
-    db: Session = Depends(get_db),
-    actor: Usuario = Depends(require_proveedor),
-) -> list[ColeccionResumen]:
-    _proveedor_id_del_actor(actor)
-    return PanelProveedorService(db).colecciones_disponibles(temporada_id)
-
-
 @router_panel.get("/productos", response_model=list[ProductoProveedorOut])
 def listar_mis_productos(
     db: Session = Depends(get_db), actor: Usuario = Depends(require_proveedor)
@@ -194,16 +173,7 @@ def enviar_producto(
     db: Session = Depends(get_db),
     actor: Usuario = Depends(require_proveedor),
 ) -> ProductoProveedorOut:
-    try:
-        return PanelProveedorService(db).crear_producto(_proveedor_id_del_actor(actor), payload)
-    except TemporadaNoEncontradaError as exc:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "La temporada indicada no existe.") from exc
-    except ColeccionNoEncontradaError as exc:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "La colección indicada no existe.") from exc
-    except ColeccionNoPerteneceATemporadaError as exc:
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT, "La colección no pertenece a la temporada indicada."
-        ) from exc
+    return PanelProveedorService(db).crear_producto(_proveedor_id_del_actor(actor), payload)
 
 
 @router_panel.put("/productos/{producto_id}", response_model=ProductoProveedorOut)
@@ -219,13 +189,39 @@ def actualizar_mi_producto(
         )
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
-    except TemporadaNoEncontradaError as exc:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "La temporada indicada no existe.") from exc
-    except ColeccionNoEncontradaError as exc:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "La colección indicada no existe.") from exc
-    except ColeccionNoPerteneceATemporadaError as exc:
+    except ProductoRechazadoError as exc:
         raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT, "La colección no pertenece a la temporada indicada."
+            status.HTTP_409_CONFLICT, "Esta propuesta fue rechazada y ya no se puede modificar."
+        ) from exc
+
+
+@router_panel.post("/productos/{producto_id}/imagen", response_model=ProductoProveedorOut)
+async def establecer_imagen_producto(
+    producto_id: int,
+    archivo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    actor: Usuario = Depends(require_proveedor),
+) -> ProductoProveedorOut:
+    contenido = await archivo.read()
+    try:
+        return PanelProveedorService(db).establecer_imagen(
+            _proveedor_id_del_actor(actor), producto_id, archivo, contenido
+        )
+    except ProductoNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
+    except ImagenInvalidaError as exc:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            "La imagen debe ser un archivo JPG, JPEG, PNG o WEBP.",
+        ) from exc
+    except ImagenDemasiadoGrandeError as exc:
+        raise HTTPException(
+            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            f"La imagen no puede superar los {MAX_TAMANO_BYTES // (1024 * 1024)} MB.",
+        ) from exc
+    except ProductoRechazadoError as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Esta propuesta fue rechazada y ya no se puede modificar."
         ) from exc
 
 
@@ -242,6 +238,10 @@ def cambiar_disponibilidad_producto(
         )
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
+    except ProductoRechazadoError as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Esta propuesta fue rechazada y ya no se puede modificar."
+        ) from exc
 
 
 @router_panel.patch("/productos/{producto_id}/estado", response_model=ProductoProveedorOut)

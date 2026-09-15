@@ -1,0 +1,147 @@
+<div class="inventario-page">
+  <div class="page-header">
+    <h1>Inventario</h1>
+    @if (sucursal(); as suc) {
+      <p class="page-header__sucursal">{{ suc.nombre }}</p>
+      <p class="page-header__ciudad">{{ suc.ciudad.nombre }}</p>
+    }
+  </div>
+
+  <div class="filters">
+    <input
+      type="text"
+      class="filters__search"
+      placeholder="Buscar producto..."
+      [ngModel]="searchTerm()"
+      (ngModelChange)="onSearchChange($event)"
+    />
+  </div>
+
+  @if (loading()) {
+    <div class="skeleton-list">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudo cargar el inventario</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (productos().length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">No hay productos disponibles</span>
+      <span>Prueba ajustando la búsqueda.</span>
+    </div>
+  } @else {
+    <!-- Árbol Colección -> Categoría -> Producto -> Variantes, todo cerrado
+         por defecto (ver coleccionesAbiertas/categoriasAbiertas/productosAbiertos
+         en inventario.ts) para que un catálogo grande siga siendo navegable. -->
+    <div class="arbol-inventario">
+      @for (grupoColeccion of gruposColeccion; track grupoColeccion.coleccionId) {
+        <section class="admin-card grupo-coleccion">
+          <button
+            type="button"
+            class="grupo-coleccion__header"
+            (click)="toggleColeccion(grupoColeccion.coleccionId)"
+          >
+            <app-icon
+              [name]="coleccionAbierta(grupoColeccion.coleccionId) ? 'chevron-down' : 'chevron-right'"
+              style="width: 14px; height: 14px"
+            />
+            <span class="grupo-coleccion__nombre">
+              {{ grupoColeccion.coleccion?.nombre ?? 'Sin colección' }}
+              @if (grupoColeccion.coleccion?.temporada) {
+                <span class="grupo-coleccion__temporada">· {{ grupoColeccion.coleccion!.temporada.nombre }}</span>
+              }
+            </span>
+            <span class="contador">{{ grupoColeccion.totalProductos }}</span>
+          </button>
+
+          @if (coleccionAbierta(grupoColeccion.coleccionId)) {
+            <div class="grupo-coleccion__body">
+              @for (grupoCategoria of grupoColeccion.categorias; track grupoCategoria.categoriaId) {
+                <div class="grupo-categoria">
+                  <button
+                    type="button"
+                    class="grupo-categoria__header"
+                    (click)="toggleCategoria(grupoColeccion.coleccionId, grupoCategoria.categoriaId)"
+                  >
+                    <app-icon
+                      [name]="
+                        categoriaAbierta(grupoColeccion.coleccionId, grupoCategoria.categoriaId)
+                          ? 'chevron-down'
+                          : 'chevron-right'
+                      "
+                      style="width: 13px; height: 13px"
+                    />
+                    <span class="grupo-categoria__nombre">{{ grupoCategoria.categoria?.nombre ?? 'Sin categoría' }}</span>
+                    <span class="contador">{{ grupoCategoria.productos.length }}</span>
+                  </button>
+
+                  @if (categoriaAbierta(grupoColeccion.coleccionId, grupoCategoria.categoriaId)) {
+                    <div class="grupo-categoria__body">
+                      @for (producto of grupoCategoria.productos; track producto.id) {
+                        <div class="producto-item">
+                          <button
+                            type="button"
+                            class="producto-item__header"
+                            (click)="toggleProducto(producto.id)"
+                          >
+                            @if (producto.imagen_principal_url) {
+                              <img
+                                [src]="resolveMediaUrl(producto.imagen_principal_url)"
+                                alt=""
+                                class="producto-item__imagen"
+                              />
+                            } @else {
+                              <div class="producto-item__imagen producto-item__imagen--placeholder">
+                                <app-icon name="products" style="width: 18px; height: 18px" />
+                              </div>
+                            }
+                            <span class="producto-item__nombre">{{ producto.nombre }}</span>
+                            <app-icon
+                              [name]="productoAbierto(producto.id) ? 'chevron-down' : 'chevron-right'"
+                              style="width: 13px; height: 13px"
+                              class="producto-item__chevron"
+                            />
+                          </button>
+
+                          @if (productoAbierto(producto.id)) {
+                            <div class="producto-item__detalle">
+                              <div class="variante-list">
+                                @for (variante of producto.variantes; track variante.id) {
+                                  <div class="variante-row">
+                                    <div class="variante-row__info">
+                                      <span class="variante-row__nombre">
+                                        {{ variante.talla.nombre }} / {{ variante.color.nombre }}
+                                      </span>
+                                      <span class="variante-row__stock">Stock actual: {{ variante.cantidad }}</span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      class="btn btn--ghost btn--sm variante-row__accion"
+                                      (click)="registrarMovimiento(producto, variante.id)"
+                                    >
+                                      <app-icon name="edit" style="width: 13px; height: 13px" />
+                                      Registrar movimiento
+                                    </button>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+    </div>
+  }
+</div>

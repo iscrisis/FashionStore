@@ -13,17 +13,20 @@ from app.core.image_storage import eliminar_archivo_imagen, guardar_archivo_imag
 from modules.P1_SucursalesYCatalogos.Models.color import Color
 from modules.P1_SucursalesYCatalogos.Models.producto import Producto
 from modules.P1_SucursalesYCatalogos.Models.producto_imagen import ProductoImagen
+from modules.P1_SucursalesYCatalogos.Models.producto_proveedor import (
+    EstadoProductoProveedor,
+    ProductoProveedor,
+)
 from modules.P1_SucursalesYCatalogos.Models.producto_variante import ProductoVariante
+from modules.P1_SucursalesYCatalogos.Models.proveedor import Proveedor
 from modules.P1_SucursalesYCatalogos.Models.talla import Talla
 
 from .repository import CatalogoLecturaRepository, ProductosRepository, PropuestasProveedorRepository
 from .schemas import (
-    ColeccionResumen,
     ProductoActualizar,
     ProductoCrear,
     PropuestaProveedorOut,
     ProveedorResumen,
-    TemporadaResumen,
 )
 
 
@@ -69,6 +72,14 @@ class PropuestaNoPerteneceAProveedorError(Exception):
 
 class PropuestaYaConvertidaError(Exception):
     """Esa propuesta ya fue convertida en un producto -- no se duplica."""
+
+
+class PropuestaRechazadaError(Exception):
+    """Esa propuesta fue rechazada; no puede convertirse en un producto."""
+
+
+class PropuestaNoDisponibleError(Exception):
+    """La propuesta ya fue aprobada o rechazada; no puede volver a decidirse."""
 
 
 class ImagenNoEncontradaError(Exception):
@@ -135,18 +146,21 @@ class ProductosService:
         proveedor_id: int,
         producto_proveedor_id: int | None,
         excluyendo_producto_id: int | None = None,
-    ) -> None:
+    ) -> ProductoProveedor | None:
         if producto_proveedor_id is None:
-            return
+            return None
         propuesta = self._propuestas.get_by_id(producto_proveedor_id)
         if propuesta is None:
             raise PropuestaNoEncontradaError
         if propuesta.proveedor_id != proveedor_id:
             raise PropuestaNoPerteneceAProveedorError
+        if propuesta.estado == EstadoProductoProveedor.RECHAZADO:
+            raise PropuestaRechazadaError
         if self._repo.existe_producto_proveedor_vinculado(
             producto_proveedor_id, excluyendo_id=excluyendo_producto_id
         ):
             raise PropuestaYaConvertidaError
+        return propuesta
 
     def _sincronizar_variantes(
         self, producto: Producto, tallas: list[Talla], colores: list[Color]
@@ -166,7 +180,7 @@ class ProductosService:
 
     def crear(self, datos: ProductoCrear) -> Producto:
         self._validar_referencias(datos)
-        self._validar_propuesta(datos.proveedor_id, datos.producto_proveedor_id)
+        propuesta = self._validar_propuesta(datos.proveedor_id, datos.producto_proveedor_id)
         tallas = self._resolver_tallas(datos.talla_ids)
         colores = self._resolver_colores(datos.color_ids)
 
@@ -184,12 +198,18 @@ class ProductosService:
             colores=colores,
         )
         self._sincronizar_variantes(producto, tallas, colores)
+        # Aprobar la propuesta y crear el Producto ocurre en el mismo commit
+        # (misma sesión de SQLAlchemy) -- ver ProductosRepository.crear --
+        # así nunca queda un Producto sin su propuesta marcada APROBADO, ni
+        # viceversa.
+        if propuesta is not None:
+            propuesta.estado = EstadoProductoProveedor.APROBADO
         return self._repo.crear(producto)
 
     def actualizar(self, producto_id: int, datos: ProductoActualizar) -> Producto:
         producto = self.obtener(producto_id)
         self._validar_referencias(datos)
-        self._validar_propuesta(
+        propuesta = self._validar_propuesta(
             datos.proveedor_id, datos.producto_proveedor_id, excluyendo_producto_id=producto.id
         )
         tallas = self._resolver_tallas(datos.talla_ids)
@@ -207,6 +227,8 @@ class ProductosService:
         producto.colores = colores
 
         self._sincronizar_variantes(producto, tallas, colores)
+        if propuesta is not None:
+            propuesta.estado = EstadoProductoProveedor.APROBADO
         return self._repo.guardar(producto)
 
     def cambiar_estado(self, producto_id: int, activo: bool) -> Producto:
@@ -240,17 +262,33 @@ class ProductosService:
         eliminar_archivo_imagen(url)
         return producto
 
-    def listar_propuestas(self, proveedor_id: int | None = None) -> list[PropuestaProveedorOut]:
-        filas = self._propuestas.listar_disponibles(proveedor_id)
-        return [
-            PropuestaProveedorOut(
-                id=propuesta.id,
-                nombre=propuesta.nombre,
-                descripcion=propuesta.descripcion,
-                disponibilidad=propuesta.disponibilidad,
-                proveedor=ProveedorResumen(id=proveedor.id, razon_social=proveedor.razon_social),
-                temporada=TemporadaResumen(id=propuesta.temporada.id, nombre=propuesta.temporada.nombre),
-                coleccion=ColeccionResumen(id=propuesta.coleccion.id, nombre=propuesta.coleccion.nombre),
-            )
-            for propuesta, proveedor in filas
-        ]
+    def listar_propuestas(
+        self,
+        estado: EstadoProductoProveedor = EstadoProductoProveedor.PENDIENTE,
+        proveedor_id: int | None = None,
+    ) -> list[PropuestaProveedorOut]:
+        filas = self._propuestas.listar_por_estado(estado, proveedor_id)
+        return [self._propuesta_a_salida(propuesta, proveedor) for propuesta, proveedor in filas]
+
+    @staticmethod
+    def _propuesta_a_salida(propuesta: ProductoProveedor, proveedor: Proveedor) -> PropuestaProveedorOut:
+        return PropuestaProveedorOut(
+            id=propuesta.id,
+            nombre=propuesta.nombre,
+            descripcion=propuesta.descripcion,
+            imagen_url=propuesta.imagen_url,
+            disponibilidad=propuesta.disponibilidad,
+            estado=propuesta.estado.value,
+            proveedor=ProveedorResumen(id=proveedor.id, razon_social=proveedor.razon_social),
+        )
+
+    def rechazar_propuesta(self, propuesta_id: int) -> PropuestaProveedorOut:
+        propuesta = self._propuestas.get_by_id(propuesta_id)
+        if propuesta is None:
+            raise PropuestaNoEncontradaError
+        if propuesta.estado != EstadoProductoProveedor.PENDIENTE:
+            raise PropuestaNoDisponibleError
+        propuesta.estado = EstadoProductoProveedor.RECHAZADO
+        propuesta = self._propuestas.guardar(propuesta)
+        proveedor = self._catalogo.get_proveedor(propuesta.proveedor_id)
+        return self._propuesta_a_salida(propuesta, proveedor)

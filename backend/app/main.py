@@ -18,6 +18,9 @@ from modules.P1_SucursalesYCatalogos.CU08_GestionarProductos.router import (
 from modules.P1_SucursalesYCatalogos.CU11_ConsultarCatalogoPrendas.router import (
     router as cu11_catalogo_router,
 )
+from modules.P1_SucursalesYCatalogos.CU12_ConsultarDisponibilidadPorSucursal.router import (
+    router as cu12_disponibilidad_router,
+)
 from modules.P1_SucursalesYCatalogos.CU09_GestionarCategoriasTallasColores.router import (
     router_categorias as cu09_categorias_router,
     router_colores as cu09_colores_router,
@@ -30,6 +33,15 @@ from modules.P1_SucursalesYCatalogos.CU10_GestionarTemporadasColecciones.router 
 from modules.P3_ProveedoresEInventario.CU13_GestionarProveedores.router import (
     router as gestion_proveedores_router,
     router_panel as panel_proveedor_router,
+)
+from modules.P3_ProveedoresEInventario.CU14_ConsultarInventario.router import (
+    router_panel as cu14_inventario_router,
+)
+from modules.P3_ProveedoresEInventario.CU15_RegistrarRecepcionMercaderia.router import (
+    router_panel as cu15_recepcion_mercaderia_router,
+)
+from modules.P3_ProveedoresEInventario.CU16_RegistrarMovimientosInventario.router import (
+    router_panel as cu16_movimientos_inventario_router,
 )
 from modules.P2_UsuariosYAccesos.CU01_IniciarSesion.router import router as cu01_iniciar_sesion_router
 from modules.P2_UsuariosYAccesos.CU03_RecuperarContrasena.router import (
@@ -69,6 +81,7 @@ app.include_router(cu06_sucursales_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu07_sucursales_publico_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu08_productos_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu11_catalogo_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu12_disponibilidad_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu09_categorias_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu09_tallas_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu09_colores_router, prefix=settings.API_V1_PREFIX)
@@ -76,6 +89,9 @@ app.include_router(cu10_temporadas_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu10_colecciones_router, prefix=settings.API_V1_PREFIX)
 app.include_router(gestion_proveedores_router, prefix=settings.API_V1_PREFIX)
 app.include_router(panel_proveedor_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu14_inventario_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu15_recepcion_mercaderia_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu16_movimientos_inventario_router, prefix=settings.API_V1_PREFIX)
 
 # Sirve las imágenes subidas por el Administrador (CU08/CU09) -- ver
 # app/core/image_storage.py. Montado bajo API_V1_PREFIX para que Nginx, que ya

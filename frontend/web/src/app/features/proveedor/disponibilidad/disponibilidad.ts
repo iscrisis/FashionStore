@@ -27,7 +27,9 @@ export class Disponibilidad {
     this.errorMessage.set(null);
     this.panelService.misProductos().subscribe({
       next: (productos) => {
-        this.productos.set(productos.filter((p) => p.is_active));
+        // Una propuesta RECHAZADA ya no puede declarar disponibilidad (el
+        // backend también lo rechaza, ver CU13 service._obtener_orm_editable).
+        this.productos.set(productos.filter((p) => p.is_active && p.estado !== 'RECHAZADO'));
         this.loading.set(false);
       },
       error: () => {

@@ -4,6 +4,7 @@ import { Icon } from '../../../core/ui/icon/icon';
 import { StatusBadge } from '../../../core/ui/status-badge/status-badge';
 import { ToastService } from '../../../core/ui/toast/toast.service';
 import { ConfirmDialogService } from '../../../core/ui/confirm-dialog/confirm-dialog.service';
+import { resolveMediaUrl } from '../../../core/utils/resolve-media-url';
 import { ProductoProveedor, ProductoProveedorPayload } from '../shared/panel-proveedor.model';
 import { PanelProveedorService } from '../shared/panel-proveedor.service';
 import { ProductoEditarForm } from './producto-editar-form/producto-editar-form';
@@ -20,6 +21,8 @@ export class MisProductos {
   private readonly panelService = inject(PanelProveedorService);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
+
+  protected readonly resolveMediaUrl = resolveMediaUrl;
 
   protected readonly productos = signal<ProductoProveedor[]>([]);
   protected readonly loading = signal(true);
@@ -112,8 +115,10 @@ export class MisProductos {
       },
       error: (err) => {
         this.submitting.set(false);
-        if (err.status === 422) {
-          this.toast.error('Revisa la temporada y la colección seleccionadas.');
+        if (err.status === 409) {
+          this.toast.error('Esta propuesta fue rechazada y ya no se puede modificar.');
+          this.drawerOpen.set(false);
+          this.load();
         } else {
           this.toast.error('No se pudo guardar el producto. Intenta nuevamente.');
         }

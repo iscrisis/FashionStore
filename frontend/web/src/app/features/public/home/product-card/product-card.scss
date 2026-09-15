@@ -68,6 +68,14 @@
   gap: 3px;
 }
 
+.card__coleccion {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+}
+
 .card__name {
   font-size: 13px;
   font-weight: 500;

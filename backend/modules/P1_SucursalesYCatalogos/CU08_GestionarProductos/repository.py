@@ -14,7 +14,10 @@ from modules.P1_SucursalesYCatalogos.Models.categoria import Categoria
 from modules.P1_SucursalesYCatalogos.Models.coleccion import Coleccion
 from modules.P1_SucursalesYCatalogos.Models.color import Color
 from modules.P1_SucursalesYCatalogos.Models.producto import Producto
-from modules.P1_SucursalesYCatalogos.Models.producto_proveedor import ProductoProveedor
+from modules.P1_SucursalesYCatalogos.Models.producto_proveedor import (
+    EstadoProductoProveedor,
+    ProductoProveedor,
+)
 from modules.P1_SucursalesYCatalogos.Models.proveedor import Proveedor
 from modules.P1_SucursalesYCatalogos.Models.talla import Talla
 from modules.P1_SucursalesYCatalogos.Models.temporada import Temporada
@@ -109,26 +112,22 @@ class CatalogoLecturaRepository:
 
 
 class PropuestasProveedorRepository:
-    """Solo lectura de ProductoProveedor (propuestas enviadas por
-    proveedores) para que el Administrador las convierta en un producto de
-    FashionStore -- no administra proveedores ni sus propuestas, eso sigue
-    siendo responsabilidad de GestionProveedores."""
+    """Acceso a ProductoProveedor (propuestas enviadas por proveedores) para
+    que el Administrador las revise, apruebe o rechace -- no administra
+    proveedores en sí, eso sigue siendo responsabilidad de GestionProveedores."""
 
     def __init__(self, db: Session):
         self.db = db
 
-    def listar_disponibles(
-        self, proveedor_id: int | None = None
+    def listar_por_estado(
+        self, estado: EstadoProductoProveedor, proveedor_id: int | None = None
     ) -> list[tuple[ProductoProveedor, Proveedor]]:
-        ya_convertida = select(Producto.producto_proveedor_id).where(
-            Producto.producto_proveedor_id.is_not(None)
-        )
         stmt = (
             select(ProductoProveedor, Proveedor)
             .join(Proveedor, Proveedor.id == ProductoProveedor.proveedor_id)
             .where(
                 ProductoProveedor.is_active.is_(True),
-                ProductoProveedor.id.not_in(ya_convertida),
+                ProductoProveedor.estado == estado,
             )
         )
         if proveedor_id is not None:
@@ -138,3 +137,8 @@ class PropuestasProveedorRepository:
 
     def get_by_id(self, producto_proveedor_id: int) -> ProductoProveedor | None:
         return self.db.get(ProductoProveedor, producto_proveedor_id)
+
+    def guardar(self, propuesta: ProductoProveedor) -> ProductoProveedor:
+        self.db.commit()
+        self.db.refresh(propuesta)
+        return propuesta

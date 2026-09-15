@@ -1,6 +1,7 @@
 """Contratos de entrada/salida de CU08 -- Gestionar productos."""
 
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -157,12 +158,14 @@ class CambiarEstadoRequest(BaseModel):
 class PropuestaProveedorOut(BaseModel):
     """Propuesta enviada por un proveedor (ProductoProveedor) todavía no
     convertida en un producto de FashionStore -- para que el Administrador la
-    seleccione y complete los datos comerciales que le faltan."""
+    seleccione y complete los datos comerciales que le faltan (categoría,
+    temporada, colección, precio, tallas y colores: la propuesta no trae
+    nada de eso, son decisiones internas de FashionStore)."""
 
     id: int
     nombre: str
     descripcion: str | None
+    imagen_url: str | None
     disponibilidad: bool
+    estado: Literal["PENDIENTE", "APROBADO", "RECHAZADO"]
     proveedor: ProveedorResumen
-    temporada: TemporadaResumen
-    coleccion: ColeccionResumen

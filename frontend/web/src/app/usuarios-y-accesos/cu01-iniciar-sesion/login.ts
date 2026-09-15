@@ -52,6 +52,8 @@ export class Login {
           destino = '/admin';
         } else if (response.usuario.rol === 'PROVEEDOR') {
           destino = '/proveedor';
+        } else if (response.usuario.rol === 'ENCARGADO_SUCURSAL') {
+          destino = '/encargado';
         }
         this.router.navigateByUrl(destino);
       },

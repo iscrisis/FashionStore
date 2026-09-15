@@ -1,14 +1,12 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
-  ColeccionResumen,
   MiProveedor,
   MiProveedorPayload,
   ProductoProveedor,
   ProductoProveedorPayload,
-  TemporadaResumen,
 } from './panel-proveedor.model';
 
 @Injectable({ providedIn: 'root' })
@@ -22,15 +20,6 @@ export class PanelProveedorService {
 
   actualizarMiPerfil(payload: MiProveedorPayload): Observable<MiProveedor> {
     return this.http.put<MiProveedor>(`${this.baseUrl}/perfil`, payload);
-  }
-
-  temporadas(): Observable<TemporadaResumen[]> {
-    return this.http.get<TemporadaResumen[]>(`${this.baseUrl}/temporadas`);
-  }
-
-  colecciones(temporadaId: number): Observable<ColeccionResumen[]> {
-    const params = new HttpParams().set('temporada_id', temporadaId);
-    return this.http.get<ColeccionResumen[]>(`${this.baseUrl}/colecciones`, { params });
   }
 
   misProductos(): Observable<ProductoProveedor[]> {
@@ -47,6 +36,12 @@ export class PanelProveedorService {
 
   actualizarProducto(id: number, payload: ProductoProveedorPayload): Observable<ProductoProveedor> {
     return this.http.put<ProductoProveedor>(`${this.baseUrl}/productos/${id}`, payload);
+  }
+
+  establecerImagen(id: number, archivo: File): Observable<ProductoProveedor> {
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+    return this.http.post<ProductoProveedor>(`${this.baseUrl}/productos/${id}/imagen`, formData);
   }
 
   cambiarDisponibilidad(id: number, disponibilidad: boolean): Observable<ProductoProveedor> {

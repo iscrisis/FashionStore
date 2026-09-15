@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import require_roles
 from app.core.image_storage import MAX_TAMANO_BYTES, ImagenDemasiadoGrandeError, ImagenInvalidaError
 from app.db.session import get_db
+from modules.P1_SucursalesYCatalogos.Models.producto_proveedor import EstadoProductoProveedor
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 
@@ -31,8 +32,10 @@ from .service import (
     ImagenNoEncontradaError,
     ProductoNoEncontradoError,
     ProductosService,
+    PropuestaNoDisponibleError,
     PropuestaNoEncontradaError,
     PropuestaNoPerteneceAProveedorError,
+    PropuestaRechazadaError,
     PropuestaYaConvertidaError,
     ProveedorNoEncontradoError,
     TallaInvalidaError,
@@ -71,14 +74,31 @@ def listar_productos(
 
 @router.get("/propuestas", response_model=list[PropuestaProveedorOut])
 def listar_propuestas_disponibles(
+    estado: str = Query(default="PENDIENTE", pattern="^(PENDIENTE|APROBADO|RECHAZADO)$"),
     proveedor_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
     _: Usuario = Depends(require_admin),
 ) -> list[PropuestaProveedorOut]:
-    """Propuestas de proveedor (ProductoProveedor) activas y todavía no
-    convertidas en un producto -- para que el Administrador elija una y
-    reutilice sus datos al registrar el producto."""
-    return ProductosService(db).listar_propuestas(proveedor_id=proveedor_id)
+    """Propuestas de proveedor (ProductoProveedor) filtradas por estado --
+    PENDIENTE por defecto -- para que el Administrador las revise, las
+    convierta en un producto o las rechace."""
+    return ProductosService(db).listar_propuestas(
+        estado=EstadoProductoProveedor(estado), proveedor_id=proveedor_id
+    )
+
+
+@router.patch("/propuestas/{propuesta_id}/rechazar", response_model=PropuestaProveedorOut)
+def rechazar_propuesta(
+    propuesta_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+) -> PropuestaProveedorOut:
+    try:
+        return ProductosService(db).rechazar_propuesta(propuesta_id)
+    except PropuestaNoEncontradaError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Propuesta no encontrada.") from exc
+    except PropuestaNoDisponibleError as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Esa propuesta ya fue aprobada o rechazada."
+        ) from exc
 
 
 @router.get("/{producto_id}", response_model=ProductoOut)
@@ -133,6 +153,10 @@ def crear_producto(
         raise HTTPException(
             status.HTTP_409_CONFLICT, "Esa propuesta ya fue convertida en un producto."
         ) from exc
+    except PropuestaRechazadaError as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Esa propuesta fue rechazada y no puede convertirse."
+        ) from exc
 
 
 @router.put("/{producto_id}", response_model=ProductoOut)
@@ -181,6 +205,10 @@ def actualizar_producto(
     except PropuestaYaConvertidaError as exc:
         raise HTTPException(
             status.HTTP_409_CONFLICT, "Esa propuesta ya fue convertida en un producto."
+        ) from exc
+    except PropuestaRechazadaError as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Esa propuesta fue rechazada y no puede convertirse."
         ) from exc
 
 

@@ -18,30 +18,32 @@ export interface MiProveedorPayload {
   telefono: string;
 }
 
-export interface TemporadaResumen {
-  id: number;
-  nombre: string;
+// Variantes ya aprobadas (talla+color reales de CU08), agrupadas por color
+// para mostrarlas en solo lectura -- el proveedor nunca las elige, las
+// decide el Administrador al convertir la propuesta en un Producto.
+export interface VariantesPorColor {
+  color: string;
+  tallas: string[];
 }
 
-export interface ColeccionResumen {
-  id: number;
-  nombre: string;
-}
+export type EstadoProductoProveedor = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
 
 export interface ProductoProveedor {
   id: number;
   nombre: string;
   descripcion: string | null;
+  imagen_url: string | null;
   disponibilidad: boolean;
   is_active: boolean;
-  temporada: TemporadaResumen;
-  coleccion: ColeccionResumen;
+  estado: EstadoProductoProveedor;
+  variantes: VariantesPorColor[];
 }
 
+// Solo lo que el proveedor propone: categoría, temporada, colección, precio,
+// tallas y colores son decisiones internas de FashionStore (CU08), no viajan
+// aquí.
 export interface ProductoProveedorPayload {
   nombre: string;
   descripcion?: string | null;
-  temporada_id: number;
-  coleccion_id: number;
   disponibilidad?: boolean;
 }

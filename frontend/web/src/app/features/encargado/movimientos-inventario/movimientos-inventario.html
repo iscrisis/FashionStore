@@ -1,0 +1,251 @@
+<div class="movimientos-page">
+  <div class="page-header">
+    <h1>Movimientos de inventario</h1>
+    <p class="page-header__subtitulo">
+      Registra ajustes manuales y justificados de stock: unidades dañadas, pérdidas o
+      correcciones de conteo físico.
+    </p>
+  </div>
+
+  @if (resultado(); as out) {
+    <section class="admin-card confirmacion">
+      <div class="confirmacion__icono">
+        <app-icon name="edit" style="width: 22px; height: 22px" />
+      </div>
+      <h2>Movimiento registrado</h2>
+      <p class="confirmacion__meta">
+        {{ out.producto.nombre }} · {{ out.variante.color.nombre }} / {{ out.variante.talla.nombre }}
+      </p>
+
+      <div class="confirmacion__resumen">
+        <div class="confirmacion__dato">
+          <span class="confirmacion__dato-label">Stock anterior</span>
+          <span class="confirmacion__dato-valor">{{ out.stock_anterior }}</span>
+        </div>
+        <div class="confirmacion__dato">
+          <span class="confirmacion__dato-label">Movimiento</span>
+          <span
+            class="confirmacion__dato-valor"
+            [class.confirmacion__dato-valor--positivo]="out.tipo === 'AJUSTE_POSITIVO'"
+            [class.confirmacion__dato-valor--negativo]="out.tipo === 'AJUSTE_NEGATIVO'"
+          >
+            {{ out.tipo === 'AJUSTE_POSITIVO' ? '+' : '-' }}{{ out.cantidad }}
+          </span>
+        </div>
+        <div class="confirmacion__dato">
+          <span class="confirmacion__dato-label">Stock actual</span>
+          <span class="confirmacion__dato-valor">{{ out.stock_resultante }}</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn--ghost btn--sm" (click)="registrarOtro()">
+        Registrar otro movimiento
+      </button>
+    </section>
+  }
+
+  <section class="admin-card seccion">
+    <h2 class="seccion__titulo">Buscar producto</h2>
+
+    <label class="search-input">
+      <app-icon name="search" />
+      <input
+        type="text"
+        placeholder="Buscar producto..."
+        [ngModel]="busqueda()"
+        (ngModelChange)="onBusquedaChange($event)"
+      />
+    </label>
+
+    @if (loadingProductos()) {
+      <div class="skeleton-list">
+        <div class="skeleton-row"></div>
+        <div class="skeleton-row"></div>
+      </div>
+    } @else if (errorProductos()) {
+      <div class="state-block state-block--error">
+        <span>{{ errorProductos() }}</span>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="cargarProductos()">
+          Reintentar
+        </button>
+      </div>
+    } @else if (productos().length === 0) {
+      <div class="state-block">
+        <span class="state-block__title">Sin productos</span>
+        <span>Prueba ajustando la búsqueda.</span>
+      </div>
+    } @else {
+      <div class="lista-productos">
+        @for (producto of productos(); track producto.id) {
+          <button
+            type="button"
+            class="producto-row"
+            [class.is-active]="productoSeleccionado()?.id === producto.id"
+            (click)="seleccionarProducto(producto)"
+          >
+            @if (producto.imagen_principal_url) {
+              <img
+                [src]="resolveMediaUrl(producto.imagen_principal_url)"
+                alt=""
+                class="producto-row__imagen"
+              />
+            } @else {
+              <div class="producto-row__imagen producto-row__imagen--placeholder">
+                <app-icon name="products" style="width: 14px; height: 14px" />
+              </div>
+            }
+            <span class="producto-row__nombre">{{ producto.nombre }}</span>
+            <span class="contador">{{ producto.variantes.length }} variantes</span>
+          </button>
+
+          @if (productoSeleccionado()?.id === producto.id) {
+            <div class="variantes-panel">
+              <h3 class="variantes-panel__titulo">Seleccionar variante</h3>
+
+              <div class="variante-list">
+                @for (variante of producto.variantes; track variante.id) {
+                  <button
+                    type="button"
+                    class="variante-row"
+                    [class.is-active]="varianteSeleccionada()?.id === variante.id"
+                    (click)="seleccionarVariante(variante)"
+                  >
+                    <span class="variante-row__nombre">
+                      {{ variante.color.nombre }} / {{ variante.talla.nombre }}
+                    </span>
+                    <span class="variante-row__stock">Stock actual: {{ variante.cantidad }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+    }
+  </section>
+
+  @if (varianteSeleccionada(); as variante) {
+    <section class="admin-card seccion">
+      <h2 class="seccion__titulo">Registrar movimiento</h2>
+
+      <div class="producto-seleccionado">
+        <div class="producto-seleccionado__nombre">{{ productoSeleccionado()?.nombre }}</div>
+        <div class="producto-seleccionado__fila">
+          <span class="producto-seleccionado__variante">
+            {{ variante.color.nombre }} / {{ variante.talla.nombre }}
+          </span>
+          <span
+            class="producto-seleccionado__stock"
+            [class.producto-seleccionado__stock--cero]="variante.cantidad === 0"
+          >
+            Stock actual: {{ variante.cantidad }}
+          </span>
+        </div>
+      </div>
+
+      <div class="campos-fila">
+        <label class="field field--tipo">
+          <span class="field__label">Tipo de movimiento</span>
+          <select
+            class="tipo-select"
+            [ngModel]="tipo()"
+            (ngModelChange)="onTipoChange($event)"
+          >
+            <option value="AJUSTE_POSITIVO">Ajuste positivo (+)</option>
+            <option value="AJUSTE_NEGATIVO">Ajuste negativo (−)</option>
+          </select>
+        </label>
+
+        <label class="field field--cantidad">
+          <span class="field__label">Cantidad</span>
+          <input
+            type="number"
+            min="1"
+            class="cantidad-input"
+            [ngModel]="cantidad() || null"
+            (ngModelChange)="onCantidadChange($event)"
+          />
+        </label>
+      </div>
+
+      <label class="field field--motivo">
+        <span class="field__label">Motivo</span>
+        <textarea
+          rows="2"
+          placeholder="Ej. Prenda dañada detectada en revisión de anaquel"
+          [ngModel]="motivo()"
+          (ngModelChange)="onMotivoChange($event)"
+        ></textarea>
+      </label>
+
+      <div class="acciones-form">
+        <button
+          type="button"
+          class="btn btn--primary confirmar-btn"
+          [disabled]="!puedeConfirmar"
+          (click)="confirmar()"
+        >
+          {{ submitting() ? 'Registrando...' : 'Registrar movimiento' }}
+        </button>
+      </div>
+    </section>
+  }
+
+  <section class="admin-card seccion">
+    <h2 class="seccion__titulo">Historial de tu sucursal</h2>
+
+    @if (loadingHistorial()) {
+      <div class="skeleton-list">
+        <div class="skeleton-row"></div>
+        <div class="skeleton-row"></div>
+      </div>
+    } @else if (historial().length === 0) {
+      <div class="state-block">
+        <span class="state-block__title">Sin movimientos todavía</span>
+        <span>Los ajustes que registres aparecerán aquí.</span>
+      </div>
+    } @else {
+      <div class="historial-tabla">
+        <div class="historial-fila historial-fila--header">
+          <span>Fecha</span>
+          <span>Producto</span>
+          <span>Variante</span>
+          <span>Tipo</span>
+          <span>Cantidad</span>
+          <span>Motivo</span>
+          <span>Stock resultante</span>
+        </div>
+        @for (movimiento of historial(); track movimiento.id) {
+          <div class="historial-fila">
+            <span class="historial-fila__label">Fecha</span>
+            <span>{{ movimiento.fecha_hora | date: 'dd/MM/yyyy HH:mm' }}</span>
+
+            <span class="historial-fila__label">Producto</span>
+            <span>{{ movimiento.producto.nombre }}</span>
+
+            <span class="historial-fila__label">Variante</span>
+            <span>{{ movimiento.variante.color.nombre }} / {{ movimiento.variante.talla.nombre }}</span>
+
+            <span class="historial-fila__label">Tipo</span>
+            <span
+              class="badge"
+              [class.badge--positivo]="movimiento.tipo === 'AJUSTE_POSITIVO'"
+              [class.badge--negativo]="movimiento.tipo === 'AJUSTE_NEGATIVO'"
+            >
+              {{ movimiento.tipo === 'AJUSTE_POSITIVO' ? 'Positivo' : 'Negativo' }}
+            </span>
+
+            <span class="historial-fila__label">Cantidad</span>
+            <span>{{ movimiento.tipo === 'AJUSTE_POSITIVO' ? '+' : '-' }}{{ movimiento.cantidad }}</span>
+
+            <span class="historial-fila__label">Motivo</span>
+            <span class="historial-fila__motivo">{{ movimiento.motivo }}</span>
+
+            <span class="historial-fila__label">Stock resultante</span>
+            <span>{{ movimiento.stock_resultante }}</span>
+          </div>
+        }
+      </div>
+    }
+  </section>
+</div>

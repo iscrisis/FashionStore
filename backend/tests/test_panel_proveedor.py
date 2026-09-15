@@ -2,20 +2,23 @@
 
 Énfasis en seguridad: un PROVEEDOR solo debe ver/modificar SU proveedor y SUS
 productos enviados, incluso si intenta acceder a un id ajeno manualmente.
+
+El proveedor solo propone nombre/descripción/imagen/disponibilidad
+(ProductoProveedor); categoría, temporada, colección, precio, tallas y
+colores los decide el Administrador al convertir la propuesta en un Producto
+real (CU08) -- ver test_gestionar_productos.py para esa parte del flujo.
 """
 
+import io
 import uuid
-from datetime import date
 
 from fastapi.testclient import TestClient
 
 from app.core.security import create_access_token, hash_password
 from app.db.session import SessionLocal
 from app.main import app
-from modules.P1_SucursalesYCatalogos.Models.coleccion import Coleccion
 from modules.P1_SucursalesYCatalogos.Models.producto_proveedor import ProductoProveedor
 from modules.P1_SucursalesYCatalogos.Models.proveedor import Proveedor
-from modules.P1_SucursalesYCatalogos.Models.temporada import Temporada
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 
@@ -86,59 +89,6 @@ def _delete_test_proveedor(proveedor_id: int) -> None:
         db.close()
 
 
-def _create_test_temporada() -> Temporada:
-    db = SessionLocal()
-    try:
-        temporada = Temporada(
-            nombre=f"Temporada {uuid.uuid4().hex[:8]}",
-            fecha_inicio=date(2026, 1, 1),
-            fecha_fin=date(2026, 6, 30),
-            is_active=True,
-        )
-        db.add(temporada)
-        db.commit()
-        db.refresh(temporada)
-        return temporada
-    finally:
-        db.close()
-
-
-def _delete_test_temporada(temporada_id: int) -> None:
-    db = SessionLocal()
-    try:
-        temporada = db.get(Temporada, temporada_id)
-        if temporada is not None:
-            db.delete(temporada)
-            db.commit()
-    finally:
-        db.close()
-
-
-def _create_test_coleccion(temporada_id: int) -> Coleccion:
-    db = SessionLocal()
-    try:
-        coleccion = Coleccion(
-            nombre=f"Coleccion {uuid.uuid4().hex[:8]}", temporada_id=temporada_id, is_active=True
-        )
-        db.add(coleccion)
-        db.commit()
-        db.refresh(coleccion)
-        return coleccion
-    finally:
-        db.close()
-
-
-def _delete_test_coleccion(coleccion_id: int) -> None:
-    db = SessionLocal()
-    try:
-        coleccion = db.get(Coleccion, coleccion_id)
-        if coleccion is not None:
-            db.delete(coleccion)
-            db.commit()
-    finally:
-        db.close()
-
-
 def _delete_test_producto(producto_id: int) -> None:
     db = SessionLocal()
     try:
@@ -151,13 +101,11 @@ def _delete_test_producto(producto_id: int) -> None:
 
 
 class _Contexto:
-    """Agrupa proveedor + usuario PROVEEDOR + temporada + colección de prueba."""
+    """Agrupa proveedor + usuario PROVEEDOR de prueba."""
 
     def __init__(self):
         self.proveedor = _create_test_proveedor()
         self.usuario = _create_test_user(RolUsuario.PROVEEDOR, proveedor_id=self.proveedor.id)
-        self.temporada = _create_test_temporada()
-        self.coleccion = _create_test_coleccion(self.temporada.id)
         self.producto_ids: list[int] = []
 
     def headers(self) -> dict:
@@ -168,15 +116,11 @@ class _Contexto:
             _delete_test_producto(pid)
         _delete_test_user(self.usuario.id)
         _delete_test_proveedor(self.proveedor.id)
-        _delete_test_coleccion(self.coleccion.id)
-        _delete_test_temporada(self.temporada.id)
 
 
-_PAYLOAD_BASE = lambda ctx: {  # noqa: E731
+_PAYLOAD_BASE = {
     "nombre": "Chaqueta de prueba",
     "descripcion": "Prenda de prueba",
-    "temporada_id": ctx.temporada.id,
-    "coleccion_id": ctx.coleccion.id,
 }
 
 
@@ -242,36 +186,9 @@ def test_actualizar_mi_perfil_ok():
 
 
 # --------------------------------------------------------------------------
-# Temporadas / colecciones (deben venir de CU10)
-# --------------------------------------------------------------------------
-
-
-def test_listar_temporadas_disponibles_ok():
-    ctx = _Contexto()
-    try:
-        response = client.get("/api/v1/proveedores/panel/temporadas", headers=ctx.headers())
-        assert response.status_code == 200
-        ids = [t["id"] for t in response.json()]
-        assert ctx.temporada.id in ids
-    finally:
-        ctx.cleanup()
-
-
-def test_listar_colecciones_por_temporada_ok():
-    ctx = _Contexto()
-    try:
-        response = client.get(
-            f"/api/v1/proveedores/panel/colecciones?temporada_id={ctx.temporada.id}", headers=ctx.headers()
-        )
-        assert response.status_code == 200
-        ids = [c["id"] for c in response.json()]
-        assert ctx.coleccion.id in ids
-    finally:
-        ctx.cleanup()
-
-
-# --------------------------------------------------------------------------
-# Enviar producto
+# Enviar producto -- solo nombre/descripción/disponibilidad. Categoría,
+# temporada, colección, precio, tallas y colores NO se piden aquí: los
+# define el Administrador al convertir la propuesta (CU08).
 # --------------------------------------------------------------------------
 
 
@@ -279,42 +196,69 @@ def test_enviar_producto_ok():
     ctx = _Contexto()
     try:
         response = client.post(
-            "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE(ctx)
+            "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE
         )
         assert response.status_code == 201
         body = response.json()
         ctx.producto_ids.append(body["id"])
         assert body["nombre"] == "Chaqueta de prueba"
-        assert body["temporada"]["id"] == ctx.temporada.id
-        assert body["coleccion"]["id"] == ctx.coleccion.id
         assert body["disponibilidad"] is True
         assert body["is_active"] is True
+        # Recién creada: todavía no existe un Producto (CU08) vinculado.
+        assert body["estado"] == "PENDIENTE"
+        assert body["variantes"] == []
+        assert body["imagen_url"] is None
     finally:
         ctx.cleanup()
 
 
-def test_enviar_producto_con_coleccion_de_otra_temporada_es_rechazado():
+def test_enviar_producto_sin_nombre_es_rechazado():
     ctx = _Contexto()
-    otra_temporada = _create_test_temporada()
     try:
         response = client.post(
             "/api/v1/proveedores/panel/productos",
             headers=ctx.headers(),
-            json={**_PAYLOAD_BASE(ctx), "temporada_id": otra_temporada.id},
+            json={**_PAYLOAD_BASE, "nombre": "x"},
         )
         assert response.status_code == 422
     finally:
         ctx.cleanup()
-        _delete_test_temporada(otra_temporada.id)
 
 
-def test_enviar_producto_con_temporada_inexistente_es_rechazado():
+def test_establecer_imagen_ok():
     ctx = _Contexto()
+    creado = client.post(
+        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE
+    )
+    producto_id = creado.json()["id"]
+    ctx.producto_ids.append(producto_id)
+    try:
+        imagen_jpg = (
+            b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff\xd9"
+        )
+        response = client.post(
+            f"/api/v1/proveedores/panel/productos/{producto_id}/imagen",
+            headers=ctx.headers(),
+            files={"archivo": ("referencia.jpg", io.BytesIO(imagen_jpg), "image/jpeg")},
+        )
+        assert response.status_code == 200
+        assert response.json()["imagen_url"] is not None
+    finally:
+        ctx.cleanup()
+
+
+def test_establecer_imagen_con_archivo_invalido_es_rechazado():
+    ctx = _Contexto()
+    creado = client.post(
+        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE
+    )
+    producto_id = creado.json()["id"]
+    ctx.producto_ids.append(producto_id)
     try:
         response = client.post(
-            "/api/v1/proveedores/panel/productos",
+            f"/api/v1/proveedores/panel/productos/{producto_id}/imagen",
             headers=ctx.headers(),
-            json={**_PAYLOAD_BASE(ctx), "temporada_id": 9_999_999},
+            files={"archivo": ("archivo.txt", io.BytesIO(b"no es una imagen"), "text/plain")},
         )
         assert response.status_code == 422
     finally:
@@ -329,7 +273,7 @@ def test_enviar_producto_con_temporada_inexistente_es_rechazado():
 def test_listar_mis_productos_ok():
     ctx = _Contexto()
     creado = client.post(
-        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE(ctx)
+        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE
     )
     ctx.producto_ids.append(creado.json()["id"])
     try:
@@ -343,7 +287,7 @@ def test_listar_mis_productos_ok():
 def test_editar_mi_producto_ok():
     ctx = _Contexto()
     creado = client.post(
-        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE(ctx)
+        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE
     )
     producto_id = creado.json()["id"]
     ctx.producto_ids.append(producto_id)
@@ -351,7 +295,7 @@ def test_editar_mi_producto_ok():
         response = client.put(
             f"/api/v1/proveedores/panel/productos/{producto_id}",
             headers=ctx.headers(),
-            json={**_PAYLOAD_BASE(ctx), "nombre": "Chaqueta Editada"},
+            json={**_PAYLOAD_BASE, "nombre": "Chaqueta Editada"},
         )
         assert response.status_code == 200
         assert response.json()["nombre"] == "Chaqueta Editada"
@@ -362,7 +306,7 @@ def test_editar_mi_producto_ok():
 def test_cambiar_disponibilidad_ok():
     ctx = _Contexto()
     creado = client.post(
-        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE(ctx)
+        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE
     )
     producto_id = creado.json()["id"]
     ctx.producto_ids.append(producto_id)
@@ -381,7 +325,7 @@ def test_cambiar_disponibilidad_ok():
 def test_cambiar_estado_producto_ok():
     ctx = _Contexto()
     creado = client.post(
-        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE(ctx)
+        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE
     )
     producto_id = creado.json()["id"]
     ctx.producto_ids.append(producto_id)
@@ -406,7 +350,7 @@ def test_proveedor_no_puede_ver_producto_de_otro_proveedor():
     ctx_a = _Contexto()
     ctx_b = _Contexto()
     creado = client.post(
-        "/api/v1/proveedores/panel/productos", headers=ctx_a.headers(), json=_PAYLOAD_BASE(ctx_a)
+        "/api/v1/proveedores/panel/productos", headers=ctx_a.headers(), json=_PAYLOAD_BASE
     )
     producto_id = creado.json()["id"]
     ctx_a.producto_ids.append(producto_id)
@@ -424,7 +368,7 @@ def test_proveedor_no_puede_editar_producto_de_otro_proveedor():
     ctx_a = _Contexto()
     ctx_b = _Contexto()
     creado = client.post(
-        "/api/v1/proveedores/panel/productos", headers=ctx_a.headers(), json=_PAYLOAD_BASE(ctx_a)
+        "/api/v1/proveedores/panel/productos", headers=ctx_a.headers(), json=_PAYLOAD_BASE
     )
     producto_id = creado.json()["id"]
     ctx_a.producto_ids.append(producto_id)
@@ -432,7 +376,7 @@ def test_proveedor_no_puede_editar_producto_de_otro_proveedor():
         response = client.put(
             f"/api/v1/proveedores/panel/productos/{producto_id}",
             headers=ctx_b.headers(),
-            json={**_PAYLOAD_BASE(ctx_b), "nombre": "Intento Ajeno"},
+            json={**_PAYLOAD_BASE, "nombre": "Intento Ajeno"},
         )
         assert response.status_code == 404
     finally:
@@ -444,7 +388,7 @@ def test_proveedor_no_puede_cambiar_disponibilidad_de_otro_proveedor():
     ctx_a = _Contexto()
     ctx_b = _Contexto()
     creado = client.post(
-        "/api/v1/proveedores/panel/productos", headers=ctx_a.headers(), json=_PAYLOAD_BASE(ctx_a)
+        "/api/v1/proveedores/panel/productos", headers=ctx_a.headers(), json=_PAYLOAD_BASE
     )
     producto_id = creado.json()["id"]
     ctx_a.producto_ids.append(producto_id)
@@ -464,7 +408,7 @@ def test_listar_mis_productos_no_incluye_los_de_otro_proveedor():
     ctx_a = _Contexto()
     ctx_b = _Contexto()
     creado_a = client.post(
-        "/api/v1/proveedores/panel/productos", headers=ctx_a.headers(), json=_PAYLOAD_BASE(ctx_a)
+        "/api/v1/proveedores/panel/productos", headers=ctx_a.headers(), json=_PAYLOAD_BASE
     )
     ctx_a.producto_ids.append(creado_a.json()["id"])
     try:
@@ -491,3 +435,79 @@ def test_proveedor_no_puede_ver_perfil_de_otro_cambiando_nada_ids_no_expuestos()
     finally:
         ctx_a.cleanup()
         ctx_b.cleanup()
+
+
+# --------------------------------------------------------------------------
+# Propuesta rechazada -- el proveedor la ve, pero no puede modificarla
+# (ver CU08 test_gestionar_productos.py para el lado del Administrador)
+# --------------------------------------------------------------------------
+
+
+def _rechazar_como_admin(producto_id: int) -> None:
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    try:
+        response = client.patch(
+            f"/api/v1/productos/propuestas/{producto_id}/rechazar", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 200
+    finally:
+        _delete_test_user(admin.id)
+
+
+def test_proveedor_ve_su_propuesta_como_rechazada():
+    ctx = _Contexto()
+    creado = client.post(
+        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE
+    )
+    producto_id = creado.json()["id"]
+    ctx.producto_ids.append(producto_id)
+    try:
+        _rechazar_como_admin(producto_id)
+
+        response = client.get(
+            f"/api/v1/proveedores/panel/productos/{producto_id}", headers=ctx.headers()
+        )
+        assert response.status_code == 200
+        assert response.json()["estado"] == "RECHAZADO"
+    finally:
+        ctx.cleanup()
+
+
+def test_proveedor_no_puede_editar_propuesta_rechazada():
+    ctx = _Contexto()
+    creado = client.post(
+        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE
+    )
+    producto_id = creado.json()["id"]
+    ctx.producto_ids.append(producto_id)
+    try:
+        _rechazar_como_admin(producto_id)
+
+        response = client.put(
+            f"/api/v1/proveedores/panel/productos/{producto_id}",
+            headers=ctx.headers(),
+            json={**_PAYLOAD_BASE, "nombre": "Intento tras rechazo"},
+        )
+        assert response.status_code == 409
+    finally:
+        ctx.cleanup()
+
+
+def test_proveedor_no_puede_cambiar_disponibilidad_de_propuesta_rechazada():
+    ctx = _Contexto()
+    creado = client.post(
+        "/api/v1/proveedores/panel/productos", headers=ctx.headers(), json=_PAYLOAD_BASE
+    )
+    producto_id = creado.json()["id"]
+    ctx.producto_ids.append(producto_id)
+    try:
+        _rechazar_como_admin(producto_id)
+
+        response = client.patch(
+            f"/api/v1/proveedores/panel/productos/{producto_id}/disponibilidad",
+            headers=ctx.headers(),
+            json={"disponibilidad": False},
+        )
+        assert response.status_code == 409
+    finally:
+        ctx.cleanup()

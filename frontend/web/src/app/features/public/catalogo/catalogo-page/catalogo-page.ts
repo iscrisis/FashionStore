@@ -72,6 +72,18 @@ export class CatalogoPage {
     this.load();
   }
 
+  // CU10 -- la colección ya trae su temporada anidada (ver catalogo.model.ts);
+  // se busca en la misma lista que ya alimenta el <select>, sin otra llamada.
+  protected get coleccionSeleccionada(): ColeccionPublica | null {
+    const id = this.coleccionId();
+    return id ? (this.colecciones().find((c) => c.id === id) ?? null) : null;
+  }
+
+  limpiarColeccion(): void {
+    this.coleccionId.set(null);
+    this.load();
+  }
+
   onTallaChange(value: string): void {
     this.tallaId.set(value ? Number(value) : null);
     this.load();

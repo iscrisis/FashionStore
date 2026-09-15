@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  EstadoPropuesta,
   Producto,
   ProductoPayload,
   ProductosListQuery,
@@ -49,12 +50,19 @@ export class ProductoService {
     return this.http.patch<Producto>(`${this.baseUrl}/${id}/estado`, { is_active: isActive });
   }
 
-  listPropuestas(proveedorId?: number): Observable<PropuestaProveedor[]> {
-    let params = new HttpParams();
+  listPropuestas(
+    estado: EstadoPropuesta = 'PENDIENTE',
+    proveedorId?: number,
+  ): Observable<PropuestaProveedor[]> {
+    let params = new HttpParams().set('estado', estado);
     if (proveedorId) {
       params = params.set('proveedor_id', proveedorId);
     }
     return this.http.get<PropuestaProveedor[]>(`${this.baseUrl}/propuestas`, { params });
+  }
+
+  rechazarPropuesta(id: number): Observable<PropuestaProveedor> {
+    return this.http.patch<PropuestaProveedor>(`${this.baseUrl}/propuestas/${id}/rechazar`, {});
   }
 
   setImagenPrincipal(id: number, archivo: File): Observable<Producto> {

@@ -2,7 +2,7 @@
   <div class="section__header">
     <div>
       <h3>Mis productos</h3>
-      <p>Consulta y edita la información de las prendas que enviaste a FashionStore.</p>
+      <p>Consulta el estado de las prendas que enviaste a FashionStore.</p>
     </div>
   </div>
 
@@ -40,10 +40,10 @@
       <table class="data-table">
         <thead>
           <tr>
+            <th></th>
             <th>Nombre</th>
-            <th>Temporada</th>
-            <th>Colección</th>
             <th>Disponibilidad</th>
+            <th>Aprobación</th>
             <th>Estado</th>
             <th></th>
           </tr>
@@ -51,11 +51,34 @@
         <tbody>
           @for (producto of productosFiltrados; track producto.id) {
             <tr>
+              <td>
+                @if (producto.imagen_url) {
+                  <img [src]="resolveMediaUrl(producto.imagen_url)" alt="" class="producto-thumb" />
+                } @else {
+                  <div class="producto-thumb producto-thumb--placeholder">
+                    <app-icon name="products" style="width: 16px; height: 16px" />
+                  </div>
+                }
+              </td>
               <td class="cell-title">{{ producto.nombre }}</td>
-              <td class="cell-secondary">{{ producto.temporada.nombre }}</td>
-              <td class="cell-secondary">{{ producto.coleccion.nombre }}</td>
               <td>
                 <app-status-badge [active]="producto.disponibilidad" />
+              </td>
+              <td>
+                <span
+                  class="badge"
+                  [class.badge--active]="producto.estado === 'APROBADO'"
+                  [class.badge--inactive]="producto.estado === 'PENDIENTE'"
+                  [class.badge--rechazado]="producto.estado === 'RECHAZADO'"
+                >
+                  {{
+                    producto.estado === 'APROBADO'
+                      ? 'Aprobado'
+                      : producto.estado === 'RECHAZADO'
+                        ? 'Rechazado'
+                        : 'Pendiente'
+                  }}
+                </span>
               </td>
               <td><app-status-badge [active]="producto.is_active" /></td>
               <td>
@@ -73,9 +96,11 @@
                       <button type="button" class="row-actions__item" (click)="openView(producto, $event)">
                         <app-icon name="eye" /> Ver
                       </button>
-                      <button type="button" class="row-actions__item" (click)="openEdit(producto)">
-                        <app-icon name="edit" /> Editar
-                      </button>
+                      @if (producto.estado !== 'RECHAZADO') {
+                        <button type="button" class="row-actions__item" (click)="openEdit(producto)">
+                          <app-icon name="edit" /> Editar
+                        </button>
+                      }
                       <button
                         type="button"
                         class="row-actions__item"

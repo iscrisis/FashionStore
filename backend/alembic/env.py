@@ -18,6 +18,12 @@ from modules.P1_SucursalesYCatalogos.Models.categoria import Categoria  # noqa: 
 from modules.P1_SucursalesYCatalogos.Models.ciudad import Ciudad  # noqa: E402,F401
 from modules.P1_SucursalesYCatalogos.Models.coleccion import Coleccion  # noqa: E402,F401
 from modules.P1_SucursalesYCatalogos.Models.color import Color  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.detalle_recepcion_mercaderia import (  # noqa: E402,F401
+    DetalleRecepcionMercaderia,
+)
+from modules.P1_SucursalesYCatalogos.Models.movimiento_inventario import (  # noqa: E402,F401
+    MovimientoInventario,
+)
 from modules.P1_SucursalesYCatalogos.Models.producto import Producto  # noqa: E402,F401
 from modules.P1_SucursalesYCatalogos.Models.producto_color import producto_colores  # noqa: E402,F401
 from modules.P1_SucursalesYCatalogos.Models.producto_imagen import ProductoImagen  # noqa: E402,F401
@@ -25,6 +31,10 @@ from modules.P1_SucursalesYCatalogos.Models.producto_proveedor import ProductoPr
 from modules.P1_SucursalesYCatalogos.Models.producto_talla import producto_tallas  # noqa: E402,F401
 from modules.P1_SucursalesYCatalogos.Models.producto_variante import ProductoVariante  # noqa: E402,F401
 from modules.P1_SucursalesYCatalogos.Models.proveedor import Proveedor  # noqa: E402,F401
+from modules.P1_SucursalesYCatalogos.Models.recepcion_mercaderia import (  # noqa: E402,F401
+    RecepcionMercaderia,
+)
+from modules.P1_SucursalesYCatalogos.Models.stock_sucursal import StockSucursal  # noqa: E402,F401
 from modules.P1_SucursalesYCatalogos.Models.sucursal import Sucursal  # noqa: E402,F401
 from modules.P1_SucursalesYCatalogos.Models.talla import Talla  # noqa: E402,F401
 from modules.P1_SucursalesYCatalogos.Models.temporada import Temporada  # noqa: E402,F401

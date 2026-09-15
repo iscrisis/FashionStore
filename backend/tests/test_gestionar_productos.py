@@ -141,8 +141,6 @@ class _Catalogo:
             proveedor_id=self.proveedor.id,
             nombre=f"Propuesta {uuid.uuid4().hex[:8]}",
             descripcion="Prenda ofrecida por el proveedor",
-            temporada_id=self.temporada.id,
-            coleccion_id=self.coleccion.id,
             disponibilidad=disponibilidad,
             is_active=True,
         )
@@ -365,6 +363,127 @@ def test_convertir_la_misma_propuesta_dos_veces_es_rechazado():
         if producto_id:
             _delete_test_producto(producto_id)
         catalogo.cleanup()
+        _delete_test_user(admin.id)
+
+
+# --------------------------------------------------------------------------
+# Estados de la propuesta -- PENDIENTE / APROBADO / RECHAZADO
+# --------------------------------------------------------------------------
+
+
+def test_propuesta_nueva_queda_pendiente():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    catalogo = _Catalogo()
+    propuesta = catalogo.crear_propuesta()
+    try:
+        pendientes = client.get(
+            "/api/v1/productos/propuestas", headers=_auth_headers(admin)
+        ).json()
+        fila = next(p for p in pendientes if p["id"] == propuesta.id)
+        assert fila["estado"] == "PENDIENTE"
+    finally:
+        catalogo.cleanup()
+        _delete_test_user(admin.id)
+
+
+def test_convertir_propuesta_la_marca_aprobada():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    catalogo = _Catalogo()
+    propuesta = catalogo.crear_propuesta()
+    producto_id = None
+    try:
+        response = client.post(
+            "/api/v1/productos",
+            headers=_auth_headers(admin),
+            json=catalogo.payload(producto_proveedor_id=propuesta.id),
+        )
+        assert response.status_code == 201
+        producto_id = response.json()["id"]
+
+        aprobadas = client.get(
+            "/api/v1/productos/propuestas?estado=APROBADO", headers=_auth_headers(admin)
+        ).json()
+        assert propuesta.id in {p["id"] for p in aprobadas}
+    finally:
+        if producto_id:
+            _delete_test_producto(producto_id)
+        catalogo.cleanup()
+        _delete_test_user(admin.id)
+
+
+def test_rechazar_propuesta_ok():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    catalogo = _Catalogo()
+    propuesta = catalogo.crear_propuesta()
+    try:
+        response = client.patch(
+            f"/api/v1/productos/propuestas/{propuesta.id}/rechazar", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 200
+        assert response.json()["estado"] == "RECHAZADO"
+
+        pendientes = client.get(
+            "/api/v1/productos/propuestas", headers=_auth_headers(admin)
+        ).json()
+        assert propuesta.id not in {p["id"] for p in pendientes}
+
+        rechazadas = client.get(
+            "/api/v1/productos/propuestas?estado=RECHAZADO", headers=_auth_headers(admin)
+        ).json()
+        assert propuesta.id in {p["id"] for p in rechazadas}
+    finally:
+        catalogo.cleanup()
+        _delete_test_user(admin.id)
+
+
+def test_rechazar_propuesta_dos_veces_es_rechazado():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    catalogo = _Catalogo()
+    propuesta = catalogo.crear_propuesta()
+    try:
+        primera = client.patch(
+            f"/api/v1/productos/propuestas/{propuesta.id}/rechazar", headers=_auth_headers(admin)
+        )
+        assert primera.status_code == 200
+
+        segunda = client.patch(
+            f"/api/v1/productos/propuestas/{propuesta.id}/rechazar", headers=_auth_headers(admin)
+        )
+        assert segunda.status_code == 409
+    finally:
+        catalogo.cleanup()
+        _delete_test_user(admin.id)
+
+
+def test_convertir_propuesta_rechazada_es_rechazado():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    catalogo = _Catalogo()
+    propuesta = catalogo.crear_propuesta()
+    try:
+        rechazo = client.patch(
+            f"/api/v1/productos/propuestas/{propuesta.id}/rechazar", headers=_auth_headers(admin)
+        )
+        assert rechazo.status_code == 200
+
+        response = client.post(
+            "/api/v1/productos",
+            headers=_auth_headers(admin),
+            json=catalogo.payload(producto_proveedor_id=propuesta.id),
+        )
+        assert response.status_code == 409
+    finally:
+        catalogo.cleanup()
+        _delete_test_user(admin.id)
+
+
+def test_rechazar_propuesta_inexistente_da_404():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    try:
+        response = client.patch(
+            "/api/v1/productos/propuestas/9999999/rechazar", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 404
+    finally:
         _delete_test_user(admin.id)
 
 

@@ -1,0 +1,505 @@
+:host {
+  display: block;
+}
+
+.movimientos-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  // Ancho máximo razonable: esta pantalla es un flujo de formulario, no una
+  // tabla de catálogo -- evita que las cards se estiren de borde a borde en
+  // monitores anchos.
+  max-width: 920px;
+}
+
+.page-header {
+  margin-bottom: 4px;
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+}
+
+.page-header__subtitulo {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  max-width: 640px;
+}
+
+// .admin-card no trae padding propio (ver styles.scss) -- cada pantalla debe
+// definir el suyo. Antes esta sección no lo hacía y el contenido quedaba
+// pegado a los bordes de la card, lo que daba la sensación de pantalla
+// desordenada.
+.seccion {
+  padding: 20px 22px;
+}
+
+// Títulos simples, sin numeración ni círculos -- el orden Buscar producto ->
+// Seleccionar variante -> Registrar movimiento ya es evidente por el orden
+// vertical de las secciones en la página.
+.seccion__titulo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.search-input {
+  margin-bottom: 12px;
+}
+
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contador {
+  flex-shrink: 0;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--color-card-bg);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+// Sin max-height/overflow propio: la lista crece con la página en vez de
+// abrir un scroll interno independiente del resto de la pantalla.
+.lista-productos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+// Fila compacta de una sola línea (imagen + nombre + contador). El
+// resaltado al seleccionar es sutil (fondo tenue + acento lateral), nunca un
+// borde grueso alrededor de toda la fila.
+.producto-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.12s ease;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+
+  &.is-active {
+    border-color: var(--color-border);
+    background: color-mix(in srgb, var(--color-primary) 5%, var(--color-white));
+    box-shadow: inset 3px 0 0 var(--color-primary);
+  }
+}
+
+.producto-row__imagen {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--color-card-bg);
+}
+
+.producto-row__imagen--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.producto-row__nombre {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variantes-panel {
+  padding: 10px 12px 12px 20px;
+  margin: 2px 0 4px;
+  border-left: 2px solid var(--color-border);
+}
+
+.variantes-panel__titulo {
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.variante-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+// Igual que producto-row: la fila entera es el selector (ver
+// seleccionarVariante en movimientos-inventario.ts), resaltado sutil sin
+// borde grueso.
+.variante-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  cursor: pointer;
+  text-align: left;
+  flex-wrap: wrap;
+  transition: background-color 0.12s ease;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+
+  &.is-active {
+    border-color: var(--color-border);
+    background: color-mix(in srgb, var(--color-primary) 7%, var(--color-white));
+    box-shadow: inset 3px 0 0 var(--color-primary);
+  }
+}
+
+.variante-row__nombre {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.variante-row__stock {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+// Cabecera limpia del producto/variante elegidos: nombre con mayor peso,
+// variante secundaria, stock alineado a la derecha (discreto en rojo si es
+// 0) -- reemplaza la antigua línea "Producto · Variante · Stock" corrida.
+.producto-seleccionado {
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+
+.producto-seleccionado__nombre {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.producto-seleccionado__fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.producto-seleccionado__variante {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.producto-seleccionado__stock {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.producto-seleccionado__stock--cero {
+  color: var(--color-danger);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.tipo-select,
+.cantidad-input,
+.field textarea {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--color-text);
+  background: var(--color-white);
+  outline: none;
+  font-family: inherit;
+
+  &:focus {
+    border-color: var(--color-primary);
+  }
+}
+
+.tipo-select {
+  cursor: pointer;
+}
+
+.cantidad-input {
+  text-align: left;
+
+  -moz-appearance: textfield;
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+.field textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+// Tipo de movimiento y Cantidad van en la misma fila en desktop/tablet: el
+// select toma la mayor parte del ancho, Cantidad tiene un ancho fijo
+// razonable (no un input diminuto aislado). Motivo (fuera de esta fila)
+// sigue ocupando el ancho completo.
+.campos-fila {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.field--tipo {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.field--cantidad {
+  flex: 0 0 140px;
+}
+
+// El botón no ocupa todo el ancho en desktop -- se alinea a la derecha,
+// como una acción de confirmación al final del formulario.
+.acciones-form {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.confirmar-btn {
+  min-width: 200px;
+}
+
+.confirmacion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 28px 20px;
+}
+
+.confirmacion__icono {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-card-bg);
+  color: var(--color-primary);
+  margin-bottom: 4px;
+}
+
+.confirmacion h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.confirmacion__meta {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.confirmacion__resumen {
+  display: flex;
+  gap: 24px;
+  margin: 14px 0 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.confirmacion__dato {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.confirmacion__dato-label {
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+}
+
+.confirmacion__dato-valor {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.confirmacion__dato-valor--positivo {
+  color: var(--color-success-text);
+}
+
+.confirmacion__dato-valor--negativo {
+  color: var(--color-danger);
+}
+
+.badge--positivo {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.badge--negativo {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+// Tabla del historial: grid de 7 columnas en desktop, con encabezado propio;
+// minmax() evita que Motivo (la columna más ancha) comprima las demás por
+// debajo de un ancho legible. En móvil colapsa a tarjetas apiladas de
+// "etiqueta: valor" (ver .historial-fila__label más abajo), sin overflow
+// horizontal.
+.historial-tabla {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.historial-fila {
+  display: grid;
+  grid-template-columns:
+    minmax(90px, 1fr) minmax(110px, 1.3fr) minmax(90px, 1fr) minmax(78px, 0.7fr)
+    minmax(60px, 0.6fr) minmax(150px, 1.8fr) minmax(80px, 0.9fr);
+  gap: 12px;
+  align-items: center;
+  padding: 11px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  color: var(--color-text);
+}
+
+.historial-fila--header {
+  background: var(--color-card-bg);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 9px 14px;
+}
+
+.historial-fila__motivo {
+  overflow-wrap: break-word;
+  line-height: 1.35;
+}
+
+.historial-fila__label {
+  display: none;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+@media (max-width: 900px) {
+  .historial-fila {
+    grid-template-columns:
+      minmax(80px, 1fr) minmax(100px, 1.2fr) minmax(80px, 1fr) minmax(70px, 0.7fr)
+      minmax(50px, 0.6fr) minmax(130px, 1.6fr) minmax(70px, 0.8fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .movimientos-page {
+    max-width: 100%;
+  }
+
+  .campos-fila {
+    flex-direction: column;
+  }
+
+  .field--cantidad {
+    flex-basis: auto;
+  }
+
+  .acciones-form {
+    justify-content: stretch;
+  }
+
+  .confirmar-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .historial-fila--header {
+    display: none;
+  }
+
+  .historial-fila {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 8px;
+    padding: 12px 14px;
+  }
+
+  .historial-fila__label {
+    display: block;
+  }
+}
+
+@media (max-width: 560px) {
+  .search-input {
+    max-width: 100%;
+  }
+
+  .producto-seleccionado__fila {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .variante-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .confirmacion__resumen {
+    gap: 16px;
+  }
+}

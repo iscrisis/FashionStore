@@ -13,10 +13,13 @@ import { Temporada } from '../cu10-gestionar-temporadas-colecciones/temporada-co
 import { CatalogStatusFilter, Producto } from './producto.model';
 import { ProductoService } from './producto.service';
 import { ProductoForm, ProductoFormValue } from './producto-form/producto-form';
+import { PropuestasProveedor } from './propuestas-proveedor/propuestas-proveedor';
+
+type TabProductos = 'productos' | 'propuestas';
 
 @Component({
   selector: 'app-gestionar-productos',
-  imports: [FormsModule, Icon, StatusBadge, ProductoForm],
+  imports: [FormsModule, Icon, StatusBadge, ProductoForm, PropuestasProveedor],
   templateUrl: './gestionar-productos.html',
   styleUrl: './gestionar-productos.scss',
 })
@@ -29,6 +32,7 @@ export class GestionarProductos {
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
 
+  protected readonly activeTab = signal<TabProductos>('productos');
   protected readonly productos = signal<Producto[]>([]);
   protected readonly categorias = signal<Category[]>([]);
   protected readonly temporadas = signal<Temporada[]>([]);
@@ -58,6 +62,15 @@ export class GestionarProductos {
   @HostListener('document:click')
   closeMenus(): void {
     this.openMenuId.set(null);
+  }
+
+  setTab(tab: TabProductos): void {
+    this.activeTab.set(tab);
+    if (tab === 'productos') {
+      // Una propuesta pudo haberse aprobado desde la otra pestaña -- se
+      // recarga para que el producto nuevo aparezca sin tener que refrescar.
+      this.load();
+    }
   }
 
   onSearchChange(value: string): void {

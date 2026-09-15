@@ -1,0 +1,21 @@
+:host {
+  display: block;
+}
+
+.welcome {
+  padding: 22px 24px;
+
+  h3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  p {
+    margin-top: 6px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    max-width: 480px;
+  }
+}

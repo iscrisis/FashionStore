@@ -13,6 +13,8 @@
         <a
           [routerLink]="link.path"
           [fragment]="link.fragment"
+          routerLinkActive="nav__link--active"
+          [routerLinkActiveOptions]="{ exact: true }"
           class="nav__link"
           (click)="closeMobileMenu()"
         >{{ link.label }}</a>
@@ -24,10 +26,34 @@
         <app-icon name="search" style="width: 18px; height: 18px" />
       </button>
       @if (authService.isAuthenticated()) {
-        <a [routerLink]="destinoCuenta" class="account-link" aria-label="Mi cuenta">
-          <app-icon name="user" style="width: 18px; height: 18px" />
-          <span class="account-link__label">{{ authService.usuario()?.nombre?.split(' ')?.[0] }}</span>
-        </a>
+        <div class="account-menu">
+          <button
+            type="button"
+            class="account-link"
+            (click)="toggleAccountMenu($event)"
+            [attr.aria-expanded]="accountMenuOpen()"
+            aria-label="Mi cuenta"
+          >
+            <app-icon name="user" style="width: 18px; height: 18px" />
+            <span class="account-link__label">{{ authService.usuario()?.nombre?.split(' ')?.[0] }}</span>
+            <app-icon name="chevron-down" style="width: 12px; height: 12px" />
+          </button>
+
+          @if (accountMenuOpen()) {
+            <div class="account-menu__panel" (click)="$event.stopPropagation()">
+              <div class="account-menu__info">
+                <span class="account-menu__name">{{ authService.usuario()?.nombre }}</span>
+                <span class="account-menu__role">{{ etiquetaRol }}</span>
+              </div>
+              <a [routerLink]="destinoCuenta" class="account-menu__item" (click)="accountMenuOpen.set(false)">
+                {{ etiquetaCuenta }}
+              </a>
+              <button type="button" class="account-menu__item account-menu__item--danger" (click)="logout()">
+                Cerrar sesión
+              </button>
+            </div>
+          }
+        </div>
       } @else {
         <a routerLink="/login" class="account-link account-link--cta" aria-label="Iniciar sesión">
           <app-icon name="user" style="width: 18px; height: 18px" />

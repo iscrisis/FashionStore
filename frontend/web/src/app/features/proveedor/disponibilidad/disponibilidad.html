@@ -30,7 +30,7 @@
           <div class="disponibilidad-item__info">
             <span class="disponibilidad-item__nombre">{{ producto.nombre }}</span>
             <span class="disponibilidad-item__meta">
-              {{ producto.temporada.nombre }} · {{ producto.coleccion.nombre }}
+              {{ producto.estado === 'APROBADO' ? 'Aprobado por FashionStore' : 'Pendiente de aprobación' }}
             </span>
           </div>
           <label class="switch">

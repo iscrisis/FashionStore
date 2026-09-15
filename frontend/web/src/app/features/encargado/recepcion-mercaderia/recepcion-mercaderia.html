@@ -1,0 +1,216 @@
+<div class="recepcion-page">
+  <div class="page-header">
+    <h1>Recepción de mercadería</h1>
+    @if (sucursal(); as suc) {
+      <p class="page-header__sucursal">Sucursal: {{ suc.nombre }} · {{ suc.ciudad.nombre }}</p>
+    }
+  </div>
+
+  @if (resultado(); as out) {
+    <section class="admin-card confirmacion">
+      <div class="confirmacion__icono">
+        <app-icon name="suppliers" style="width: 22px; height: 22px" />
+      </div>
+      <h2>Recepción registrada</h2>
+      <p class="confirmacion__meta">
+        Proveedor: <strong>{{ out.proveedor.razon_social }}</strong> · Sucursal:
+        <strong>{{ out.sucursal.nombre }}</strong> · Registrado por
+        <strong>{{ out.registrado_por.nombre }}</strong>
+      </p>
+
+      <div class="confirmacion__detalles">
+        @for (detalle of out.detalles; track detalle.variante.id) {
+          <div class="confirmacion__linea">
+            <span class="confirmacion__producto">
+              {{ detalle.producto.nombre }} · {{ detalle.variante.color.nombre }} /
+              {{ detalle.variante.talla.nombre }}
+            </span>
+            <span class="confirmacion__cantidad">+{{ detalle.cantidad_recibida }}</span>
+            <span class="confirmacion__stock">Stock actual: {{ detalle.stock_resultante }}</span>
+          </div>
+        }
+      </div>
+
+      <button type="button" class="btn btn--primary" (click)="registrarOtra()">
+        Registrar otra recepción
+      </button>
+    </section>
+  } @else {
+    <section class="admin-card paso">
+      <h2 class="paso__titulo"><span class="paso__numero">1</span> Proveedor</h2>
+
+      @if (loadingProveedores()) {
+        <div class="skeleton-row"></div>
+      } @else if (errorProveedores()) {
+        <div class="state-block state-block--error">
+          <span>{{ errorProveedores() }}</span>
+          <button type="button" class="btn btn--ghost btn--sm" (click)="cargarProveedores()">
+            Reintentar
+          </button>
+        </div>
+      } @else {
+        <select
+          class="status-select proveedor-select"
+          [ngModel]="proveedorSeleccionadoId()"
+          (ngModelChange)="onProveedorChange($event)"
+        >
+          <option [ngValue]="null">Selecciona un proveedor...</option>
+          @for (proveedor of proveedores(); track proveedor.id) {
+            <option [ngValue]="proveedor.id">{{ proveedor.razon_social }}</option>
+          }
+        </select>
+      }
+    </section>
+
+    @if (proveedorSeleccionadoId() != null) {
+      <section class="admin-card paso">
+        <h2 class="paso__titulo"><span class="paso__numero">2</span> Buscar producto</h2>
+
+        <label class="search-input">
+          <app-icon name="search" />
+          <input
+            type="text"
+            placeholder="Buscar producto..."
+            [ngModel]="busquedaProducto()"
+            (ngModelChange)="onBusquedaChange($event)"
+          />
+        </label>
+
+        @if (loadingProductos()) {
+          <div class="skeleton-list">
+            <div class="skeleton-row"></div>
+            <div class="skeleton-row"></div>
+          </div>
+        } @else if (errorProductos()) {
+          <div class="state-block state-block--error">
+            <span>{{ errorProductos() }}</span>
+          </div>
+        } @else if (productosFiltrados.length === 0) {
+          <div class="state-block">
+            <span class="state-block__title">Sin productos</span>
+            <span>Este proveedor no tiene productos activos en el catálogo.</span>
+          </div>
+        } @else {
+          <div class="lista-productos">
+            @for (producto of productosFiltrados; track producto.id) {
+              <button
+                type="button"
+                class="producto-row"
+                [class.is-active]="productoSeleccionado()?.id === producto.id"
+                (click)="abrirProducto(producto)"
+              >
+                @if (producto.imagen_principal_url) {
+                  <img
+                    [src]="resolveMediaUrl(producto.imagen_principal_url)"
+                    alt=""
+                    class="producto-row__imagen"
+                  />
+                } @else {
+                  <div class="producto-row__imagen producto-row__imagen--placeholder">
+                    <app-icon name="products" style="width: 16px; height: 16px" />
+                  </div>
+                }
+                <span class="producto-row__info">
+                  <span class="producto-row__nombre">{{ producto.nombre }}</span>
+                  <span class="producto-row__meta">
+                    {{ producto.coleccion.nombre }} · {{ producto.categoria.nombre }}
+                  </span>
+                </span>
+                <span class="contador">{{ producto.variantes.length }} variantes</span>
+              </button>
+
+              @if (productoSeleccionado()?.id === producto.id) {
+                <div class="variantes-panel">
+                  <h3 class="variantes-panel__titulo">
+                    <span class="paso__numero">3</span> Variantes recibidas
+                  </h3>
+
+                  <div class="variante-list">
+                    @for (variante of producto.variantes; track variante.id) {
+                      <div class="variante-row">
+                        <span class="variante-row__nombre">
+                          {{ variante.color.nombre }} / {{ variante.talla.nombre }}
+                        </span>
+                        <label class="variante-row__cantidad">
+                          <span class="variante-row__cantidad-label">Cantidad</span>
+                          <input
+                            type="number"
+                            class="cantidad-input"
+                            min="0"
+                            [ngModel]="cantidadEditada(variante.id)"
+                            (ngModelChange)="onCantidadChange(variante.id, $event)"
+                          />
+                        </label>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="variantes-panel__acciones">
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="cerrarProducto()">
+                      Cancelar
+                    </button>
+                    <button type="button" class="btn btn--primary" (click)="agregarARecepcion(producto)">
+                      Agregar a recepción
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+      </section>
+    }
+
+    @if (resumen().length > 0) {
+      <section class="admin-card resumen-recepcion">
+        <div class="resumen-recepcion__header">
+          <h2>Resumen de recepción</h2>
+        </div>
+
+        <div class="resumen-lista">
+          @for (linea of resumen(); track linea.varianteId) {
+            <div class="resumen-linea">
+              <span class="resumen-linea__nombre">
+                {{ linea.productoNombre }} · {{ linea.colorNombre }} / {{ linea.tallaNombre }}
+              </span>
+              <span class="resumen-linea__cantidad">{{ linea.cantidad }}</span>
+              <button
+                type="button"
+                class="resumen-linea__quitar"
+                aria-label="Quitar"
+                (click)="quitarLinea(linea.varianteId)"
+              >
+                <app-icon name="close" style="width: 12px; height: 12px" />
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="resumen-total">
+          <span>Total</span>
+          <strong>{{ totalUnidades }} unidades</strong>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Observación (opcional)</span>
+          <input
+            type="text"
+            class="observacion-input"
+            placeholder="Ej. Entrega parcial, faltan 2 cajas..."
+            [ngModel]="observacion()"
+            (ngModelChange)="onObservacionChange($event)"
+          />
+        </label>
+
+        <button
+          type="button"
+          class="btn btn--primary confirmar-btn"
+          [disabled]="submitting()"
+          (click)="confirmarRecepcion()"
+        >
+          {{ submitting() ? 'Confirmando...' : 'Confirmar recepción' }}
+        </button>
+      </section>
+    }
+  }
+</div>

@@ -23,40 +23,26 @@
 
 .detalle {
   display: grid;
-  // La galería no debe crecer al 50% del contenedor en pantallas anchas
-  // (se veía enorme y pixelada) -- se limita a un ancho de foto de producto
-  // razonable y la columna de info toma el resto.
-  grid-template-columns: minmax(240px, 380px) 1fr;
-  gap: 36px;
+  grid-template-columns: minmax(320px, 460px) 1fr;
+  gap: 40px;
   align-items: start;
 }
 
-.gallery__main {
-  aspect-ratio: 3 / 4;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: linear-gradient(160deg, #f0eeea, #ddd6cb);
+// Miniaturas verticales a la izquierda + imagen principal grande a la
+// derecha, como en el prototipo. Misma carga dinámica de imágenes de antes.
+.gallery {
   display: flex;
-  align-items: center;
-  justify-content: center;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
-.gallery__placeholder {
-  color: var(--color-text-secondary);
+  gap: 12px;
 }
 
 .gallery__thumbs {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  margin-top: 10px;
-  overflow-x: auto;
-  padding-bottom: 4px;
+  flex-shrink: 0;
+  width: 64px;
+  max-height: 480px;
+  overflow-y: auto;
 }
 
 .gallery__thumb {
@@ -92,6 +78,28 @@
   background: linear-gradient(160deg, #f0eeea, #ddd6cb);
 }
 
+.gallery__main {
+  flex: 1;
+  min-width: 0;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: linear-gradient(160deg, #f0eeea, #ddd6cb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.gallery__placeholder {
+  color: var(--color-text-secondary);
+}
+
 .info {
   display: flex;
   flex-direction: column;
@@ -108,13 +116,13 @@
 }
 
 .info__nombre {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--color-text);
 }
 
 .info__precio {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--color-primary-dark);
 }
@@ -143,18 +151,117 @@
   color: var(--color-text);
 }
 
-.chip-list {
+.info__label-value {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+// Colores como círculos seleccionables. El backend (Color, CU09) solo
+// guarda el nombre -- sin código hex -- así que el tono de cada círculo se
+// resuelve aquí, en CSS puro, a partir del nombre real (data-color); un
+// nombre que no aparezca en esta tabla cae al swatch neutro por defecto.
+// No se inventa ni se guarda ningún dato nuevo: el nombre real sigue siendo
+// el único valor que viaja desde FastAPI.
+.color-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  padding: 0;
+  background: var(--color-card-bg);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+
+  &.is-selected {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, white);
+  }
+
+  &[data-color='blanco'] {
+    background: #ffffff;
+  }
+  &[data-color='negro'] {
+    background: #1a1a1a;
+  }
+  &[data-color='rojo'] {
+    background: #a90012;
+  }
+  &[data-color='azul'] {
+    background: #2a4d8f;
+  }
+  &[data-color='celeste'] {
+    background: #7fb3e0;
+  }
+  &[data-color='verde'] {
+    background: #2e7d4f;
+  }
+  &[data-color='amarillo'] {
+    background: #e8c547;
+  }
+  &[data-color='naranja'] {
+    background: #d9782d;
+  }
+  &[data-color='gris'],
+  &[data-color='plomo'] {
+    background: #9a9a9a;
+  }
+  &[data-color='beige'] {
+    background: #e3d5c0;
+  }
+  &[data-color='rosado'],
+  &[data-color='rosa'] {
+    background: #e0a0b0;
+  }
+  &[data-color='morado'],
+  &[data-color='violeta'] {
+    background: #6b4e8e;
+  }
+  &[data-color='café'],
+  &[data-color='cafe'],
+  &[data-color='marrón'],
+  &[data-color='marron'] {
+    background: #6b4423;
+  }
+  &[data-color='dorado'] {
+    background: #c9a24b;
+  }
+  &[data-color='plateado'] {
+    background: #c0c0c0;
+  }
+  &[data-color='vino'] {
+    background: #5e0f18;
+  }
+  &[data-color='crema'] {
+    background: #f0e6d2;
+  }
+}
+
+// Tallas como botones estilo ecommerce (cuadrados, no píldoras).
+.talla-list {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.chip {
-  padding: 8px 14px;
-  border-radius: 999px;
+.talla-btn {
+  min-width: 42px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background: var(--color-white);
   font-size: 12.5px;
+  font-weight: 600;
   color: var(--color-text);
   cursor: pointer;
   transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
@@ -162,48 +269,43 @@
   &:hover {
     border-color: var(--color-primary);
   }
+
+  &.is-selected {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+  }
 }
 
-.chip--checked {
-  background: color-mix(in srgb, var(--color-primary) 10%, white);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
-// Disponibilidad en tiendas (CU07 -- Ciudad -> Sucursales) integrada dentro
-// del mismo detalle. Sin stock: cada tarjeta queda lista para que CU12
-// agregue después su disponibilidad, sin inventar cantidades ahora.
+// Disponibilidad por sucursal (CU12) -- misma consulta y datos de siempre,
+// solo se reorganiza la tarjeta: cabecera con ciudad y variantes agrupadas
+// por color/talla, con el estado real derivado de `cantidad`.
 .disponibilidad {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   margin-top: 14px;
   padding-top: 16px;
   border-top: 1px solid var(--color-border);
 }
 
-.disponibilidad__ciudad {
+.disponibilidad__header {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-width: 280px;
-}
-
-.disponibilidad__ciudad-label {
-  font-size: 11.5px;
-  color: var(--color-text-secondary);
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .disponibilidad__ciudad select {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: 9px 11px;
-  font-size: 13px;
+  padding: 8px 10px;
+  font-size: 12.5px;
   color: var(--color-text);
   background: var(--color-white);
   outline: none;
-  width: 100%;
+  max-width: 220px;
 
   &:focus {
     border-color: var(--color-primary);
@@ -216,9 +318,9 @@
 }
 
 .disponibilidad__sucursales {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
 }
 
 .disponibilidad__vacio {
@@ -229,10 +331,30 @@
 .sucursal-card {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 12px 14px;
+  gap: 10px;
+  padding: 14px 16px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  min-width: 0;
+}
+
+.sucursal-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  app-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--color-text-secondary);
+  }
+}
+
+.sucursal-card__head-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
@@ -243,16 +365,44 @@
   overflow-wrap: break-word;
 }
 
-.sucursal-card__direccion,
-.sucursal-card__telefono {
-  font-size: 12.5px;
+.sucursal-card__direccion {
+  font-size: 12px;
   color: var(--color-text-secondary);
   overflow-wrap: break-word;
 }
 
-.skeleton-sucursal {
-  height: 64px;
+.sucursal-card__variante-seleccionada {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.sucursal-card__variante-nombre {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.talla-estado {
+  padding: 3px 9px;
   border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  font-weight: 600;
+  background: var(--color-inactive-bg);
+  color: var(--color-inactive-text);
+
+  &.is-disponible {
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+  }
+}
+
+.skeleton-sucursal {
+  height: 90px;
+  border-radius: var(--radius-md);
   background: linear-gradient(
     90deg,
     var(--color-card-bg) 25%,
@@ -265,8 +415,8 @@
 
 .detalle-skeleton {
   display: grid;
-  grid-template-columns: minmax(240px, 380px) 1fr;
-  gap: 36px;
+  grid-template-columns: minmax(320px, 460px) 1fr;
+  gap: 40px;
 }
 
 .skeleton-block {
@@ -298,13 +448,46 @@
   }
 }
 
+// Tablet: la galería sigue en fila (miniaturas + imagen), pero ocupa el
+// ancho completo por encima de la info, que pasa a una sola columna.
+@media (max-width: 1024px) and (min-width: 781px) {
+  .detalle,
+  .detalle-skeleton {
+    grid-template-columns: 1fr;
+  }
+
+  .gallery__main {
+    max-width: 420px;
+  }
+}
+
+// Móvil: imagen principal arriba, miniaturas en fila horizontal debajo --
+// referencia razonable para que Flutter apile igual (imagen -> info ->
+// selección -> disponibilidad).
 @media (max-width: 780px) {
   .detalle,
   .detalle-skeleton {
     grid-template-columns: 1fr;
   }
 
-  .disponibilidad__ciudad {
-    max-width: none;
+  .gallery {
+    flex-direction: column;
+  }
+
+  .gallery__main {
+    order: 1;
+  }
+
+  .gallery__thumbs {
+    order: 2;
+    flex-direction: row;
+    width: 100%;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .disponibilidad__sucursales {
+    grid-template-columns: 1fr;
   }
 }

@@ -154,6 +154,19 @@
   }
 }
 
+.propuesta-fija {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+
+.propuesta-fija__valor {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
 // El drawer tiene max-width: 92vw; en pantallas angostas, los pares de
 // campos lado a lado no caben cómodamente -- se apilan solo aquí.
 @media (max-width: 480px) {

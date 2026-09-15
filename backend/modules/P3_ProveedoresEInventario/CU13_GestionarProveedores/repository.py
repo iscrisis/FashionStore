@@ -7,10 +7,9 @@ no crea una tabla ni un modelo paralelo.
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from modules.P1_SucursalesYCatalogos.Models.coleccion import Coleccion
+from modules.P1_SucursalesYCatalogos.Models.producto import Producto
 from modules.P1_SucursalesYCatalogos.Models.producto_proveedor import ProductoProveedor
 from modules.P1_SucursalesYCatalogos.Models.proveedor import Proveedor
-from modules.P1_SucursalesYCatalogos.Models.temporada import Temporada
 
 
 class ProveedoresRepository:
@@ -54,32 +53,6 @@ class ProveedoresRepository:
         return proveedor
 
 
-class CatalogoLecturaRepository:
-    """Solo lectura de Temporada/Colección (CU10) para el selector del panel
-    del Proveedor — no las administra ni las duplica."""
-
-    def __init__(self, db: Session):
-        self.db = db
-
-    def listar_temporadas_activas(self) -> list[Temporada]:
-        stmt = select(Temporada).where(Temporada.is_active.is_(True)).order_by(Temporada.nombre)
-        return list(self.db.execute(stmt).scalars().all())
-
-    def listar_colecciones_activas(self, temporada_id: int) -> list[Coleccion]:
-        stmt = (
-            select(Coleccion)
-            .where(Coleccion.temporada_id == temporada_id, Coleccion.is_active.is_(True))
-            .order_by(Coleccion.nombre)
-        )
-        return list(self.db.execute(stmt).scalars().all())
-
-    def get_coleccion(self, coleccion_id: int) -> Coleccion | None:
-        return self.db.get(Coleccion, coleccion_id)
-
-    def get_temporada(self, temporada_id: int) -> Temporada | None:
-        return self.db.get(Temporada, temporada_id)
-
-
 class ProductosProveedorRepository:
     def __init__(self, db: Session):
         self.db = db
@@ -105,3 +78,10 @@ class ProductosProveedorRepository:
         self.db.commit()
         self.db.refresh(producto)
         return producto
+
+    def get_producto_vinculado(self, producto_proveedor_id: int) -> Producto | None:
+        """Producto real (CU08) ya convertido a partir de esta propuesta, si
+        existe -- es la base para derivar estado PENDIENTE/APROBADO sin
+        crear una máquina de estados nueva (ver PanelProveedorService)."""
+        stmt = select(Producto).where(Producto.producto_proveedor_id == producto_proveedor_id)
+        return self.db.execute(stmt).scalar_one_or_none()

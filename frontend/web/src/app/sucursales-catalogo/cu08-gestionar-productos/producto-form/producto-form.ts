@@ -44,6 +44,11 @@ export class ProductoForm {
   readonly producto = input<Producto | null>(null);
   readonly readonly = input(false);
   readonly submitting = input(false);
+  // Cuando viene de "Aprobar propuesta" (ver propuestas-proveedor): el
+  // Administrador ya eligió cuál propuesta convertir, así que el selector
+  // "Basado en propuesta de proveedor" no debe mostrarse -- solo un
+  // indicador fijo de cuál se está aprobando.
+  readonly propuestaPreseleccionada = input<PropuestaProveedor | null>(null);
 
   readonly save = output<ProductoFormValue>();
   readonly close = output<void>();
@@ -133,11 +138,12 @@ export class ProductoForm {
         this.colecciones.set([]);
         this.imagenPrincipalUrl.set(null);
         this.imagenesAdicionales.set([]);
+        const preseleccionada = this.propuestaPreseleccionada();
         this.form.reset({
-          propuesta_id: null,
-          nombre: '',
-          descripcion: '',
-          proveedor_id: null,
+          propuesta_id: preseleccionada?.id ?? null,
+          nombre: preseleccionada?.nombre ?? '',
+          descripcion: preseleccionada?.descripcion ?? '',
+          proveedor_id: preseleccionada?.proveedor.id ?? null,
           categoria_id: null,
           temporada_id: null,
           coleccion_id: null,
@@ -146,7 +152,11 @@ export class ProductoForm {
           color_ids: [],
           is_active: true,
         });
-        this.productoService.listPropuestas().subscribe((valores) => this.propuestas.set(valores));
+        if (preseleccionada) {
+          this.propuestas.set([preseleccionada]);
+        } else {
+          this.productoService.listPropuestas().subscribe((valores) => this.propuestas.set(valores));
+        }
       }
 
       if (this.readonly()) {
@@ -183,18 +193,14 @@ export class ProductoForm {
     if (!propuesta) {
       return;
     }
+    // La propuesta solo trae nombre/descripción/proveedor -- categoría,
+    // temporada, colección, precio, tallas y colores los elige el
+    // Administrador desde cero en este mismo formulario (ver CU13).
     this.form.patchValue({
       nombre: propuesta.nombre,
       descripcion: propuesta.descripcion ?? '',
       proveedor_id: propuesta.proveedor.id,
-      temporada_id: propuesta.temporada.id,
     });
-    this.coleccionService
-      .list({ temporada_id: propuesta.temporada.id, estado: 'active' })
-      .subscribe((valores) => {
-        this.colecciones.set(valores);
-        this.form.controls.coleccion_id.setValue(propuesta.coleccion.id);
-      });
   }
 
   toggleTalla(id: number): void {

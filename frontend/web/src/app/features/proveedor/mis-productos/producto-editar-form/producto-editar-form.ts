@@ -1,14 +1,19 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Icon } from '../../../../core/ui/icon/icon';
-import {
-  ColeccionResumen,
-  ProductoProveedor,
-  ProductoProveedorPayload,
-  TemporadaResumen,
-} from '../../shared/panel-proveedor.model';
-import { PanelProveedorService } from '../../shared/panel-proveedor.service';
+import { resolveMediaUrl } from '../../../../core/utils/resolve-media-url';
+import { ProductoProveedor, ProductoProveedorPayload } from '../../shared/panel-proveedor.model';
 
+/**
+ * Ver/editar una propuesta (ProductoProveedor) ya enviada. Solo nombre y
+ * descripción son editables por el proveedor -- categoría, temporada,
+ * colección, precio, tallas y colores las decide el Administrador al
+ * convertir la propuesta (CU08), por eso no hay campos para eso aquí.
+ *
+ * Si la propuesta ya fue APROBADA, muestra en solo lectura las variantes
+ * reales que FashionStore definió (agrupadas por color) -- el proveedor
+ * nunca puede modificarlas.
+ */
 @Component({
   selector: 'app-producto-editar-form',
   imports: [ReactiveFormsModule, Icon],
@@ -24,27 +29,16 @@ export class ProductoEditarForm {
   readonly save = output<ProductoProveedorPayload>();
   readonly close = output<void>();
 
-  private readonly fb = inject(FormBuilder);
-  private readonly panelService = inject(PanelProveedorService);
+  protected readonly resolveMediaUrl = resolveMediaUrl;
 
-  protected readonly temporadas = signal<TemporadaResumen[]>([]);
-  protected readonly colecciones = signal<ColeccionResumen[]>([]);
+  private readonly fb = inject(FormBuilder);
 
   protected readonly form = this.fb.nonNullable.group({
     nombre: ['', [Validators.required, Validators.maxLength(150)]],
     descripcion: [''],
-    temporada_id: [null as number | null, [Validators.required]],
-    coleccion_id: [null as number | null, [Validators.required]],
   });
 
   constructor() {
-    this.panelService.temporadas().subscribe({ next: (t) => this.temporadas.set(t) });
-
-    this.form.controls.temporada_id.valueChanges.subscribe((temporadaId) => {
-      this.form.controls.coleccion_id.setValue(null);
-      this.cargarColecciones(temporadaId);
-    });
-
     effect(() => {
       if (!this.open()) {
         return;
@@ -52,21 +46,11 @@ export class ProductoEditarForm {
       const producto = this.producto();
       if (producto) {
         this.form.reset(
-          {
-            nombre: producto.nombre,
-            descripcion: producto.descripcion ?? '',
-            temporada_id: producto.temporada.id,
-            coleccion_id: producto.coleccion.id,
-          },
+          { nombre: producto.nombre, descripcion: producto.descripcion ?? '' },
           { emitEvent: false },
         );
-        this.cargarColecciones(producto.temporada.id);
       } else {
-        this.form.reset(
-          { nombre: '', descripcion: '', temporada_id: null, coleccion_id: null },
-          { emitEvent: false },
-        );
-        this.colecciones.set([]);
+        this.form.reset({ nombre: '', descripcion: '' }, { emitEvent: false });
       }
 
       if (this.readonly()) {
@@ -75,14 +59,6 @@ export class ProductoEditarForm {
         this.form.enable();
       }
     });
-  }
-
-  private cargarColecciones(temporadaId: number | null): void {
-    if (temporadaId == null) {
-      this.colecciones.set([]);
-      return;
-    }
-    this.panelService.colecciones(temporadaId).subscribe({ next: (c) => this.colecciones.set(c) });
   }
 
   submit(): void {
@@ -97,8 +73,6 @@ export class ProductoEditarForm {
     this.save.emit({
       nombre: value.nombre.trim(),
       descripcion: value.descripcion.trim() || null,
-      temporada_id: value.temporada_id as number,
-      coleccion_id: value.coleccion_id as number,
     });
   }
 }

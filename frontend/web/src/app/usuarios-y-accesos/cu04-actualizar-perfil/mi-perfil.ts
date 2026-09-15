@@ -75,6 +75,18 @@ export class MiPerfil implements OnInit {
     });
   }
 
+  // Esta misma pantalla la usan '/mi-perfil' (Cliente, layout público) y
+  // '/encargado/mi-perfil' (Encargado, dentro de su panel) -- el enlace de
+  // salida debe respetar en cuál está, para que un Encargado autenticado
+  // nunca termine en el layout público desde su propio perfil.
+  protected get destinoVolver(): string {
+    return this.authService.hasRole('ENCARGADO_SUCURSAL') ? '/encargado' : '/';
+  }
+
+  protected get etiquetaVolver(): string {
+    return this.authService.hasRole('ENCARGADO_SUCURSAL') ? 'Volver al panel' : 'Volver a la tienda';
+  }
+
   private mensajeDeError(error: HttpErrorResponse): string {
     if (error.status === 0) {
       return 'No se pudo conectar con el servidor. Verifica tu conexión e inténtalo nuevamente.';

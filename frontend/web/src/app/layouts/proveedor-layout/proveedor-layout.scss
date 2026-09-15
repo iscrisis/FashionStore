@@ -36,6 +36,12 @@
   .proveedor-layout__sidebar {
     height: auto;
     overflow: visible;
+    // Sin esto, un grid item de 1fr no se encoge por debajo del ancho de su
+    // contenido (aquí, la franja horizontal de navegación) y el scroll
+    // interno de proveedor-sidebar (overflow-x: auto) nunca se activa -- el
+    // desborde se filtra a la página completa en vez de quedar contenido en
+    // la franja (mismo ajuste ya aplicado en encargado-layout.scss).
+    min-width: 0;
   }
 
   .proveedor-layout__main {

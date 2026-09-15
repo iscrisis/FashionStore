@@ -77,14 +77,16 @@ export interface ProductoPayload {
   is_active?: boolean;
 }
 
+export type EstadoPropuesta = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
+
 export interface PropuestaProveedor {
   id: number;
   nombre: string;
   descripcion: string | null;
+  imagen_url: string | null;
   disponibilidad: boolean;
+  estado: EstadoPropuesta;
   proveedor: ProveedorResumen;
-  temporada: TemporadaResumen;
-  coleccion: ColeccionResumen;
 }
 
 export type CatalogStatusFilter = 'all' | 'active' | 'inactive';

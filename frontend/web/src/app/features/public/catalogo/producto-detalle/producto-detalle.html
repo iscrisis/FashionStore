@@ -17,20 +17,10 @@
     </a>
 
     <div class="detalle">
+      <!-- Galería: miniaturas verticales a la izquierda + imagen principal
+           grande a la derecha. Misma carga dinámica de siempre (imagenActivaUrl /
+           seleccionarImagen / marcarImagenRota) -- solo cambia el orden visual. -->
       <div class="gallery">
-        <div class="gallery__main">
-          @if (imagenActivaUrl() && !erroredUrls().has(imagenActivaUrl()!)) {
-            <img
-              [src]="resolveMediaUrl(imagenActivaUrl())"
-              [alt]="producto()!.nombre"
-              (error)="marcarImagenRota(imagenActivaUrl()!)"
-            />
-          } @else {
-            <div class="gallery__placeholder">
-              <app-icon name="products" style="width: 40px; height: 40px" />
-            </div>
-          }
-        </div>
         @if (galeria.length > 1) {
           <div class="gallery__thumbs">
             @for (url of galeria; track url) {
@@ -51,12 +41,33 @@
             }
           </div>
         }
+        <div class="gallery__main">
+          @if (imagenActivaUrl() && !erroredUrls().has(imagenActivaUrl()!)) {
+            <img
+              [src]="resolveMediaUrl(imagenActivaUrl())"
+              [alt]="producto()!.nombre"
+              (error)="marcarImagenRota(imagenActivaUrl()!)"
+            />
+          } @else {
+            <div class="gallery__placeholder">
+              <app-icon name="products" style="width: 40px; height: 40px" />
+            </div>
+          }
+        </div>
       </div>
 
       <div class="info">
         <span class="info__categoria">{{ producto()!.categoria.nombre }}</span>
         <h1 class="info__nombre">{{ producto()!.nombre }}</h1>
+
+        <!-- Código de producto: ProductoPublico no expone ese campo (ver
+             catalogo.model.ts) -- se omite en vez de inventarlo. -->
+
         <span class="info__precio">Bs {{ producto()!.precio_venta.toFixed(2) }}</span>
+
+        <!-- Valoración: el modelo actual no expone rating ni reseñas. Se deja
+             el espacio listo (sin estrellas ni números inventados) para
+             cuando ese dato exista. -->
 
         @if (producto()!.descripcion) {
           <p class="info__descripcion">{{ producto()!.descripcion }}</p>
@@ -66,17 +77,25 @@
 
         @if (producto()!.colores.length > 0) {
           <div class="info__group">
-            <span class="info__label">Color</span>
-            <div class="chip-list">
+            <span class="info__label">
+              Color
+              @for (color of producto()!.colores; track color.id) {
+                @if (color.id === colorSeleccionadoId()) {
+                  <span class="info__label-value">{{ color.nombre }}</span>
+                }
+              }
+            </span>
+            <div class="color-list">
               @for (color of producto()!.colores; track color.id) {
                 <button
                   type="button"
-                  class="chip"
-                  [class.chip--checked]="color.id === colorSeleccionadoId()"
+                  class="color-swatch"
+                  [class.is-selected]="color.id === colorSeleccionadoId()"
+                  [attr.data-color]="color.nombre.toLowerCase()"
+                  [title]="color.nombre"
+                  [attr.aria-label]="color.nombre"
                   (click)="seleccionarColor(color.id)"
-                >
-                  {{ color.nombre }}
-                </button>
+                ></button>
               }
             </div>
           </div>
@@ -85,12 +104,12 @@
         @if (producto()!.tallas.length > 0) {
           <div class="info__group">
             <span class="info__label">Talla</span>
-            <div class="chip-list">
+            <div class="talla-list">
               @for (talla of producto()!.tallas; track talla.id) {
                 <button
                   type="button"
-                  class="chip"
-                  [class.chip--checked]="talla.id === tallaSeleccionadaId()"
+                  class="talla-btn"
+                  [class.is-selected]="talla.id === tallaSeleccionadaId()"
                   (click)="seleccionarTalla(talla.id)"
                 >
                   {{ talla.nombre }}
@@ -101,43 +120,62 @@
         }
 
         <div class="disponibilidad">
-          <span class="info__label">Disponibilidad en tiendas</span>
+          <div class="disponibilidad__header">
+            <span class="info__label">Stock por sucursal</span>
+            <label class="disponibilidad__ciudad">
+              <select
+                [ngModel]="ciudadId()"
+                (ngModelChange)="onCiudadChange($event)"
+                [disabled]="loadingCiudades() || ciudades().length === 0"
+              >
+                @if (ciudades().length === 0) {
+                  <option [ngValue]="null">Sin ciudades disponibles</option>
+                }
+                @for (ciudad of ciudades(); track ciudad.id) {
+                  <option [ngValue]="ciudad.id">{{ ciudad.nombre }}</option>
+                }
+              </select>
+            </label>
+          </div>
 
-          <label class="disponibilidad__ciudad">
-            <span class="disponibilidad__ciudad-label">Ciudad</span>
-            <select
-              [ngModel]="ciudadId()"
-              (ngModelChange)="onCiudadChange($event)"
-              [disabled]="loadingCiudades() || ciudades().length === 0"
-            >
-              @if (ciudades().length === 0) {
-                <option [ngValue]="null">Sin ciudades disponibles</option>
-              }
-              @for (ciudad of ciudades(); track ciudad.id) {
-                <option [ngValue]="ciudad.id">{{ ciudad.nombre }}</option>
-              }
-            </select>
-          </label>
-
-          @if (loadingCiudades() || loadingSucursales()) {
+          @if (loadingCiudades() || loadingDisponibilidad()) {
             <div class="disponibilidad__sucursales">
               <div class="skeleton-sucursal"></div>
               <div class="skeleton-sucursal"></div>
             </div>
-          } @else if (errorSucursales()) {
+          } @else if (errorDisponibilidad()) {
             <div class="state-block state-block--error">
-              <span>{{ errorSucursales() }}</span>
-              <button type="button" class="btn btn--ghost btn--sm" (click)="loadSucursales()">Reintentar</button>
+              <span>{{ errorDisponibilidad() }}</span>
+              <button type="button" class="btn btn--ghost btn--sm" (click)="loadDisponibilidad()">Reintentar</button>
             </div>
-          } @else if (sucursales().length === 0) {
+          } @else if (disponibilidad().length === 0) {
             <span class="disponibilidad__vacio">Sin sucursales en esta ciudad.</span>
           } @else {
             <div class="disponibilidad__sucursales">
-              @for (sucursal of sucursales(); track sucursal.id) {
+              @for (item of disponibilidad(); track item.sucursal_id) {
                 <div class="sucursal-card">
-                  <span class="sucursal-card__nombre">{{ sucursal.nombre }}</span>
-                  <span class="sucursal-card__direccion">{{ sucursal.direccion }}</span>
-                  <span class="sucursal-card__telefono">{{ sucursal.telefono }}</span>
+                  <div class="sucursal-card__head">
+                    <app-icon name="branches" style="width: 14px; height: 14px" />
+                    <div class="sucursal-card__head-texto">
+                      <span class="sucursal-card__nombre">{{ item.sucursal }}</span>
+                      <span class="sucursal-card__direccion">{{ item.ciudad }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Solo la variante (color + talla) elegida arriba -- evita
+                       repetir todas las combinaciones debajo. Misma respuesta
+                       de CU12 para esta sucursal, solo filtrada en la
+                       plantilla por colorSeleccionadoId()/tallaSeleccionadaId(). -->
+                  @for (variante of item.variantes; track variante.talla_id + '-' + variante.color_id) {
+                    @if (variante.color_id === colorSeleccionadoId() && variante.talla_id === tallaSeleccionadaId()) {
+                      <div class="sucursal-card__variante-seleccionada">
+                        <span class="sucursal-card__variante-nombre">{{ variante.color }} - {{ variante.talla }}</span>
+                        <span class="talla-estado" [class.is-disponible]="variante.cantidad > 0">
+                          {{ variante.cantidad > 0 ? 'Disponible' : 'Agotado' }}
+                        </span>
+                      </div>
+                    }
+                  }
                 </div>
               }
             </div>

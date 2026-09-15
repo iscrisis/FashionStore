@@ -2,14 +2,31 @@
   <div class="drawer-overlay" (click)="close.emit()">
     <aside class="drawer producto-drawer" (click)="$event.stopPropagation()">
       <header class="drawer__header">
-        <h2>{{ readonly() ? 'Detalle de producto' : isEditMode ? 'Editar producto' : 'Nuevo producto' }}</h2>
+        <h2>
+          {{
+            readonly()
+              ? 'Detalle de producto'
+              : isEditMode
+                ? 'Editar producto'
+                : propuestaPreseleccionada()
+                  ? 'Aprobar propuesta'
+                  : 'Nuevo producto'
+          }}
+        </h2>
         <button type="button" class="icon-btn" (click)="close.emit()" aria-label="Cerrar">
           <app-icon name="close" style="width: 16px; height: 16px" />
         </button>
       </header>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="drawer__form">
-        @if (!isEditMode && propuestas().length > 0) {
+        @if (propuestaPreseleccionada(); as preseleccionada) {
+          <div class="field propuesta-fija">
+            <span class="field__label">Propuesta a convertir</span>
+            <span class="propuesta-fija__valor">
+              {{ preseleccionada.proveedor.razon_social }} · {{ preseleccionada.nombre }}
+            </span>
+          </div>
+        } @else if (!isEditMode && propuestas().length > 0) {
           <label class="field">
             <span class="field__label">Basado en propuesta de proveedor</span>
             <select
@@ -247,7 +264,13 @@
               Cancelar
             </button>
             <button type="submit" class="btn btn--primary" [disabled]="submitting()">
-              {{ submitting() ? 'Guardando…' : 'Guardar producto' }}
+              {{
+                submitting()
+                  ? 'Guardando…'
+                  : propuestaPreseleccionada()
+                    ? 'Aprobar y crear producto'
+                    : 'Guardar producto'
+              }}
             </button>
           }
         </footer>

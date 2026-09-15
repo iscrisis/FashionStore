@@ -51,6 +51,20 @@ export const routes: Routes = [
         title: 'Catálogo · Fashion Store',
       },
       {
+        // El navbar (public-header.ts) ya enlazaba a '/colecciones' -- esta
+        // ruta simplemente no existía. Reutiliza CatalogoService.listColecciones()
+        // (mismo endpoint público de CU11 que ya usa catalogo-page) y enlaza
+        // cada colección a '/catalogo?coleccion_id=X', el mismo filtro que ya
+        // usa el hero de colección destacada del Home -- sin IDs ni nombres
+        // fijos en el código.
+        path: 'colecciones',
+        loadComponent: () =>
+          import('./features/public/colecciones/colecciones-page/colecciones-page').then(
+            (m) => m.ColeccionesPage,
+          ),
+        title: 'Colecciones · Fashion Store',
+      },
+      {
         path: 'producto/:id',
         loadComponent: () =>
           import('./features/public/catalogo/producto-detalle/producto-detalle').then(
@@ -209,6 +223,87 @@ export const routes: Routes = [
         data: {
           headerTitle: 'Mi perfil',
           headerSubtitle: 'Datos de contacto de tu empresa.',
+        },
+      },
+    ],
+  },
+  {
+    path: 'encargado',
+    loadComponent: () =>
+      import('./layouts/encargado-layout/encargado-layout').then((m) => m.EncargadoLayout),
+    canActivate: [authGuard, roleGuard('ENCARGADO_SUCURSAL')],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('./features/encargado/inicio/inicio').then((m) => m.Inicio),
+        title: 'Panel de Encargado · Fashion Store',
+        data: {
+          headerTitle: 'Panel de Encargado de Sucursal',
+          headerSubtitle: '',
+        },
+      },
+      {
+        // CU14 -- Consultar inventario. Hereda el guard del padre
+        // (authGuard + roleGuard('ENCARGADO_SUCURSAL')); el backend además
+        // resuelve la sucursal siempre desde el usuario autenticado (ver
+        // CU14_ConsultarInventario/router.py), nunca desde esta ruta.
+        path: 'inventario',
+        loadComponent: () =>
+          import('./features/encargado/inventario/inventario').then((m) => m.Inventario),
+        title: 'Inventario · Fashion Store Encargado',
+        data: {
+          headerTitle: 'Inventario',
+          headerSubtitle: 'Consulta y ajusta el stock de tu sucursal.',
+        },
+      },
+      {
+        // CU15 -- Registrar recepción de mercadería. Hereda el guard del
+        // padre (authGuard + roleGuard('ENCARGADO_SUCURSAL')); el backend
+        // además resuelve la sucursal siempre desde el usuario autenticado
+        // (ver CU15_RegistrarRecepcionMercaderia/router.py), nunca desde
+        // esta ruta.
+        path: 'recepcion-mercaderia',
+        loadComponent: () =>
+          import('./features/encargado/recepcion-mercaderia/recepcion-mercaderia').then(
+            (m) => m.RecepcionMercaderia,
+          ),
+        title: 'Recepción de mercadería · Fashion Store Encargado',
+        data: {
+          headerTitle: 'Recepción de mercadería',
+          headerSubtitle: 'Registra la mercadería recibida de un proveedor en tu sucursal.',
+        },
+      },
+      {
+        // CU16 -- Registrar movimientos de inventario. Hereda el guard del
+        // padre (authGuard + roleGuard('ENCARGADO_SUCURSAL')); el backend
+        // además resuelve la sucursal siempre desde el usuario autenticado
+        // (ver CU16_RegistrarMovimientosInventario/router.py), nunca desde
+        // esta ruta. Distinto de CU15 (recepción de proveedor): aquí son
+        // ajustes manuales justificados, positivos o negativos.
+        path: 'movimientos-inventario',
+        loadComponent: () =>
+          import('./features/encargado/movimientos-inventario/movimientos-inventario').then(
+            (m) => m.MovimientosInventario,
+          ),
+        title: 'Movimientos de inventario · Fashion Store Encargado',
+        data: {
+          headerTitle: 'Movimientos de inventario',
+          headerSubtitle: 'Registra ajustes manuales y justificados de stock en tu sucursal.',
+        },
+      },
+      {
+        // Mismo componente MiPerfil de CU04 que ya usan '/mi-perfil' (Cliente)
+        // y '/proveedor/mi-perfil' (Proveedor) -- sin duplicar el formulario,
+        // solo registrado bajo el layout de Encargado para que nunca lo saque
+        // de este árbol de rutas hacia el layout público.
+        path: 'mi-perfil',
+        loadComponent: () =>
+          import('./usuarios-y-accesos/cu04-actualizar-perfil/mi-perfil').then((m) => m.MiPerfil),
+        title: 'Mi perfil · Fashion Store Encargado',
+        data: {
+          headerTitle: 'Mi perfil',
+          headerSubtitle: 'Datos de tu cuenta de Encargado de Sucursal.',
         },
       },
     ],

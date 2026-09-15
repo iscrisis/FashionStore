@@ -1,3 +1,26 @@
+<div class="tabs">
+  <button
+    type="button"
+    class="tabs__item"
+    [class.is-active]="activeTab() === 'productos'"
+    (click)="setTab('productos')"
+  >
+    Productos
+  </button>
+  <button
+    type="button"
+    class="tabs__item"
+    [class.is-active]="activeTab() === 'propuestas'"
+    (click)="setTab('propuestas')"
+  >
+    Propuestas de proveedores
+  </button>
+</div>
+
+@if (activeTab() === 'propuestas') {
+  <app-propuestas-proveedor />
+} @else {
+
 <section class="admin-card section">
   <div class="section__header">
     <div>
@@ -149,3 +172,5 @@
   (save)="save($event)"
   (close)="closeDrawer()"
 />
+
+}
