@@ -45,6 +45,7 @@ class DisponibilidadService:
                 ciudad=sucursal.ciudad.nombre,
                 variantes=[
                     VarianteDisponibleOut(
+                        producto_variante_id=variante.id,
                         talla_id=variante.talla_id,
                         talla=variante.talla.nombre,
                         color_id=variante.color_id,

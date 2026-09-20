@@ -1,0 +1,42 @@
+<div class="container resultado-pago-page">
+  <div class="resultado-pago-ancho">
+    @if (estado() === 'verificando') {
+      <div class="resultado-pago-cargando">
+        <span class="resultado-pago-spinner"></span>
+        <span class="resultado-pago-cargando__texto">Verificando tu pago...</span>
+      </div>
+    } @else if (estado() === 'pagado' && venta()) {
+      <div class="compra-realizada">
+        <app-icon name="bag" style="width: 34px; height: 34px" />
+        <span class="compra-realizada__titulo">Compra realizada</span>
+        <span class="compra-realizada__codigo">{{ venta()!.codigo_venta }}</span>
+        <span class="compra-realizada__mensaje">Pago realizado correctamente</span>
+        <span class="compra-realizada__total">Total: Bs {{ venta()!.total.toFixed(2) }}</span>
+        <span class="compra-realizada__correo">Enviamos el comprobante a tu correo registrado.</span>
+
+        <div class="compra-realizada__retiro">
+          <span class="compra-realizada__retiro-label">Retiro</span>
+          <span class="compra-realizada__retiro-sucursal">{{ venta()!.sucursal.nombre }}</span>
+          <span class="compra-realizada__retiro-ciudad">{{ venta()!.sucursal.ciudad }}</span>
+        </div>
+
+        <div class="compra-realizada__acciones">
+          <a [routerLink]="['/comprobante', venta()!.id]" class="btn btn--ghost">Ver comprobante</a>
+          <a routerLink="/catalogo" class="btn btn--primary">Seguir comprando</a>
+        </div>
+      </div>
+    } @else {
+      <div class="state-block state-block--error">
+        <span class="state-block__title">El pago no fue completado.</span>
+        <div class="resultado-pago-acciones">
+          <a routerLink="/carrito" class="btn btn--ghost">Volver</a>
+          @if (ventaId()) {
+            <a [routerLink]="['/pago/iniciar']" [queryParams]="{ venta_id: ventaId() }" class="btn btn--primary">
+              Reintentar pago
+            </a>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

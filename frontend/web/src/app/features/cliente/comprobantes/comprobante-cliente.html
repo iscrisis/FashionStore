@@ -1,0 +1,24 @@
+<div class="container comprobante-page">
+  <div class="page-header">
+    <h1>Comprobante de compra</h1>
+    <p>Detalle de tu venta en FashionStore.</p>
+  </div>
+
+  @if (cargando()) {
+    <div class="skeleton-comprobante"></div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudo cargar el comprobante</span>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  } @else if (comprobante(); as comp) {
+    <app-comprobante-detalle [comprobante]="comp" />
+
+    <div class="comprobante-page__acciones">
+      <a routerLink="/catalogo" class="btn btn--ghost">Seguir comprando</a>
+      <button type="button" class="btn btn--primary" [disabled]="descargando()" (click)="descargar()">
+        {{ descargando() ? 'Descargando...' : 'Descargar' }}
+      </button>
+    </div>
+  }
+</div>

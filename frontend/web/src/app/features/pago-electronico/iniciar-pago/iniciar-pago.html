@@ -1,0 +1,19 @@
+<div class="container iniciar-pago-page">
+  <div class="iniciar-pago-ancho">
+    @if (errorMessage()) {
+      <div class="state-block state-block--error">
+        <span class="state-block__title">El pago no fue completado.</span>
+        <span>{{ errorMessage() }}</span>
+        <div class="iniciar-pago-acciones">
+          <a routerLink="/carrito" class="btn btn--ghost">Volver</a>
+          <button type="button" class="btn btn--primary" (click)="reintentar()">Reintentar pago</button>
+        </div>
+      </div>
+    } @else {
+      <div class="iniciar-pago-cargando">
+        <span class="iniciar-pago-spinner"></span>
+        <span class="iniciar-pago-cargando__texto">Redirigiendo a la pasarela de pago...</span>
+      </div>
+    }
+  </div>
+</div>

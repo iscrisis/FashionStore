@@ -1,0 +1,192 @@
+:host {
+  display: block;
+}
+
+.resultado-pago-page {
+  padding-top: 40px;
+  padding-bottom: 56px;
+  display: flex;
+  justify-content: center;
+  min-height: 320px;
+}
+
+.resultado-pago-ancho {
+  width: 100%;
+  max-width: 480px;
+}
+
+.resultado-pago-cargando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px 20px;
+  text-align: center;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.resultado-pago-cargando__texto {
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+}
+
+.resultado-pago-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  animation: resultado-pago-girar 0.8s linear infinite;
+}
+
+@keyframes resultado-pago-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.resultado-pago-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 150px;
+  }
+}
+
+// "COMPRA REALIZADA" -- predominio rojo (icono, código, total), tarjeta
+// blanca centrada, mismo criterio que .carrito-vacio (CU21).
+.compra-realizada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+
+  app-icon {
+    color: var(--color-primary);
+    margin-bottom: 4px;
+  }
+}
+
+.compra-realizada__titulo {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.compra-realizada__codigo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.03em;
+}
+
+.compra-realizada__mensaje {
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+}
+
+.compra-realizada__total {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.compra-realizada__retiro {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin: 14px 0 6px;
+  padding: 14px 16px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.compra-realizada__retiro-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.compra-realizada__retiro-sucursal {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.compra-realizada__retiro-ciudad {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.compra-realizada__correo {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.compra-realizada__acciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 160px;
+  }
+}
+
+@media (max-width: 560px) {
+  .resultado-pago-page {
+    padding-top: 24px;
+  }
+
+  .resultado-pago-acciones {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    .btn {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+
+  .compra-realizada {
+    padding: 40px 18px;
+  }
+
+  .compra-realizada__acciones {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    width: 100%;
+
+    .btn {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+}

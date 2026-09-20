@@ -1,0 +1,73 @@
+:host {
+  display: block;
+}
+
+.cajero-content {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 20px;
+
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+}
+
+.comprobante-page__acciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 20px;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 140px;
+  }
+}
+
+.skeleton-comprobante {
+  max-width: 640px;
+  height: 420px;
+  margin: 0 auto;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    var(--color-card-bg) 25%,
+    color-mix(in srgb, var(--color-card-bg) 50%, white) 37%,
+    var(--color-card-bg) 63%
+  );
+  background-size: 400% 100%;
+  animation: comprobante-cajero-shimmer 1.4s ease infinite;
+}
+
+@keyframes comprobante-cajero-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .comprobante-page__acciones {
+    flex-direction: column-reverse;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}

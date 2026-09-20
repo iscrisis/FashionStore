@@ -22,6 +22,19 @@ export interface LoginResponse {
   usuario: Usuario;
 }
 
+// CU02 -- Registrar cliente. Deliberadamente sin "rol": el backend SIEMPRE
+// asigna CLIENTE (ver RegistroClienteRequest en
+// CU02_RegistrarCliente/schemas.py) -- el frontend nunca puede elegirlo.
+// La respuesta reutiliza Usuario tal cual (el backend devuelve
+// UsuarioPublico, misma forma exacta) -- no se duplica.
+export interface RegistroClienteRequest {
+  nombre: string;
+  correo: string;
+  telefono: string;
+  password: string;
+  confirmar_password: string;
+}
+
 // CU03 -- Recuperar contraseña.
 export interface ForgotPasswordRequest {
   correo: string;

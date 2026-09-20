@@ -1,0 +1,73 @@
+<div class="comprobante">
+  <div class="comprobante__header">
+    <div class="comprobante__marca">
+      <span class="comprobante__marca-nombre">FASHION<br />STORE</span>
+      <span class="comprobante__marca-tag">Comprobante interno de compra</span>
+    </div>
+    <span class="comprobante__estado">Pagado</span>
+  </div>
+
+  <div class="comprobante__datos">
+    <div class="comprobante__dato comprobante__dato--venta">
+      <span class="comprobante__dato-label">Venta</span>
+      <span class="comprobante__dato-valor comprobante__dato-valor--destacado">
+        {{ comprobante().codigo_venta }}
+      </span>
+    </div>
+    <div class="comprobante__dato">
+      <span class="comprobante__dato-label">Fecha</span>
+      <span class="comprobante__dato-valor">{{ fecha(comprobante().fecha_creacion) }}</span>
+    </div>
+    @if (comprobante().cliente) {
+      <div class="comprobante__dato">
+        <span class="comprobante__dato-label">Cliente</span>
+        <span class="comprobante__dato-valor">{{ comprobante().cliente!.nombre }}</span>
+      </div>
+    }
+    <div class="comprobante__dato">
+      <span class="comprobante__dato-label">Sucursal</span>
+      <span class="comprobante__dato-valor">
+        {{ comprobante().sucursal.nombre }} ({{ comprobante().sucursal.ciudad }})
+      </span>
+    </div>
+    <div class="comprobante__dato">
+      <span class="comprobante__dato-label">Tipo</span>
+      <span class="comprobante__dato-valor">
+        {{ comprobante().tipo === 'DIGITAL' ? 'Digital' : 'Presencial' }}
+      </span>
+    </div>
+    <div class="comprobante__dato">
+      <span class="comprobante__dato-label">Pago</span>
+      <span class="comprobante__dato-valor">{{ etiquetaMetodo(comprobante().metodo_pago) }}</span>
+    </div>
+  </div>
+
+  <ul class="comprobante__productos">
+    @for (detalle of comprobante().detalles; track detalle.producto.id + '-' + detalle.variante.id) {
+      <li class="producto-linea">
+        <div class="producto-linea__imagen">
+          @if (detalle.producto.imagen_principal_url) {
+            <img [src]="resolveMediaUrl(detalle.producto.imagen_principal_url)" [alt]="detalle.producto.nombre" />
+          } @else {
+            <div class="producto-linea__placeholder">
+              <app-icon name="products" style="width: 20px; height: 20px" />
+            </div>
+          }
+        </div>
+        <div class="producto-linea__info">
+          <span class="producto-linea__nombre">{{ detalle.producto.nombre }}</span>
+          <span class="producto-linea__variante">
+            {{ detalle.variante.color.nombre }} · Talla {{ detalle.variante.talla.nombre }} · x{{ detalle.cantidad }}
+          </span>
+          <span class="producto-linea__precio">Bs {{ detalle.precio_unitario.toFixed(2) }} c/u</span>
+        </div>
+        <span class="producto-linea__subtotal">Bs {{ detalle.subtotal.toFixed(2) }}</span>
+      </li>
+    }
+  </ul>
+
+  <div class="comprobante__total">
+    <span>Total</span>
+    <span class="comprobante__total-valor">Bs {{ comprobante().total.toFixed(2) }}</span>
+  </div>
+</div>

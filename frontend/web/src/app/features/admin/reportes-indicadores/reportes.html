@@ -1,0 +1,366 @@
+<div class="reportes-page">
+  <div class="page-header">
+    <h1>Reportes e indicadores</h1>
+    <p>Visión global de FashionStore para la toma de decisiones.</p>
+  </div>
+
+  <!-- CU30, segunda parte -- consulta inteligente (texto/voz + Gemini).
+       Sigue siendo el mismo dashboard: al generarse, aplica los filtros ya
+       existentes y refresca KPIs/gráficos/listas (ver reportes.ts,
+       generarConsultaInteligente()) -- nunca abre una vista aparte. -->
+  <section class="admin-card consulta-ia-card">
+    <span class="consulta-ia-card__titulo">Consulta inteligente</span>
+
+    <form class="consulta-ia-form" (submit)="onSubmitConsultaIA($event)">
+      <input
+        type="text"
+        class="consulta-ia-form__input"
+        placeholder="Escribe una consulta..."
+        [ngModel]="consultaTexto()"
+        (ngModelChange)="actualizarConsultaTexto($event)"
+        name="consultaInteligente"
+        maxlength="300"
+        [disabled]="generandoConsulta()"
+      />
+
+      <button
+        type="button"
+        class="consulta-ia-form__mic"
+        [class.consulta-ia-form__mic--activo]="escuchando()"
+        (click)="alternarMicrofono()"
+        [attr.aria-label]="escuchando() ? 'Detener escucha' : 'Consultar por voz'"
+        [disabled]="generandoConsulta()"
+      >
+        🎤
+      </button>
+
+      <button
+        type="button"
+        class="btn btn--ghost"
+        (click)="limpiarConsultaInteligente()"
+        [disabled]="generandoConsulta()"
+      >
+        LIMPIAR
+      </button>
+
+      <button
+        type="submit"
+        class="btn btn--primary"
+        [disabled]="!consultaTexto().trim() || generandoConsulta()"
+      >
+        {{ generandoConsulta() ? 'GENERANDO...' : 'GENERAR' }}
+      </button>
+    </form>
+
+    @if (escuchando()) {
+      <span class="consulta-ia-aviso consulta-ia-aviso--escuchando">Escuchando...</span>
+    } @else if (avisoVoz()) {
+      <span class="consulta-ia-aviso">{{ avisoVoz() }}</span>
+    }
+
+    <div class="consulta-ia-ejemplos">
+      @for (ejemplo of ejemplosConsulta; track ejemplo) {
+        <button type="button" class="consulta-ia-ejemplo" (click)="usarEjemplo(ejemplo)">
+          "{{ ejemplo }}"
+        </button>
+      }
+    </div>
+
+    @if (resumenIA()) {
+      <div class="resumen-ia">
+        <span class="resumen-ia__icono" aria-hidden="true">✦</span>
+        <div class="resumen-ia__cuerpo">
+          <span class="resumen-ia__titulo">Resumen</span>
+          <p class="resumen-ia__texto">{{ resumenIA() }}</p>
+        </div>
+      </div>
+    }
+  </section>
+
+  <section class="admin-card filtros-card">
+    <div class="filtros-grid">
+      <label class="field">
+        <span class="field__label">Sucursal</span>
+        <select
+          class="status-select"
+          [ngModel]="sucursalIdDraft()"
+          (ngModelChange)="sucursalIdDraft.set($event)"
+        >
+          <option [ngValue]="null">Todas las sucursales</option>
+          @for (sucursal of sucursales(); track sucursal.id) {
+            <option [ngValue]="sucursal.id">{{ sucursal.nombre }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Desde</span>
+        <input type="date" [ngModel]="fechaDesdeDraft()" (ngModelChange)="fechaDesdeDraft.set($event)" />
+      </label>
+
+      <label class="field">
+        <span class="field__label">Hasta</span>
+        <input type="date" [ngModel]="fechaHastaDraft()" (ngModelChange)="fechaHastaDraft.set($event)" />
+      </label>
+
+      <div class="filtros-acciones">
+        <button type="button" class="btn btn--ghost" (click)="limpiarFiltros()">LIMPIAR</button>
+        <button type="button" class="btn btn--primary" (click)="aplicarFiltros()">APLICAR</button>
+      </div>
+    </div>
+
+    @if (errorFiltro()) {
+      <span class="field__error">{{ errorFiltro() }}</span>
+    }
+  </section>
+
+  @if (cargando()) {
+    <div class="kpi-grid">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <div class="skeleton-row skeleton-row--kpi"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudieron cargar los reportes</span>
+      <span>{{ error() }}</span>
+    </div>
+  } @else if (resumen() && ventas() && inventario() && reservas()) {
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-card__titulo">Ingresos</span>
+        <span class="kpi-card__valor">Bs {{ resumen()!.ingresos.toFixed(2) }}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-card__titulo">Ventas realizadas</span>
+        <span class="kpi-card__valor">{{ resumen()!.ventas_realizadas }}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-card__titulo">Productos vendidos</span>
+        <span class="kpi-card__valor">{{ resumen()!.productos_vendidos }}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-card__titulo">Reservas atendidas</span>
+        <span class="kpi-card__valor">{{ resumen()!.reservas_atendidas }}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-card__titulo">Devoluciones/cambios</span>
+        <span class="kpi-card__valor">{{ resumen()!.devoluciones_cambios }}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-card__titulo">Stock bajo</span>
+        <span class="kpi-card__valor">{{ resumen()!.stock_bajo }} <small>variantes</small></span>
+      </div>
+    </div>
+
+    <!-- Ventas por periodo -->
+    <section class="admin-card section">
+      <div class="section__header">
+        <div>
+          <h3>Ventas por periodo</h3>
+          <p>Tendencia de ingresos en el rango seleccionado.</p>
+        </div>
+      </div>
+      <div class="section__body">
+        @if (ventas()!.por_periodo.length === 0) {
+          <div class="state-block">
+            <span class="state-block__title">No hay ventas para el periodo seleccionado.</span>
+          </div>
+        } @else {
+          <app-grafico-lineas [puntos]="puntosVentasPorPeriodo()" />
+        }
+      </div>
+    </section>
+
+    <!-- Ventas: tipo / método de pago / sucursal -->
+    <div class="graficos-grid">
+      <section class="admin-card section">
+        <div class="section__header">
+          <div>
+            <h3>Ventas por tipo</h3>
+          </div>
+        </div>
+        <div class="section__body">
+          @if (ventas()!.por_tipo.length === 0) {
+            <div class="state-block">
+              <span class="state-block__title">No hay ventas para el periodo seleccionado.</span>
+            </div>
+          } @else {
+            <app-grafico-barras [items]="barrasPorTipo()" />
+          }
+        </div>
+      </section>
+
+      <section class="admin-card section">
+        <div class="section__header">
+          <div>
+            <h3>Ventas por método de pago</h3>
+          </div>
+        </div>
+        <div class="section__body">
+          @if (ventas()!.por_metodo_pago.length === 0) {
+            <div class="state-block">
+              <span class="state-block__title">No hay ventas para el periodo seleccionado.</span>
+            </div>
+          } @else {
+            <app-grafico-barras [items]="barrasPorMetodoPago()" />
+          }
+        </div>
+      </section>
+
+      @if (ventas()!.por_sucursal.length > 0) {
+        <section class="admin-card section">
+          <div class="section__header">
+            <div>
+              <h3>Ventas por sucursal</h3>
+              <p>Comparación entre sucursales activas.</p>
+            </div>
+          </div>
+          <div class="section__body">
+            <app-grafico-barras [items]="barrasPorSucursal()" />
+          </div>
+        </section>
+      }
+    </div>
+
+    <!-- Productos más vendidos -->
+    <section class="admin-card section">
+      <div class="section__header">
+        <div>
+          <h3>Productos más vendidos</h3>
+          <p>Top 5 por unidades vendidas en el periodo.</p>
+        </div>
+      </div>
+      <div class="section__body">
+        @if (productosMasVendidos().length === 0) {
+          <div class="state-block">
+            <span class="state-block__title">No hay ventas para el periodo seleccionado.</span>
+          </div>
+        } @else {
+          <app-grafico-barras [items]="barrasProductosMasVendidos()" />
+        }
+      </div>
+    </section>
+
+    <!-- Inventario / Stock bajo -->
+    <div class="graficos-grid">
+      <section class="admin-card section">
+        <div class="section__header">
+          <div>
+            <h3>Estado del inventario</h3>
+            <p>Estado actual, no depende del rango de fechas.</p>
+          </div>
+        </div>
+        <div class="section__body">
+          <div class="mini-stats">
+            <div class="mini-stat">
+              <span class="mini-stat__titulo">Stock físico</span>
+              <span class="mini-stat__valor">{{ inventario()!.stock_fisico_total }}</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat__titulo">Reservado</span>
+              <span class="mini-stat__valor">{{ inventario()!.stock_reservado_total }}</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat__titulo">Disponible</span>
+              <span class="mini-stat__valor">{{ inventario()!.stock_disponible_total }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-card section">
+        <div class="section__header">
+          <div>
+            <h3>Reservas</h3>
+            <p>Según la fecha de la visita agendada.</p>
+          </div>
+        </div>
+        <div class="section__body">
+          <div class="mini-stats">
+            <div class="mini-stat">
+              <span class="mini-stat__titulo">Creadas</span>
+              <span class="mini-stat__valor">{{ reservas()!.creadas }}</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat__titulo">Atendidas</span>
+              <span class="mini-stat__valor">{{ reservas()!.atendidas }}</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat__titulo">Canceladas</span>
+              <span class="mini-stat__valor">{{ reservas()!.canceladas }}</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat__titulo">Vencidas</span>
+              <span class="mini-stat__valor">{{ reservas()!.vencidas }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Stock bajo -->
+    <section class="admin-card section">
+      <div class="section__header">
+        <div>
+          <h3>Stock bajo</h3>
+          <p>Variantes con disponibilidad menor o igual a {{ inventario()!.umbral_stock_bajo }} unidades.</p>
+        </div>
+      </div>
+      <div class="section__body">
+        @if (inventario()!.stock_bajo.length === 0) {
+          <div class="state-block">
+            <span class="state-block__title">No hay variantes con stock bajo.</span>
+          </div>
+        } @else {
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Color</th>
+                  <th>Talla</th>
+                  <th>Sucursal</th>
+                  <th>Disponible</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of inventario()!.stock_bajo; track item.producto_variante_id) {
+                  <tr>
+                    <td class="cell-title">{{ item.producto }}</td>
+                    <td>{{ item.color }}</td>
+                    <td>{{ item.talla }}</td>
+                    <td>{{ item.sucursal }}</td>
+                    <td>{{ item.disponible }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Devoluciones y cambios -->
+    <section class="admin-card section">
+      <div class="section__header">
+        <div>
+          <h3>Devoluciones y cambios</h3>
+        </div>
+      </div>
+      <div class="section__body">
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <span class="mini-stat__titulo">Devoluciones</span>
+            <span class="mini-stat__valor">{{ resumen()!.devoluciones }}</span>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-stat__titulo">Cambios</span>
+            <span class="mini-stat__valor">{{ resumen()!.cambios }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+</div>

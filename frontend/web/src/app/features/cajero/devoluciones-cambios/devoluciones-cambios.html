@@ -1,0 +1,114 @@
+<div class="page-header">
+  <h1>Devoluciones y cambios</h1>
+  <p>Gestiona prendas de ventas realizadas.</p>
+</div>
+
+<div class="buscador">
+  <label class="campo">
+    <span class="campo__label">Buscar venta</span>
+    <input
+      type="text"
+      class="campo__input"
+      placeholder="VT-00000"
+      [value]="codigo()"
+      (input)="actualizarCodigo($any($event.target).value)"
+      (keyup.enter)="buscar()"
+    />
+  </label>
+  <button type="button" class="btn btn--primary buscador__boton" [disabled]="buscando()" (click)="buscar()">
+    {{ buscando() ? 'Buscando...' : 'Buscar' }}
+  </button>
+</div>
+
+@if (errorMessage()) {
+  <div class="state-block state-block--error">
+    <span class="state-block__title">No se encontró la venta</span>
+    <span>{{ errorMessage() }}</span>
+  </div>
+} @else if (venta(); as v) {
+  <section class="venta-card">
+    <div class="venta-card__header">
+      <span class="venta-card__codigo">Venta {{ v.codigo_venta }}</span>
+      <span class="venta-card__tipo">{{ v.tipo === 'DIGITAL' ? 'Digital' : 'Presencial' }}</span>
+    </div>
+
+    <div class="venta-card__datos">
+      <span><strong>Fecha:</strong> {{ fecha(v.fecha_creacion) }}</span>
+      <span><strong>Sucursal:</strong> {{ v.sucursal.nombre }}</span>
+      @if (v.cliente_nombre) {
+        <span><strong>Cliente:</strong> {{ v.cliente_nombre }}</span>
+      }
+      <span><strong>Pago:</strong> {{ etiquetaMetodo(v.metodo_pago) }}</span>
+      <span><strong>Total:</strong> Bs {{ v.total.toFixed(2) }}</span>
+    </div>
+  </section>
+
+  @if (v.detalles.length === 0) {
+    <div class="state-block">
+      <app-icon name="bag" style="width: 26px; height: 26px" />
+      <span class="state-block__title">Ya no hay prendas disponibles para devolver o cambiar.</span>
+    </div>
+  } @else {
+    <ul class="detalles-lista">
+      @for (detalle of v.detalles; track detalle.venta_detalle_id) {
+        <li class="detalle-card">
+          <div class="detalle-card__imagen">
+            @if (detalle.producto.imagen_principal_url) {
+              <img
+                [src]="resolveMediaUrl(detalle.producto.imagen_principal_url)"
+                [alt]="detalle.producto.nombre"
+              />
+            } @else {
+              <div class="detalle-card__placeholder">
+                <app-icon name="products" style="width: 20px; height: 20px" />
+              </div>
+            }
+          </div>
+
+          <div class="detalle-card__info">
+            <span class="detalle-card__nombre">{{ detalle.producto.nombre }}</span>
+            <span class="detalle-card__variante">
+              {{ detalle.variante.color.nombre }} · Talla {{ detalle.variante.talla.nombre }}
+            </span>
+            <span class="detalle-card__cantidad">
+              Comprada: {{ detalle.cantidad_comprada }} · Disponible: {{ detalle.cantidad_disponible }}
+            </span>
+            <span class="detalle-card__precio">Bs {{ detalle.precio_unitario.toFixed(2) }} c/u</span>
+          </div>
+
+          <div class="detalle-card__acciones">
+            <button type="button" class="btn btn--ghost btn--sm" (click)="abrirDevolver(detalle)">
+              Devolver
+            </button>
+            <button type="button" class="btn btn--primary btn--sm" (click)="abrirCambiar(detalle)">
+              Cambiar
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+} @else if (seBusco()) {
+  <div class="state-block">
+    <span class="state-block__title">No se encontró una venta pagada con ese código.</span>
+  </div>
+}
+
+@if (venta(); as v) {
+  @if (detalleParaDevolver(); as detalle) {
+    <app-devolver-modal
+      [ventaId]="v.venta_id"
+      [detalle]="detalle"
+      (cerrar)="cerrarDevolver()"
+      (registrada)="onOperacionRegistrada()"
+    />
+  }
+  @if (detalleParaCambiar(); as detalle) {
+    <app-cambiar-modal
+      [ventaId]="v.venta_id"
+      [detalle]="detalle"
+      (cerrar)="cerrarCambiar()"
+      (registrada)="onOperacionRegistrada()"
+    />
+  }
+}

@@ -18,5 +18,19 @@ vercel==0.10.0
 bcrypt==5.0.0
 pyjwt==2.13.0
 
+# CU23 - Procesar pago electrónico (Stripe Checkout Hosted, modo TEST):
+# ver app/integrations/stripe_client.py.
+stripe==15.6.1
+
+# CU31 - Emitir comprobante de venta: generación de PDF simple, sin
+# dependencias nativas (pura Python) -- ver
+# modules/P5_ComprasVentasYPagos/CU31_EmitirComprobanteVenta/pdf.py.
+fpdf2==2.8.8
+
+# CU29 - Obtener recomendaciones mediante IA: SDK oficial de Gemini API. Ver
+# modules/P6_InnovacionYAnalisis/CU29_ObtenerRecomendacionesIA/gemini_client.py
+# -- único punto del backend que lo importa.
+google-genai==1.51.0
+
 pytest==8.4.2
 httpx==0.28.1

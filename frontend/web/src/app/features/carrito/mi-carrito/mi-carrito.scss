@@ -1,0 +1,329 @@
+:host {
+  display: block;
+}
+
+.mi-carrito-page {
+  padding-top: 28px;
+  padding-bottom: 56px;
+  display: flex;
+  justify-content: center;
+}
+
+// Ancho máximo propio, más angosto que el .container general (1440px) --
+// una lista de prendas se lee mejor centrada y contenida, no estirada a lo
+// ancho de toda la pantalla.
+.mi-carrito-ancho {
+  width: 100%;
+  max-width: 760px;
+}
+
+.page-header {
+  margin-bottom: 22px;
+  text-align: center;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 13.5px;
+    color: var(--color-text-secondary);
+  }
+}
+
+.carrito-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 64px 20px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+
+  app-icon {
+    color: var(--color-primary);
+  }
+}
+
+.carrito-vacio__titulo {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.item-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.item-carrito {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  transition: box-shadow var(--transition-fast), opacity var(--transition-fast);
+
+  &:hover {
+    box-shadow: var(--shadow-medium);
+  }
+
+  &--procesando {
+    opacity: 0.6;
+  }
+}
+
+// Checkbox propio, sin librerías -- oculta el nativo (accesible, sigue
+// recibiendo foco/click) y dibuja encima un cuadro rojo FashionStore con su
+// tilde, en vez del checkbox feo por defecto del navegador.
+.item-carrito__seleccion {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  input:disabled + .item-carrito__checkbox-visual {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  input:focus-visible + .item-carrito__checkbox-visual {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.item-carrito__checkbox-visual {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  position: relative;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid var(--color-white);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+}
+
+.item-carrito__seleccion input:checked + .item-carrito__checkbox-visual {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+
+  &::after {
+    opacity: 1;
+  }
+}
+
+.item-carrito__imagen {
+  flex-shrink: 0;
+  width: 76px;
+  height: 76px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-card-bg);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.item-carrito__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.item-carrito__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item-carrito__nombre {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-text);
+  overflow-wrap: break-word;
+}
+
+.item-carrito__variante {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.item-carrito__precio {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+// CU32 -- Gestionar promociones: solo aparecen cuando `en_promocion` es
+// true -- sin promoción, se ve exactamente igual que antes (un solo
+// .item-carrito__precio).
+.item-carrito__precios {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.precio-anterior {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+}
+
+.precio-descuento {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 12%, white);
+  color: var(--color-primary);
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+// Acción discreta: texto pequeño subrayado, no un botón sólido -- no debe
+// competir visualmente con la selección ni con el precio.
+.item-carrito__eliminar {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  padding: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    color: var(--color-danger);
+  }
+}
+
+.carrito-resumen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 22px;
+  padding: 18px 22px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.carrito-resumen__valor {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.carrito-resumen__vacio {
+  width: 100%;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+}
+
+.carrito-resumen__continuar {
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+}
+
+.skeleton-item {
+  height: 100px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    var(--color-card-bg) 25%,
+    color-mix(in srgb, var(--color-card-bg) 50%, white) 37%,
+    var(--color-card-bg) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+@media (max-width: 560px) {
+  .mi-carrito-page {
+    padding-top: 20px;
+  }
+
+  .item-carrito {
+    flex-wrap: wrap;
+    padding: 14px;
+  }
+
+  .item-carrito__info {
+    min-width: 140px;
+  }
+
+  .item-carrito__eliminar {
+    width: 100%;
+    text-align: right;
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--color-border);
+  }
+
+  .carrito-resumen {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .carrito-resumen__continuar {
+    width: 100%;
+  }
+}

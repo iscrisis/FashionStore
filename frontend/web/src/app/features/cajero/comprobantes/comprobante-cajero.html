@@ -1,0 +1,28 @@
+<div class="cajero-content">
+  <div class="page-header">
+    <h1>Comprobante</h1>
+    <p>Detalle de la venta ya pagada.</p>
+  </div>
+
+  @if (cargando()) {
+    <div class="skeleton-comprobante"></div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudo cargar el comprobante</span>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  } @else if (comprobante(); as comp) {
+    <app-comprobante-detalle [comprobante]="comp" />
+
+    <div class="comprobante-page__acciones">
+      <button type="button" class="btn btn--primary" [disabled]="descargando()" (click)="descargar()">
+        {{ descargando() ? 'Descargando...' : 'Descargar' }}
+      </button>
+      @if (comp.cliente) {
+        <button type="button" class="btn btn--ghost" [disabled]="enviando()" (click)="enviar()">
+          {{ enviando() ? 'Enviando...' : 'Enviar' }}
+        </button>
+      }
+    </div>
+  }
+</div>

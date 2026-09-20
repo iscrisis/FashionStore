@@ -1,0 +1,50 @@
+<div class="venta-resumen">
+  <div class="venta-resumen__header">
+    <span class="venta-resumen__titulo">Venta presencial</span>
+    <span class="venta-resumen__codigo">{{ venta().codigo_venta }}</span>
+  </div>
+
+  @if (venta().reserva) {
+    <div class="venta-resumen__reserva">
+      <span class="venta-resumen__reserva-item">
+        <strong>Reserva:</strong> {{ venta().reserva!.codigo_reserva }}
+      </span>
+      <span class="venta-resumen__reserva-item">
+        <strong>Cliente:</strong> {{ venta().reserva!.cliente_nombre }}
+      </span>
+    </div>
+  }
+
+  <ul class="venta-resumen__lista">
+    @for (detalle of venta().detalles; track detalle.producto.id + '-' + detalle.variante.id) {
+      <li class="linea-venta">
+        <div class="linea-venta__imagen">
+          @if (detalle.producto.imagen_principal_url) {
+            <img [src]="resolveMediaUrl(detalle.producto.imagen_principal_url)" [alt]="detalle.producto.nombre" />
+          } @else {
+            <div class="linea-venta__placeholder">
+              <app-icon name="products" style="width: 20px; height: 20px" />
+            </div>
+          }
+        </div>
+        <div class="linea-venta__info">
+          <span class="linea-venta__nombre">{{ detalle.producto.nombre }}</span>
+          <span class="linea-venta__variante">
+            {{ detalle.variante.color.nombre }} · Talla {{ detalle.variante.talla.nombre }} · x{{ detalle.cantidad }}
+          </span>
+        </div>
+        <span class="linea-venta__subtotal">Bs {{ detalle.subtotal.toFixed(2) }}</span>
+      </li>
+    }
+  </ul>
+
+  <div class="venta-resumen__total">
+    <span>Total</span>
+    <span class="venta-resumen__total-valor">Bs {{ venta().total.toFixed(2) }}</span>
+  </div>
+
+  <div class="venta-resumen__acciones">
+    <button type="button" class="btn btn--ghost" (click)="onVolver()">Volver</button>
+    <button type="button" class="btn btn--primary" (click)="onContinuarPago()">Continuar al pago</button>
+  </div>
+</div>

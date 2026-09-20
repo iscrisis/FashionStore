@@ -40,6 +40,12 @@ from modules.P1_SucursalesYCatalogos.Models.talla import Talla  # noqa: E402,F40
 from modules.P1_SucursalesYCatalogos.Models.temporada import Temporada  # noqa: E402,F401
 from modules.P2_UsuariosYAccesos.Models.password_reset_token import PasswordResetToken  # noqa: E402,F401
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario  # noqa: E402,F401
+from modules.P4_ReservasYAtencion.Models.reserva import Reserva, ReservaDetalle  # noqa: E402,F401
+from modules.P5_ComprasVentasYPagos.Models.carrito import Carrito, CarritoItem  # noqa: E402,F401
+from modules.P5_ComprasVentasYPagos.Models.venta import Venta, VentaDetalle  # noqa: E402,F401
+from modules.P5_ComprasVentasYPagos.Models.pago import Pago  # noqa: E402,F401
+from modules.P5_ComprasVentasYPagos.Models.devolucion import DevolucionCambio  # noqa: E402,F401
+from modules.P6_InnovacionYAnalisis.Models.promocion import Promocion  # noqa: E402,F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

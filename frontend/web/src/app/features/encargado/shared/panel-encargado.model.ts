@@ -27,7 +27,13 @@ export interface VarianteStock {
   id: number;
   talla: TallaResumen;
   color: ColorResumen;
+  // cantidad = stock físico real (lo que ajusta "Registrar movimiento", CU16).
+  // stock_reservado/disponible se agregan para que el Encargado vea también
+  // lo comprometido por reservas PENDIENTES (CU17) sin que esto habilite
+  // ninguna edición nueva aquí.
   cantidad: number;
+  stock_reservado: number;
+  disponible: number;
 }
 
 export interface TemporadaResumen {

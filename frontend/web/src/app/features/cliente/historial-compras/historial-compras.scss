@@ -1,0 +1,124 @@
+:host {
+  display: block;
+}
+
+.historial-page {
+  padding: 28px 0 48px;
+}
+
+.page-header {
+  margin-bottom: 20px;
+  text-align: center;
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+}
+
+.compras-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.compra-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 16px;
+  transition: box-shadow var(--transition-fast);
+
+  &:hover {
+    box-shadow: var(--shadow-medium);
+  }
+}
+
+.compra-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.compra-card__codigo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+// Leyenda postventa (CU26, solo lectura) -- UNA línea discreta debajo del
+// código, nunca un badge de color (no llenar la tarjeta de badges).
+.compra-card__leyenda {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.compra-card__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.compra-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-border);
+}
+
+.compra-card__total {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.compra-card__footer .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+
+.skeleton-card {
+  height: 150px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    var(--color-card-bg) 25%,
+    color-mix(in srgb, var(--color-card-bg) 50%, white) 37%,
+    var(--color-card-bg) 63%
+  );
+  background-size: 400% 100%;
+  animation: historial-cliente-shimmer 1.4s ease infinite;
+}
+
+@keyframes historial-cliente-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .compras-grid {
+    grid-template-columns: 1fr;
+  }
+}

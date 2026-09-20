@@ -28,6 +28,8 @@ export class AdminSidebar {
     { label: 'Temporadas y colecciones', icon: 'seasons', route: '/admin/catalogo/temporadas' },
     { label: 'Proveedores', icon: 'suppliers', route: '/admin/proveedores' },
     { label: 'Productos', icon: 'products', route: '/admin/catalogo/productos' },
+    { label: 'Promociones', icon: 'sales', route: '/admin/promociones' },
+    { label: 'Reportes e indicadores', icon: 'reports', route: '/admin/reportes' },
     { label: 'Usuarios y roles', icon: 'users', route: '/admin/usuarios-roles' },
   ];
 }

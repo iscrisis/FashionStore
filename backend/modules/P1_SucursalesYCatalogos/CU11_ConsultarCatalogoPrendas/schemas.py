@@ -7,6 +7,13 @@ colores) y CU10 (temporadas, colecciones) -- no los duplica.
 
 precio_venta se expone como número (float), no como texto, para que Angular y
 más adelante Flutter lo consuman como un dato numérico estable.
+
+precio_base/precio_final/en_promocion/porcentaje_descuento (CU32 -- Gestionar
+promociones): SIEMPRE calculados por
+P6_InnovacionYAnalisis/CU32_GestionarPromociones/precio_efectivo.py, nunca en
+Angular. `precio_venta` se mantiene tal cual (== precio_base) para no romper
+a ningún consumidor existente que ya lo lea -- los 4 campos nuevos son
+puramente aditivos.
 """
 
 from pydantic import BaseModel, ConfigDict
@@ -59,12 +66,14 @@ class ProductoImagenOut(BaseModel):
 
 
 class ProductoOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
     id: int
     nombre: str
     descripcion: str | None
     precio_venta: float
+    precio_base: float
+    precio_final: float
+    en_promocion: bool
+    porcentaje_descuento: float | None
     imagen_principal_url: str | None
     imagenes: list[ProductoImagenOut]
     categoria: CategoriaOut

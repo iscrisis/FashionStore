@@ -37,6 +37,11 @@
   &.info {
     border-left-color: var(--color-primary);
   }
+  // "brand" (ej. CU17: confirmación de reserva) -- misma estructura que
+  // "success", con el acento rojo de FashionStore en vez de verde.
+  &.brand {
+    border-left-color: var(--color-primary);
+  }
 }
 
 .toast__icon {
@@ -61,6 +66,10 @@
     color: var(--color-danger);
   }
   .info & {
+    background: color-mix(in srgb, var(--color-primary) 12%, white);
+    color: var(--color-primary);
+  }
+  .brand & {
     background: color-mix(in srgb, var(--color-primary) 12%, white);
     color: var(--color-primary);
   }

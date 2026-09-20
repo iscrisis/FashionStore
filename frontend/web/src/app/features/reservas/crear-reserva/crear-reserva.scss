@@ -1,0 +1,304 @@
+:host {
+  display: block;
+  margin-top: 14px;
+}
+
+.reserva-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+// Overlay: cubre el viewport entero (position: fixed, no depende de dónde
+// esté este componente en el árbol) -- el contenido de la ficha detrás
+// nunca se mueve ni redimensiona, solo queda oscurecido debajo.
+.reserva-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.45);
+  animation: reserva-overlay-in 150ms ease;
+}
+
+.reserva-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 420px;
+  max-height: min(640px, 90vh);
+  overflow-y: auto;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  box-shadow: var(--shadow-medium);
+  animation: reserva-modal-in 180ms ease;
+}
+
+.reserva-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+}
+
+.reserva-modal__cerrar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
+    color: var(--color-primary);
+  }
+}
+
+.reserva-modal__sucursal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-primary) 6%, white);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, white);
+  color: var(--color-primary-dark);
+  font-size: 13.5px;
+  font-weight: 600;
+
+  app-icon {
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+}
+
+.reserva-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reserva-modal__seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reserva-modal__label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+}
+
+.reserva-modal__vacio {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+// Tarjetero de días: 3 columnas, igual que el ejemplo de diseño -- cada
+// tarjeta con día abreviado + número, el domingo deshabilitado con su
+// propio aviso en vez de simplemente desaparecer de la grilla.
+.reserva-dias-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.reserva-dia-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 8px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+  }
+
+  &.is-selected {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: var(--color-bg);
+  }
+}
+
+.reserva-dia-btn__nota {
+  font-size: 9.5px;
+  font-weight: 500;
+  text-transform: none;
+  color: var(--color-text-secondary);
+}
+
+// Horarios: misma grilla de botones que ya usaban las tallas en
+// producto-detalle -- consistente y cómoda de tocar en móvil.
+.horario-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.horario-btn {
+  min-width: 64px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+
+  &.is-selected {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+  }
+}
+
+.reserva-modal__confirmar {
+  width: 100%;
+}
+
+// Modal "Tienes una reserva pendiente en esta sucursal" -- reutiliza
+// .reserva-modal-overlay/.reserva-modal/.reserva-modal__header de arriba,
+// solo agrega estilos propios para la lista de reservas compatibles.
+.compatibles-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compatible-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-primary) 4%, white);
+}
+
+.compatible-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.compatible-card__codigo {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.compatible-card__linea {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+
+  app-icon {
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+}
+
+.compatible-card__agregar {
+  width: 100%;
+  justify-content: center;
+}
+
+.compatibles-modal__otra {
+  width: 100%;
+  justify-content: center;
+}
+
+@keyframes reserva-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes reserva-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Móvil: hoja inferior (bottom sheet) en vez de tarjeta centrada -- ancho
+// completo, esquinas redondeadas solo arriba, más fácil de alcanzar con el
+// pulgar que un modal centrado en pantallas chicas.
+@media (max-width: 480px) {
+  .reserva-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .reserva-modal {
+    max-width: none;
+    max-height: 85vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    animation: reserva-modal-in-mobile 200ms ease;
+  }
+}
+
+@keyframes reserva-modal-in-mobile {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

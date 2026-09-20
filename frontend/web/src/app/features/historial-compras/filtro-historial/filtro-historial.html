@@ -1,0 +1,44 @@
+<div class="filtro-historial">
+  <label class="campo">
+    <span class="campo__label">Desde</span>
+    <input
+      type="date"
+      class="campo__input"
+      [value]="desde()"
+      (input)="actualizarDesde($any($event.target).value)"
+    />
+  </label>
+
+  <label class="campo">
+    <span class="campo__label">Hasta</span>
+    <input
+      type="date"
+      class="campo__input"
+      [value]="hasta()"
+      (input)="actualizarHasta($any($event.target).value)"
+    />
+  </label>
+
+  <label class="campo campo--codigo">
+    <span class="campo__label">Código</span>
+    <input
+      type="text"
+      class="campo__input"
+      placeholder="VT-00000"
+      [value]="codigo()"
+      (input)="actualizarCodigo($any($event.target).value)"
+      (keyup.enter)="aplicar()"
+    />
+  </label>
+
+  <div class="filtro-historial__acciones">
+    <button type="button" class="btn btn--primary btn--sm" [disabled]="rangoInvalido()" (click)="aplicar()">
+      Filtrar
+    </button>
+    <button type="button" class="btn btn--ghost btn--sm" (click)="limpiar()">Limpiar</button>
+  </div>
+
+  @if (rangoInvalido()) {
+    <span class="filtro-historial__error">"Desde" no puede ser posterior a "Hasta".</span>
+  }
+</div>

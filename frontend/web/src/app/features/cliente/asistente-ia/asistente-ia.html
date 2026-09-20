@@ -1,0 +1,129 @@
+<button
+  type="button"
+  class="asistente-boton"
+  [class.asistente-boton--activo]="abierto()"
+  (click)="alternar()"
+  [attr.aria-label]="abierto() ? 'Cerrar asistente de FashionStore' : 'Abrir asistente de FashionStore'"
+  [attr.aria-expanded]="abierto()"
+>
+  @if (abierto()) {
+    <app-icon name="close" />
+  } @else {
+    <span class="asistente-boton__icono" aria-hidden="true">✦</span>
+  }
+</button>
+
+@if (abierto()) {
+  <div class="asistente-panel" role="dialog" aria-label="Asistente de FashionStore">
+    <header class="asistente-panel__header">
+      <span class="asistente-panel__titulo">Asistente FashionStore</span>
+      <button
+        type="button"
+        class="asistente-panel__cerrar"
+        (click)="cerrar()"
+        aria-label="Cerrar asistente"
+      >
+        <app-icon name="close" />
+      </button>
+    </header>
+
+    <div class="asistente-panel__mensajes" #scrollContainer>
+      @for (mensaje of mensajes(); track $index) {
+        <div class="mensaje" [class.mensaje--usuario]="mensaje.rol === 'usuario'">
+          <p class="mensaje__texto">{{ mensaje.texto }}</p>
+
+          @if (mensaje.productos && mensaje.productos.length > 0) {
+            <div class="mensaje__productos">
+              @for (producto of mensaje.productos; track producto.id) {
+                <article class="producto-chat">
+                  <div class="producto-chat__imagen">
+                    @if (producto.imagen_principal_url) {
+                      <img
+                        [src]="resolveMediaUrl(producto.imagen_principal_url)"
+                        [alt]="producto.nombre"
+                        loading="lazy"
+                      />
+                    } @else {
+                      <div class="producto-chat__placeholder">
+                        <app-icon name="products" style="width: 18px; height: 18px" />
+                      </div>
+                    }
+                  </div>
+
+                  <div class="producto-chat__info">
+                    <span class="producto-chat__nombre">{{ producto.nombre }}</span>
+
+                    @if (producto.color || producto.talla) {
+                      <span class="producto-chat__variante">
+                        @if (producto.color) {
+                          {{ producto.color }}
+                        }
+                        @if (producto.color && producto.talla) {
+                          ·
+                        }
+                        @if (producto.talla) {
+                          Talla {{ producto.talla }}
+                        }
+                      </span>
+                    }
+
+                    <div class="producto-chat__precios">
+                      @if (producto.en_promocion) {
+                        <span class="precio-anterior">Bs {{ producto.precio_base.toFixed(2) }}</span>
+                      }
+                      <span class="producto-chat__precio">Bs {{ producto.precio_final.toFixed(2) }}</span>
+                      @if (producto.en_promocion) {
+                        <span class="precio-descuento">-{{ producto.porcentaje_descuento }}%</span>
+                      }
+                    </div>
+
+                    @if (producto.disponibilidad_resumen) {
+                      <span class="producto-chat__disponibilidad">{{ producto.disponibilidad_resumen }}</span>
+                    }
+                  </div>
+
+                  <a
+                    class="producto-chat__ver"
+                    [routerLink]="['/producto', producto.id]"
+                    (click)="cerrar()"
+                  >
+                    VER
+                  </a>
+                </article>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (enviando()) {
+        <div class="mensaje">
+          <p class="mensaje__texto mensaje__texto--escribiendo">
+            <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+          </p>
+        </div>
+      }
+    </div>
+
+    <form class="asistente-panel__input" (submit)="onSubmit($event)">
+      <input
+        type="text"
+        class="asistente-panel__campo"
+        placeholder="Escribe tu mensaje..."
+        [value]="textoInput()"
+        (input)="actualizarTexto($any($event.target).value)"
+        [disabled]="enviando()"
+        maxlength="500"
+        autocomplete="off"
+      />
+      <button
+        type="submit"
+        class="asistente-panel__enviar"
+        [disabled]="!textoInput().trim() || enviando()"
+        aria-label="Enviar mensaje"
+      >
+        <app-icon name="arrow-right" />
+      </button>
+    </form>
+  </div>
+}

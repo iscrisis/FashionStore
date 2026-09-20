@@ -1,0 +1,12 @@
+@if (!isAuthenticated() || esCliente) {
+  <button
+    type="button"
+    class="btn btn--ghost agregar-carrito-btn"
+    [disabled]="!puedeAgregar"
+    [title]="productoVarianteId() !== null ? '' : 'Selecciona color y talla'"
+    (click)="agregar()"
+  >
+    <app-icon name="bag" style="width: 14px; height: 14px" />
+    {{ submitting() ? 'Agregando...' : 'Agregar al carrito' }}
+  </button>
+}

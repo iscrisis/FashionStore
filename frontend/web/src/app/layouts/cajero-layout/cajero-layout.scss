@@ -1,0 +1,66 @@
+:host {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  height: 100vh;
+  background: var(--color-bg);
+}
+
+.cajero-layout__sidebar {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.cajero-layout__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100vh;
+}
+
+.cajero-layout__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 26px;
+}
+
+.cajero-layout__overlay {
+  display: none;
+}
+
+// Tablet/móvil -- a diferencia de EncargadoLayout (franja horizontal
+// siempre visible), aquí el sidebar se oculta y se abre como drawer
+// deslizable con el botón hamburguesa del header (ver cajero-header) --
+// pedido explícito para el panel del Cajero.
+@media (max-width: 900px) {
+  :host {
+    grid-template-columns: 1fr;
+    height: 100vh;
+  }
+
+  .cajero-layout__sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 260px;
+    max-width: 82vw;
+    z-index: 1001;
+    transform: translateX(-100%);
+    transition: transform var(--transition-fast);
+    box-shadow: var(--shadow-medium);
+
+    &.is-open {
+      transform: translateX(0);
+    }
+  }
+
+  .cajero-layout__overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: color-mix(in srgb, black 45%, transparent);
+  }
+
+  .cajero-layout__content {
+    padding: 18px 16px;
+  }
+}

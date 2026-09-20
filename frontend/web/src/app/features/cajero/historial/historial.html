@@ -1,0 +1,68 @@
+<div class="cajero-content">
+  <div class="page-header">
+    <h1>Historial</h1>
+    <p>Ventas realizadas en tu sucursal.</p>
+  </div>
+
+  <app-filtro-historial (filtrar)="cargar($event)" />
+
+  <div class="tabs-historial" role="tablist">
+    @for (tab of tabs; track tab.key) {
+      <button
+        type="button"
+        class="tab-historial"
+        role="tab"
+        [class.is-active]="tabActiva() === tab.key"
+        [attr.aria-selected]="tabActiva() === tab.key"
+        (click)="seleccionarTab(tab.key)"
+      >
+        {{ tab.etiqueta }}
+      </button>
+    }
+  </div>
+
+  @if (cargando()) {
+    <div class="ventas-lista">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skeleton-row"></div>
+      }
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudo cargar el historial</span>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  } @else if (ventasFiltradas().length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">{{ mensajeVacio }}</span>
+    </div>
+  } @else {
+    <ul class="ventas-lista">
+      @for (venta of ventasFiltradas(); track venta.venta_id) {
+        <li class="venta-row">
+          <div class="venta-row__encabezado">
+            <span class="venta-row__codigo">{{ venta.codigo_venta }}</span>
+            @if (venta.leyenda_postventa) {
+              <span class="venta-row__leyenda">{{ venta.leyenda_postventa }}</span>
+            }
+          </div>
+
+          <div class="venta-row__datos">
+            <span>{{ fecha(venta.fecha) }}</span>
+            <span>{{ etiquetaTipo(venta.tipo) }}</span>
+            @if (venta.cliente_nombre) {
+              <span>{{ venta.cliente_nombre }}</span>
+            }
+            <span>{{ etiquetaMetodo(venta.metodo_pago) }}</span>
+          </div>
+
+          <span class="venta-row__total">Bs {{ venta.total.toFixed(2) }}</span>
+
+          <div class="venta-row__acciones">
+            <a [routerLink]="['/cajero/comprobante', venta.venta_id]" class="btn btn--primary btn--sm">Ver</a>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

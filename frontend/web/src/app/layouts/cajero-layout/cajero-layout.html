@@ -1,0 +1,18 @@
+<aside class="cajero-layout__sidebar" [class.is-open]="drawerAbierto()">
+  <app-cajero-sidebar (navegar)="cerrarDrawer()" />
+</aside>
+
+@if (drawerAbierto()) {
+  <div class="cajero-layout__overlay" (click)="cerrarDrawer()"></div>
+}
+
+<div class="cajero-layout__main">
+  <app-cajero-header
+    [title]="headerTitle()"
+    [subtitle]="headerSubtitle()"
+    (abrirMenu)="abrirDrawer()"
+  />
+  <main class="cajero-layout__content">
+    <router-outlet />
+  </main>
+</div>

@@ -45,10 +45,13 @@ class StockSucursalRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def listar_por_sucursal(self, sucursal_id: int) -> dict[int, int]:
+    def listar_por_sucursal(self, sucursal_id: int) -> dict[int, StockSucursal]:
+        """{producto_variante_id: fila} -- fila completa (no solo `cantidad`)
+        porque el panel del Encargado ahora también muestra `stock_reservado`
+        (ver service.py listar_inventario)."""
         stmt = select(StockSucursal).where(StockSucursal.sucursal_id == sucursal_id)
         filas = self.db.execute(stmt).scalars().all()
-        return {fila.producto_variante_id: fila.cantidad for fila in filas}
+        return {fila.producto_variante_id: fila for fila in filas}
 
     def get_by_sucursal_y_variante(
         self, sucursal_id: int, variante_id: int

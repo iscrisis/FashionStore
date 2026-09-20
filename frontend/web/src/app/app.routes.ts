@@ -20,6 +20,16 @@ export const routes: Routes = [
         title: 'Iniciar sesión · Fashion Store',
       },
       {
+        // CU02 -- Registrar cliente. Público, sin guard -- el link "¿No
+        // tienes cuenta? Regístrate" de login.html ya apuntaba aquí.
+        path: 'registro',
+        loadComponent: () =>
+          import('./usuarios-y-accesos/cu02-registrar-cliente/registrar-cliente').then(
+            (m) => m.RegistrarCliente,
+          ),
+        title: 'Crear cuenta · Fashion Store',
+      },
+      {
         path: 'recuperar-contrasena',
         loadComponent: () =>
           import('./usuarios-y-accesos/cu03-recuperar-contrasena/solicitar-recuperacion').then(
@@ -41,6 +51,86 @@ export const routes: Routes = [
           import('./usuarios-y-accesos/cu04-actualizar-perfil/mi-perfil').then((m) => m.MiPerfil),
         canActivate: [authGuard],
         title: 'Mi perfil · Fashion Store',
+      },
+      {
+        // CU18 -- Consultar reserva (Cliente). Sigue dentro del layout
+        // público (mismo navbar), igual que 'mi-perfil' -- no es un
+        // dashboard nuevo. roleGuard('CLIENTE') además de authGuard porque,
+        // a diferencia de 'mi-perfil' (compartido con Encargado/Proveedor),
+        // esta pantalla es exclusiva del Cliente.
+        path: 'mis-reservas',
+        loadComponent: () =>
+          import('./features/reservas/mis-reservas/mis-reservas').then((m) => m.MisReservas),
+        canActivate: [authGuard, roleGuard('CLIENTE')],
+        title: 'Mis reservas · Fashion Store',
+      },
+      {
+        // CU21 -- Usar carrito de compras (Cliente). Sigue dentro del
+        // layout público (mismo navbar), igual que 'mis-reservas' -- no es
+        // un dashboard nuevo.
+        path: 'carrito',
+        loadComponent: () =>
+          import('./features/carrito/mi-carrito/mi-carrito').then((m) => m.MiCarrito),
+        canActivate: [authGuard, roleGuard('CLIENTE')],
+        title: 'Mi carrito · Fashion Store',
+      },
+      {
+        // CU22 -- Realizar compra digital (Cliente). A la que lleva
+        // "CONTINUAR COMPRA" desde /carrito -- mismo layout público, sigue
+        // sin ser un dashboard nuevo.
+        path: 'finalizar-compra',
+        loadComponent: () =>
+          import('./features/compra-digital/finalizar-compra/finalizar-compra').then(
+            (m) => m.FinalizarCompra,
+          ),
+        canActivate: [authGuard, roleGuard('CLIENTE')],
+        title: 'Finalizar compra · Fashion Store',
+      },
+      {
+        // CU23 -- Procesar pago electrónico (Cliente). Punto de entrada
+        // hacia Stripe Checkout Hosted, al que navega CU22 apenas confirma
+        // la Venta -- mismo layout público.
+        path: 'pago/iniciar',
+        loadComponent: () =>
+          import('./features/pago-electronico/iniciar-pago/iniciar-pago').then((m) => m.IniciarPago),
+        canActivate: [authGuard, roleGuard('CLIENTE')],
+        title: 'Pago · Fashion Store',
+      },
+      {
+        // CU23 -- adonde Stripe redirige de vuelta (success_url/cancel_url,
+        // ver CU23_ProcesarPagoElectronico/router.py) tanto si el pago se
+        // completó como si el Cliente lo canceló.
+        path: 'pago/resultado',
+        loadComponent: () =>
+          import('./features/pago-electronico/resultado-pago/resultado-pago').then((m) => m.ResultadoPago),
+        canActivate: [authGuard, roleGuard('CLIENTE')],
+        title: 'Pago · Fashion Store',
+      },
+      {
+        // CU27 -- Consultar historial de compras (Cliente, "Mis compras").
+        // Independiente de '/mis-reservas' (CU18, Reserva/RS-XXXXX) -- CU27
+        // es Venta/VT-XXXXX, ver features/cliente/historial-compras. Mismo
+        // layout público, sigue sin ser un dashboard nuevo.
+        path: 'mis-compras',
+        loadComponent: () =>
+          import('./features/cliente/historial-compras/historial-compras').then(
+            (m) => m.HistorialComprasCliente,
+          ),
+        canActivate: [authGuard, roleGuard('CLIENTE')],
+        title: 'Mis compras · Fashion Store',
+      },
+      {
+        // CU31 -- Emitir comprobante de venta (Cliente). A la que navega
+        // "Ver comprobante" desde resultado-pago.ts (CU23) apenas se
+        // confirma el pago -- mismo layout público, sigue sin ser un
+        // dashboard nuevo.
+        path: 'comprobante/:ventaId',
+        loadComponent: () =>
+          import('./features/cliente/comprobantes/comprobante-cliente').then(
+            (m) => m.ComprobanteCliente,
+          ),
+        canActivate: [authGuard, roleGuard('CLIENTE')],
+        title: 'Comprobante de compra · Fashion Store',
       },
       {
         path: 'catalogo',
@@ -137,6 +227,29 @@ export const routes: Routes = [
         data: {
           headerTitle: 'Productos',
           headerSubtitle: 'Gestiona el catálogo de prendas de FashionStore.',
+        },
+      },
+      {
+        // CU32 -- Gestionar promociones.
+        path: 'promociones',
+        loadComponent: () =>
+          import('./features/admin/promociones/promociones').then((m) => m.Promociones),
+        title: 'Promociones · Fashion Store Admin',
+        data: {
+          headerTitle: 'Promociones',
+          headerSubtitle: 'Gestiona los descuentos porcentuales sobre productos del catálogo.',
+        },
+      },
+      {
+        // CU30 -- Consultar reportes e indicadores (primera parte: dashboard
+        // analítico, sin voz/IA todavía).
+        path: 'reportes',
+        loadComponent: () =>
+          import('./features/admin/reportes-indicadores/reportes').then((m) => m.Reportes),
+        title: 'Reportes e indicadores · Fashion Store Admin',
+        data: {
+          headerTitle: 'Reportes e indicadores',
+          headerSubtitle: 'Visión global de FashionStore para la toma de decisiones.',
         },
       },
       {
@@ -293,6 +406,20 @@ export const routes: Routes = [
         },
       },
       {
+        // CU20 -- Atender reserva de prendas. Hereda el guard del padre
+        // (authGuard + roleGuard('ENCARGADO_SUCURSAL')); el backend además
+        // resuelve la sucursal siempre desde el usuario autenticado (ver
+        // CU20_AtenderReservaPrendas/router.py), nunca desde esta ruta.
+        path: 'reservas',
+        loadComponent: () =>
+          import('./features/encargado/reservas/reservas').then((m) => m.Reservas),
+        title: 'Reservas · Fashion Store Encargado',
+        data: {
+          headerTitle: 'Reservas',
+          headerSubtitle: 'Gestiona las reservas de prendas de tu sucursal.',
+        },
+      },
+      {
         // Mismo componente MiPerfil de CU04 que ya usan '/mi-perfil' (Cliente)
         // y '/proveedor/mi-perfil' (Proveedor) -- sin duplicar el formulario,
         // solo registrado bajo el layout de Encargado para que nunca lo saque
@@ -307,6 +434,127 @@ export const routes: Routes = [
         },
       },
     ],
+  },
+  {
+    // CAJERO -- panel completo con sidebar (mismo criterio visual que
+    // EncargadoLayout, ver layouts/cajero-layout). Agrupa Inicio, CU24
+    // (Ventas), CU20 (Reservas para caja -- antes en 'cajero' directo,
+    // ahora 'cajero/reservas-pendientes'), CU26 (Devoluciones y cambios) y
+    // Mi perfil bajo una sola navegación persistente.
+    path: 'cajero',
+    loadComponent: () =>
+      import('./layouts/cajero-layout/cajero-layout').then((m) => m.CajeroLayout),
+    canActivate: [authGuard, roleGuard('CAJERO')],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () => import('./features/cajero/inicio/inicio').then((m) => m.Inicio),
+        title: 'Panel de Cajero · Fashion Store',
+        data: {
+          headerTitle: 'Panel de Cajero',
+          headerSubtitle: '',
+        },
+      },
+      {
+        // CU24 -- Registrar venta presencial (Cajero), flujo A: venta
+        // directa. A la que lleva "Ventas" del sidebar.
+        path: 'ventas/nueva',
+        loadComponent: () =>
+          import('./features/cajero/ventas/venta-directa/venta-directa').then(
+            (m) => m.VentaDirecta,
+          ),
+        title: 'Nueva venta · Fashion Store Cajero',
+        data: {
+          headerTitle: 'Nueva venta',
+          headerSubtitle: 'Busca las prendas y arma la venta directa.',
+        },
+      },
+      {
+        // CU20 -- integración mínima con el rol Cajero: consulta de solo
+        // lectura de las reservas que el Encargado ya dejó LISTA_PARA_CAJA
+        // en SU sucursal (resuelta siempre del token en el backend).
+        // "Cargar venta" (CU25) abre un modal sobre esta misma pantalla --
+        // no navega, no tiene ruta propia.
+        path: 'reservas-pendientes',
+        loadComponent: () =>
+          import('./features/cajero/reservas-pendientes/reservas-pendientes').then(
+            (m) => m.ReservasPendientes,
+          ),
+        title: 'Reservas para caja · Fashion Store Cajero',
+        data: {
+          headerTitle: 'Reservas para caja',
+          headerSubtitle: 'Reservas que tu sucursal ya dejó listas para continuar el proceso.',
+        },
+      },
+      {
+        // CU27 -- Consultar historial de compras (Cajero). Ítem propio
+        // "Historial" del sidebar, separado de "Ventas" y "Devoluciones y
+        // cambios" a propósito (requerimiento explícito: no mezclarlo con
+        // Ventas).
+        path: 'historial',
+        loadComponent: () =>
+          import('./features/cajero/historial/historial').then((m) => m.Historial),
+        title: 'Historial · Fashion Store Cajero',
+        data: {
+          headerTitle: 'Historial',
+          headerSubtitle: 'Ventas realizadas en tu sucursal.',
+        },
+      },
+      {
+        // CU26 -- Registrar devolución o cambio.
+        path: 'devoluciones',
+        loadComponent: () =>
+          import('./features/cajero/devoluciones-cambios/devoluciones-cambios').then(
+            (m) => m.DevolucionesCambios,
+          ),
+        title: 'Devoluciones y cambios · Fashion Store Cajero',
+        data: {
+          headerTitle: 'Devoluciones y cambios',
+          headerSubtitle: 'Gestiona prendas de ventas realizadas.',
+        },
+      },
+      {
+        // CU31 -- Emitir comprobante de venta (Cajero). A la que navega
+        // "Ver" del paso "PAGO REGISTRADO" de procesar-pago.ts (CU25) --
+        // sin ítem propio en el sidebar (se llega desde el flujo de pago,
+        // no es una sección de navegación aparte).
+        path: 'comprobante/:ventaId',
+        loadComponent: () =>
+          import('./features/cajero/comprobantes/comprobante-cajero').then(
+            (m) => m.ComprobanteCajero,
+          ),
+        title: 'Comprobante · Fashion Store Cajero',
+        data: {
+          headerTitle: 'Comprobante',
+          headerSubtitle: 'Detalle de la venta ya pagada.',
+        },
+      },
+      {
+        // Mismo componente MiPerfil de CU04 que ya usan '/mi-perfil'
+        // (Cliente), '/encargado/mi-perfil' y '/proveedor/mi-perfil' -- sin
+        // duplicar el formulario.
+        path: 'mi-perfil',
+        loadComponent: () =>
+          import('./usuarios-y-accesos/cu04-actualizar-perfil/mi-perfil').then((m) => m.MiPerfil),
+        title: 'Mi perfil · Fashion Store Cajero',
+        data: {
+          headerTitle: 'Mi perfil',
+          headerSubtitle: 'Datos de tu cuenta de Cajero.',
+        },
+      },
+    ],
+  },
+  {
+    // Ruta de nivel superior, sin ningún layout (admin/encargado/proveedor/
+    // cajero/público): roleGuard() la usa para cualquier rol autenticado que
+    // no coincide con la ruta pedida, y login.ts para un rol que no esté en
+    // RUTA_POR_ROL (no debería ocurrir, pero nunca cae a un panel por
+    // defecto) -- ver core/pages/no-autorizado/no-autorizado.ts.
+    path: 'no-autorizado',
+    loadComponent: () =>
+      import('./core/pages/no-autorizado/no-autorizado').then((m) => m.NoAutorizado),
+    title: 'Acceso no autorizado · Fashion Store',
   },
   { path: '**', redirectTo: '' },
 ];

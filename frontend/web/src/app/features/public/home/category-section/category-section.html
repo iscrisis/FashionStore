@@ -1,6 +1,28 @@
 <div class="section-header">
   <h2>Compra por categorías</h2>
-  <a routerLink="/catalogo" class="section-link">Ver todas</a>
+  <div class="section-header__actions">
+    <!-- Flechas SOLO visibles en móvil (ver category-section.scss) -- viven
+         en el header, no junto a las tarjetas, para que el carril de scroll
+         de abajo aproveche el 100% del ancho de la sección en vez de que
+         los propios botones le resten espacio. -->
+    <div class="category-nav">
+      <button
+        type="button"
+        class="category-carousel__arrow category-carousel__arrow--left"
+        (click)="desplazar(-1)"
+        [disabled]="!canScrollLeft()"
+        aria-label="Ver categorías anteriores"
+      >‹</button>
+      <button
+        type="button"
+        class="category-carousel__arrow category-carousel__arrow--right"
+        (click)="desplazar(1)"
+        [disabled]="!canScrollRight()"
+        aria-label="Ver más categorías"
+      >›</button>
+    </div>
+    <a routerLink="/catalogo" class="section-link">Ver todas</a>
+  </div>
 </div>
 
 @if (loading()) {
@@ -21,7 +43,10 @@
     <span>Las categorías configuradas desde el panel de administración aparecerán aquí.</span>
   </div>
 } @else {
-  <div class="category-grid">
+  <!-- Grid normal en desktop/tablet; en móvil (ver category-section.scss) se
+       vuelve una fila con scroll horizontal -- nunca automático, solo avanza
+       con swipe o con las flechas del header (sin dots, sin loop). -->
+  <div class="category-grid" #scrollContainer (scroll)="onScrollCategorias()">
     @for (category of categories(); track category.id) {
       <app-category-card [category]="category" />
     }

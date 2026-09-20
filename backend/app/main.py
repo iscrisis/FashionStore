@@ -44,6 +44,7 @@ from modules.P3_ProveedoresEInventario.CU16_RegistrarMovimientosInventario.route
     router_panel as cu16_movimientos_inventario_router,
 )
 from modules.P2_UsuariosYAccesos.CU01_IniciarSesion.router import router as cu01_iniciar_sesion_router
+from modules.P2_UsuariosYAccesos.CU02_RegistrarCliente.router import router as cu02_registrar_cliente_router
 from modules.P2_UsuariosYAccesos.CU03_RecuperarContrasena.router import (
     router as cu03_recuperar_contrasena_router,
 )
@@ -52,6 +53,48 @@ from modules.P2_UsuariosYAccesos.CU04_ActualizarPerfil.router import (
 )
 from modules.P2_UsuariosYAccesos.CU05_GestionarUsuariosRoles.router import (
     router as cu05_usuarios_roles_router,
+)
+from modules.P4_ReservasYAtencion.CU17_CrearReservaPrendas.router import (
+    router as cu17_crear_reserva_router,
+)
+from modules.P4_ReservasYAtencion.CU19_CancelarReserva.router import (
+    router as cu19_cancelar_reserva_router,
+)
+from modules.P4_ReservasYAtencion.CU20_AtenderReservaPrendas.router import (
+    router as cu20_atender_reserva_router,
+)
+from modules.P5_ComprasVentasYPagos.CU21_UsarCarritoCompras.router import (
+    router as cu21_carrito_router,
+)
+from modules.P5_ComprasVentasYPagos.CU22_RealizarCompraDigital.router import (
+    router as cu22_compra_digital_router,
+)
+from modules.P5_ComprasVentasYPagos.CU23_ProcesarPagoElectronico.router import (
+    router as cu23_pago_electronico_router,
+)
+from modules.P5_ComprasVentasYPagos.CU24_RegistrarVentaPresencial.router import (
+    router as cu24_venta_presencial_router,
+)
+from modules.P5_ComprasVentasYPagos.CU25_ProcesarPagoPresencial.router import (
+    router as cu25_pago_presencial_router,
+)
+from modules.P5_ComprasVentasYPagos.CU26_RegistrarDevolucionCambio.router import (
+    router as cu26_devolucion_cambio_router,
+)
+from modules.P5_ComprasVentasYPagos.CU27_ConsultarHistorialCompras.router import (
+    router as cu27_historial_compras_router,
+)
+from modules.P5_ComprasVentasYPagos.CU31_EmitirComprobanteVenta.router import (
+    router as cu31_comprobante_venta_router,
+)
+from modules.P6_InnovacionYAnalisis.CU32_GestionarPromociones.router import (
+    router as cu32_promociones_router,
+)
+from modules.P6_InnovacionYAnalisis.CU29_ObtenerRecomendacionesIA.router import (
+    router as cu29_asistente_ia_router,
+)
+from modules.P6_InnovacionYAnalisis.CU30_ConsultarReportesIndicadores.router import (
+    router as cu30_reportes_router,
 )
 
 app = FastAPI(
@@ -73,6 +116,7 @@ app.add_middleware(
 
 app.include_router(health.router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu01_iniciar_sesion_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu02_registrar_cliente_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu03_recuperar_contrasena_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu04_actualizar_perfil_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu05_usuarios_roles_router, prefix=settings.API_V1_PREFIX)
@@ -92,6 +136,20 @@ app.include_router(panel_proveedor_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu14_inventario_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu15_recepcion_mercaderia_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu16_movimientos_inventario_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu17_crear_reserva_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu19_cancelar_reserva_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu20_atender_reserva_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu21_carrito_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu22_compra_digital_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu23_pago_electronico_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu24_venta_presencial_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu25_pago_presencial_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu26_devolucion_cambio_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu27_historial_compras_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu31_comprobante_venta_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu32_promociones_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu29_asistente_ia_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu30_reportes_router, prefix=settings.API_V1_PREFIX)
 
 # Sirve las imágenes subidas por el Administrador (CU08/CU09) -- ver
 # app/core/image_storage.py. Montado bajo API_V1_PREFIX para que Nginx, que ya

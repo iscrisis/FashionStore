@@ -1,0 +1,21 @@
+@switch (detalle().estado) {
+  @case ('PENDIENTE') {
+    <div class="atender-acciones">
+      <button type="button" class="btn btn--ghost btn--sm" [disabled]="procesando()" (click)="preparar()">
+        Preparar prenda
+      </button>
+    </div>
+  }
+  @case ('PREPARADA') {
+    @if (puedeDecidir) {
+      <div class="atender-acciones">
+        <button type="button" class="btn btn--ghost btn--sm" [disabled]="procesando()" (click)="noLaCompra()">
+          No la compra
+        </button>
+        <button type="button" class="btn btn--primary btn--sm" [disabled]="procesando()" (click)="enviarACaja()">
+          Enviar a caja
+        </button>
+      </div>
+    }
+  }
+}

@@ -6,16 +6,43 @@
   position: relative;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  padding: 36px 44px;
-  min-height: 220px;
+  // clamp() en vez de un min-height fijo: el banner se mantiene bajo y
+  // proporcionado en cualquier ancho, en vez de un valor que solo se ve
+  // bien en un monitor puntual.
+  padding: clamp(22px, 2.6vw, 34px) clamp(26px, 4vw, 44px);
+  min-height: clamp(176px, 17vw, 232px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 32px;
+  gap: clamp(20px, 3vw, 32px);
   // El burdeos es el fondo del propio Hero (no de la imagen): la imagen de
   // modelos, si existe, se integra encima -- con fondo transparente si la
   // subieron en PNG/WEBP sin fondo -- sin ninguna caja/rectángulo detrás.
   background: linear-gradient(120deg, #4a0007, var(--color-primary) 55%, #d1717c 100%);
+}
+
+// Textura diagonal MUY sutil -- puro CSS (repeating-linear-gradient sobre un
+// pseudo-elemento), nunca una imagen externa. Casi imperceptible: líneas
+// finas y muy espaciadas, con blanco a baja opacidad, para que se sienta
+// parte del degradado y no como un patrón marcado.
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 15px
+  );
+  pointer-events: none;
+}
+
+.hero__text,
+.hero__image {
+  position: relative;
+  z-index: 1;
 }
 
 .hero__text {
@@ -25,15 +52,17 @@
 }
 
 .hero__text h1 {
-  font-size: 32px;
+  font-size: clamp(22px, 2.4vw, 32px);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0.01em;
 }
 
 .hero__cta {
-  display: inline-block;
-  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
   background: var(--color-white);
   color: var(--color-primary-dark);
   border: none;
@@ -50,33 +79,70 @@
 }
 
 .hero__image {
-  flex: 0 1 340px;
-  align-self: stretch;
-  max-height: 260px;
+  flex: 0 1 320px;
+  // Integrada dentro del banner, alineada hacia abajo -- nunca estirada a
+  // todo el alto del hero.
+  align-self: flex-end;
+  max-height: clamp(150px, 15vw, 210px);
+  max-width: 100%;
   // contain (no cover): nunca recorta ni deforma la foto de modelos, y
   // preserva la transparencia si el archivo es PNG/WEBP sin fondo.
   object-fit: contain;
-  object-position: center;
+  object-position: bottom;
 }
 
-@media (max-width: 720px) {
+// Laptop / tablet horizontal (992px-1199px): mismo layout en fila, solo un
+// poco más ceñido.
+@media (max-width: 1199px) {
+  .hero__image {
+    flex-basis: 280px;
+  }
+}
+
+// Tablet (768px-991px): sigue en fila (texto izquierda / modelos derecha),
+// con menos aire para que no se monten los textos.
+@media (max-width: 991px) {
+  .hero {
+    gap: 18px;
+  }
+
+  .hero__text {
+    flex-basis: 240px;
+  }
+
+  .hero__image {
+    flex-basis: 220px;
+  }
+}
+
+// Móvil (<768px): se reorganiza en columna -- texto, botón (ambos ya vienen
+// juntos dentro de .hero__text) y, debajo, la imagen -- sin volverse una
+// tarjeta gigantesca.
+@media (max-width: 767px) {
   .hero {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 28px 24px;
+    padding: clamp(22px, 5vw, 28px) 22px;
+    min-height: 0;
   }
 
   .hero__text {
     max-width: none;
-  }
-
-  .hero__text h1 {
-    font-size: 24px;
+    flex-basis: auto;
   }
 
   .hero__image {
+    flex-basis: auto;
     width: 100%;
     max-height: 200px;
+    align-self: center;
+    object-position: center;
+  }
+}
+
+@media (max-width: 479px) {
+  .hero__image {
+    max-height: 160px;
   }
 }

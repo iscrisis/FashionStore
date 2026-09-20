@@ -1,0 +1,110 @@
+<div class="modal-overlay" (click)="onCerrar()">
+  <div class="modal-ficha" (click)="$event.stopPropagation()">
+    <div class="modal-ficha__header">
+      <span class="modal-ficha__titulo">Devolver prenda</span>
+      <button type="button" class="modal-ficha__cerrar" (click)="onCerrar()" aria-label="Cerrar">
+        <app-icon name="close" style="width: 16px; height: 16px" />
+      </button>
+    </div>
+
+    <div class="prenda-resumen">
+      <span class="prenda-resumen__nombre">{{ detalle().producto.nombre }}</span>
+      <span class="prenda-resumen__variante">
+        {{ detalle().variante.color.nombre }} · Talla {{ detalle().variante.talla.nombre }}
+      </span>
+      <span class="prenda-resumen__comprada">Cantidad comprada: {{ detalle().cantidad_comprada }}</span>
+    </div>
+
+    <div class="campo">
+      <span class="campo__label">Cantidad a devolver</span>
+      <div class="cantidad-control">
+        <button
+          type="button"
+          class="cantidad-control__btn"
+          [disabled]="cantidad() <= 1"
+          (click)="decrementar()"
+          aria-label="Disminuir cantidad"
+        >
+          −
+        </button>
+        <input
+          type="number"
+          class="cantidad-control__input"
+          min="1"
+          [max]="detalle().cantidad_disponible"
+          [value]="cantidad()"
+          (input)="actualizarCantidad($any($event.target).value)"
+        />
+        <button
+          type="button"
+          class="cantidad-control__btn"
+          [disabled]="cantidad() >= detalle().cantidad_disponible"
+          (click)="incrementar()"
+          aria-label="Aumentar cantidad"
+        >
+          +
+        </button>
+      </div>
+      <span class="campo__ayuda">Disponible: {{ detalle().cantidad_disponible }}</span>
+    </div>
+
+    <div class="campo">
+      <span class="campo__label">Motivo</span>
+      <div class="motivos">
+        <button
+          type="button"
+          class="motivo-card"
+          [class.motivo-card--activo]="motivo() === 'TALLA'"
+          (click)="seleccionarMotivo('TALLA')"
+        >
+          Talla
+        </button>
+        <button
+          type="button"
+          class="motivo-card"
+          [class.motivo-card--activo]="motivo() === 'DEFECTO'"
+          (click)="seleccionarMotivo('DEFECTO')"
+        >
+          Defecto
+        </button>
+        <button
+          type="button"
+          class="motivo-card"
+          [class.motivo-card--activo]="motivo() === 'PRODUCTO_INCORRECTO'"
+          (click)="seleccionarMotivo('PRODUCTO_INCORRECTO')"
+        >
+          Incorrecto
+        </button>
+        <button
+          type="button"
+          class="motivo-card"
+          [class.motivo-card--activo]="motivo() === 'OTRO'"
+          (click)="seleccionarMotivo('OTRO')"
+        >
+          Otro
+        </button>
+      </div>
+    </div>
+
+    @if (motivo() === 'OTRO') {
+      <label class="campo">
+        <span class="campo__label">Observación</span>
+        <input
+          type="text"
+          class="campo__input"
+          maxlength="300"
+          [value]="observacion()"
+          (input)="actualizarObservacion($any($event.target).value)"
+          placeholder="Describe brevemente el motivo"
+        />
+      </label>
+    }
+
+    <div class="modal-ficha__acciones">
+      <button type="button" class="btn btn--ghost" (click)="onCerrar()">Cancelar</button>
+      <button type="button" class="btn btn--primary" [disabled]="!puedeConfirmar()" (click)="confirmar()">
+        {{ enviando() ? 'Confirmando...' : 'Confirmar' }}
+      </button>
+    </div>
+  </div>
+</div>

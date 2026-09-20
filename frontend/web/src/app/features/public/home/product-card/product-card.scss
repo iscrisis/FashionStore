@@ -87,3 +87,32 @@
   font-weight: 600;
   color: var(--color-primary-dark);
 }
+
+// CU32 -- Gestionar promociones: solo aparecen cuando `en_promocion` es
+// true (ver product-card.html) -- sin promoción, la tarjeta se ve
+// exactamente igual que antes.
+.card__precios {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.precio-anterior {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+}
+
+.precio-descuento {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 12%, white);
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}

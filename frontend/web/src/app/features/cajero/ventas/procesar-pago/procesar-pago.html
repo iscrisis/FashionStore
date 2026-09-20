@@ -1,0 +1,184 @@
+<div class="modal-overlay" (click)="onCerrar()">
+  <div class="modal-ficha" (click)="$event.stopPropagation()">
+    @if (paso() === 'formulario') {
+      <div class="modal-ficha__header">
+        <span class="modal-ficha__titulo">Procesar pago</span>
+        <button type="button" class="modal-ficha__cerrar" (click)="onCerrar()" aria-label="Cerrar">
+          <app-icon name="close" style="width: 16px; height: 16px" />
+        </button>
+      </div>
+
+      <div class="modal-ficha__venta">
+        <span><strong>Venta:</strong> {{ venta().codigo_venta }}</span>
+        @if (venta().reserva) {
+          <span><strong>Reserva:</strong> {{ venta().reserva!.codigo_reserva }}</span>
+        }
+      </div>
+
+      <ul class="modal-ficha__productos">
+        @for (detalle of venta().detalles; track detalle.producto.id + '-' + detalle.variante.id) {
+          <li class="producto-linea">
+            <div class="producto-linea__info">
+              <span class="producto-linea__nombre">{{ detalle.producto.nombre }}</span>
+              <span class="producto-linea__variante">
+                {{ detalle.variante.color.nombre }} · Talla {{ detalle.variante.talla.nombre }} · x{{ detalle.cantidad }}
+              </span>
+            </div>
+            <span class="producto-linea__subtotal">Bs {{ detalle.subtotal.toFixed(2) }}</span>
+          </li>
+        }
+      </ul>
+
+      <div class="modal-ficha__total">
+        <span>Total</span>
+        <span class="modal-ficha__total-valor">Bs {{ venta().total.toFixed(2) }}</span>
+      </div>
+
+      <div class="metodos-pago">
+        <button
+          type="button"
+          class="metodo-card"
+          [class.metodo-card--activo]="metodoSeleccionado() === 'EFECTIVO'"
+          (click)="seleccionarMetodo('EFECTIVO')"
+        >
+          Efectivo
+        </button>
+        <button
+          type="button"
+          class="metodo-card"
+          [class.metodo-card--activo]="metodoSeleccionado() === 'TARJETA'"
+          (click)="seleccionarMetodo('TARJETA')"
+        >
+          Tarjeta
+        </button>
+        <button
+          type="button"
+          class="metodo-card"
+          [class.metodo-card--activo]="metodoSeleccionado() === 'QR'"
+          (click)="seleccionarMetodo('QR')"
+        >
+          QR
+        </button>
+      </div>
+
+      @if (metodoSeleccionado() === 'EFECTIVO') {
+        <div class="metodo-detalle">
+          <div class="campo-monto">
+            <span class="campo-monto__label">Total</span>
+            <span class="campo-monto__valor">Bs {{ venta().total.toFixed(2) }}</span>
+          </div>
+          <label class="campo">
+            <span class="campo__label">Monto recibido</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              class="campo__input"
+              [value]="montoRecibidoTexto()"
+              (input)="actualizarMontoRecibido($any($event.target).value)"
+              placeholder="0.00"
+            />
+          </label>
+          <div class="campo-monto">
+            <span class="campo-monto__label">Cambio</span>
+            <span class="campo-monto__valor campo-monto__valor--cambio">Bs {{ cambio().toFixed(2) }}</span>
+          </div>
+        </div>
+      } @else if (metodoSeleccionado() === 'TARJETA') {
+        <div class="metodo-detalle">
+          <span class="metodo-detalle__subtitulo">Tipo</span>
+          <div class="opciones-tarjeta">
+            <button
+              type="button"
+              class="opcion-tarjeta"
+              [class.opcion-tarjeta--activa]="tipoTarjeta() === 'DEBITO'"
+              (click)="seleccionarTipoTarjeta('DEBITO')"
+            >
+              Débito
+            </button>
+            <button
+              type="button"
+              class="opcion-tarjeta"
+              [class.opcion-tarjeta--activa]="tipoTarjeta() === 'CREDITO'"
+              (click)="seleccionarTipoTarjeta('CREDITO')"
+            >
+              Crédito
+            </button>
+          </div>
+          <label class="campo">
+            <span class="campo__label">Referencia / autorización (opcional)</span>
+            <input
+              type="text"
+              class="campo__input"
+              [value]="referencia()"
+              (input)="actualizarReferencia($any($event.target).value)"
+              maxlength="120"
+            />
+          </label>
+        </div>
+      } @else if (metodoSeleccionado() === 'QR') {
+        <div class="metodo-detalle">
+          <p class="metodo-detalle__texto">Confirma el pago cuando hayas verificado la operación.</p>
+          <label class="campo">
+            <span class="campo__label">Referencia de transacción (opcional)</span>
+            <input
+              type="text"
+              class="campo__input"
+              [value]="referencia()"
+              (input)="actualizarReferencia($any($event.target).value)"
+              maxlength="120"
+            />
+          </label>
+        </div>
+      }
+
+      <button
+        type="button"
+        class="btn btn--primary modal-ficha__confirmar"
+        [disabled]="!puedeConfirmar()"
+        (click)="confirmarPago()"
+      >
+        {{ confirmando() ? 'Confirmando...' : 'Confirmar pago' }}
+      </button>
+    } @else if (paso() === 'confirmado' && pagoConfirmado()) {
+      <div class="pago-registrado">
+        <app-icon name="bag" style="width: 30px; height: 30px" />
+        <span class="pago-registrado__titulo">Pago registrado</span>
+        <span class="pago-registrado__codigo">{{ pagoConfirmado()!.codigo_venta }}</span>
+        <span class="pago-registrado__total">Total: Bs {{ pagoConfirmado()!.total.toFixed(2) }}</span>
+        <span class="pago-registrado__metodo">Método: {{ etiquetaMetodo(pagoConfirmado()!.metodo_pago) }}</span>
+        @if (pagoConfirmado()!.metodo_pago === 'EFECTIVO') {
+          <span class="pago-registrado__cambio">Cambio: Bs {{ pagoConfirmado()!.cambio!.toFixed(2) }}</span>
+        }
+        <span class="pago-registrado__comprobante">Comprobante generado.</span>
+
+        <div class="pago-registrado__comprobante-acciones">
+          <button type="button" class="btn btn--ghost btn--sm" (click)="verComprobante()">Ver</button>
+          <button
+            type="button"
+            class="btn btn--ghost btn--sm"
+            [disabled]="descargandoComprobante()"
+            (click)="descargarComprobante()"
+          >
+            {{ descargandoComprobante() ? 'Descargando...' : 'Descargar' }}
+          </button>
+          @if (tieneClienteRegistrado()) {
+            <button
+              type="button"
+              class="btn btn--ghost btn--sm"
+              [disabled]="enviandoComprobante()"
+              (click)="enviarComprobante()"
+            >
+              {{ enviandoComprobante() ? 'Enviando...' : 'Enviar' }}
+            </button>
+          }
+        </div>
+
+        <div class="pago-registrado__acciones">
+          <button type="button" class="btn btn--ghost" (click)="onCerrar()">Cerrar</button>
+          <button type="button" class="btn btn--primary" (click)="onNuevaVenta()">Nueva venta</button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

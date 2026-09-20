@@ -8,6 +8,8 @@ stock de SU sucursal.
 
 from sqlalchemy.orm import Session
 
+from modules.P1_SucursalesYCatalogos.Models.producto_variante import ProductoVariante
+from modules.P1_SucursalesYCatalogos.Models.stock_sucursal import StockSucursal
 from modules.P1_SucursalesYCatalogos.Models.sucursal import Sucursal
 
 from .repository import ProductoLecturaRepository, StockSucursalRepository, SucursalLecturaRepository
@@ -66,17 +68,30 @@ class StockSucursalService:
                         temporada=TemporadaResumen.model_validate(producto.coleccion.temporada),
                     ),
                     variantes=[
-                        VarianteStockOut(
-                            id=variante.id,
-                            talla=TallaResumen.model_validate(variante.talla),
-                            color=ColorResumen.model_validate(variante.color),
-                            cantidad=stock_por_variante.get(variante.id, 0),
-                        )
+                        self._variante_stock_out(variante, stock_por_variante.get(variante.id))
                         for variante in variantes_activas
                     ],
                 )
             )
         return resultado
+
+    @staticmethod
+    def _variante_stock_out(
+        variante: ProductoVariante, fila_stock: StockSucursal | None
+    ) -> VarianteStockOut:
+        # Sin fila de stock todavía (nunca se cargó cantidad para esta
+        # sucursal+variante): físico, reservado y disponible son 0, igual
+        # que ya asumía este panel antes de agregar stock_reservado.
+        cantidad = fila_stock.cantidad if fila_stock is not None else 0
+        stock_reservado = fila_stock.stock_reservado if fila_stock is not None else 0
+        return VarianteStockOut(
+            id=variante.id,
+            talla=TallaResumen.model_validate(variante.talla),
+            color=ColorResumen.model_validate(variante.color),
+            cantidad=cantidad,
+            stock_reservado=stock_reservado,
+            disponible=max(0, cantidad - stock_reservado),
+        )
 
     def actualizar_stock(self, sucursal_id: int, items: list[StockItem]) -> list[StockItem]:
         for item in items:

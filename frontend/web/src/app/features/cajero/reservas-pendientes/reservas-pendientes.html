@@ -1,0 +1,101 @@
+<div class="cajero-content">
+  <div class="page-header page-header--con-accion">
+    <div>
+      <h1>Reservas pendientes de atención</h1>
+      <p>Reservas que tu sucursal ya dejó listas para continuar el proceso.</p>
+    </div>
+    <a routerLink="/cajero/ventas/nueva" class="btn btn--primary page-header__accion">
+      <app-icon name="plus" style="width: 14px; height: 14px" />
+      Nueva venta
+    </a>
+  </div>
+
+    @if (cargando()) {
+      <div class="reservas-grid">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="skeleton-card"></div>
+        }
+      </div>
+    } @else if (errorMessage()) {
+      <div class="state-block state-block--error">
+        <span class="state-block__title">No se pudo cargar la información</span>
+        <span>{{ errorMessage() }}</span>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="cargar()">Reintentar</button>
+      </div>
+    } @else if (reservas().length === 0) {
+      <div class="state-block">
+        <app-icon name="reservations" style="width: 28px; height: 28px" />
+        <span class="state-block__title">No hay reservas pendientes de atención.</span>
+      </div>
+    } @else {
+      <div class="reservas-grid">
+        @for (reserva of reservas(); track reserva.id) {
+          <article class="reserva-card">
+            <div class="reserva-card__header">
+              <div class="reserva-card__header-top">
+                <span class="reserva-card__codigo">Reserva {{ reserva.codigo_reserva }}</span>
+                <span class="reserva-card__estado">Lista para caja</span>
+              </div>
+
+              <div class="reserva-card__cliente">
+                <app-icon name="user" style="width: 13px; height: 13px" />
+                <span>{{ reserva.cliente.nombre }}</span>
+              </div>
+
+              <div class="reserva-card__horario">
+                <span>{{ fecha(reserva) }}</span>
+                <span>{{ horario(reserva) }}</span>
+              </div>
+            </div>
+
+            <ul class="reserva-card__detalles-lista">
+              @for (detalle of reserva.detalles; track detalle.id) {
+                <li class="detalle-prenda">
+                  <div class="detalle-prenda__imagen">
+                    @if (detalle.producto.imagen_principal_url) {
+                      <img
+                        [src]="resolveMediaUrl(detalle.producto.imagen_principal_url)"
+                        [alt]="detalle.producto.nombre"
+                      />
+                    } @else {
+                      <div class="detalle-prenda__placeholder">
+                        <app-icon name="products" style="width: 20px; height: 20px" />
+                      </div>
+                    }
+                  </div>
+
+                  <div class="detalle-prenda__info">
+                    <span class="detalle-prenda__nombre">{{ detalle.producto.nombre }}</span>
+                    <span class="detalle-prenda__variante">
+                      {{ detalle.variante.color.nombre }} · Talla {{ detalle.variante.talla.nombre }}
+                      @if (detalle.cantidad > 1) {
+                        · x{{ detalle.cantidad }}
+                      }
+                    </span>
+                  </div>
+                </li>
+              }
+            </ul>
+
+            <button
+              type="button"
+              class="btn btn--primary reserva-card__cargar-venta"
+              [disabled]="cargandoVenta() !== null"
+              (click)="cargarVenta(reserva)"
+            >
+              {{ cargandoVenta() === reserva.id ? 'Cargando...' : 'Cargar venta' }}
+            </button>
+          </article>
+        }
+      </div>
+    }
+  </div>
+
+@if (ventaParaPago()) {
+  <app-procesar-pago
+    [venta]="ventaParaPago()!"
+    (cerrar)="cerrarModalPago()"
+    (pagoRegistrado)="onPagoRegistrado()"
+    (nuevaVenta)="onNuevaVentaDesdeModal()"
+  />
+}

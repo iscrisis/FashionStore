@@ -117,7 +117,13 @@
                                       <span class="variante-row__nombre">
                                         {{ variante.talla.nombre }} / {{ variante.color.nombre }}
                                       </span>
-                                      <span class="variante-row__stock">Stock actual: {{ variante.cantidad }}</span>
+                                      <span class="variante-row__stock">
+                                        Stock físico: {{ variante.cantidad }}
+                                        @if (variante.stock_reservado > 0) {
+                                          · Reservado: {{ variante.stock_reservado }}
+                                          · Disponible: {{ variante.disponible }}
+                                        }
+                                      </span>
                                     </div>
                                     <button
                                       type="button"

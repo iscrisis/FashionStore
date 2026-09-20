@@ -1,6 +1,11 @@
 import { Injectable, signal } from '@angular/core';
 
-export type ToastType = 'success' | 'error' | 'info';
+// "brand" es una confirmación positiva igual que "success" (mismo ícono de
+// check, mismo mecanismo), pero con el acento rojo de FashionStore en vez de
+// verde -- para casos como CU17 (crear reserva) donde el verde genérico no
+// es la identidad visual esperada. No reemplaza a "success": los demás CU
+// (CU14/15/16, etc.) siguen usándolo tal cual, sin cambios.
+export type ToastType = 'success' | 'error' | 'info' | 'brand';
 
 export interface ToastMessage {
   id: number;
@@ -19,6 +24,10 @@ export class ToastService {
 
   success(text: string): void {
     this.push('success', text);
+  }
+
+  brand(text: string): void {
+    this.push('brand', text);
   }
 
   error(text: string): void {

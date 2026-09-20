@@ -1,0 +1,103 @@
+<section class="admin-card section">
+  <div class="section__header">
+    <div>
+      <h3>Promociones</h3>
+      <p>Gestiona los descuentos porcentuales sobre productos del catálogo.</p>
+    </div>
+    <button type="button" class="btn btn--primary" (click)="openCreate()">
+      <app-icon name="plus" style="width: 14px; height: 14px" />
+      Nueva
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="section__body">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudieron cargar las promociones</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (promociones().length === 0) {
+    <div class="state-block">
+      <span class="state-block__title">Aún no hay promociones registradas</span>
+      <span>Crea la primera promoción para aplicar un descuento a tus productos.</span>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Descuento</th>
+            <th>Vigencia</th>
+            <th>Estado</th>
+            <th>Productos</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (promocion of promociones(); track promocion.id) {
+            <tr>
+              <td class="cell-title">{{ promocion.nombre }}</td>
+              <td class="cell-secondary">-{{ promocion.porcentaje_descuento }}%</td>
+              <td class="cell-secondary">
+                {{ promocion.fecha_inicio | date: 'd MMM y' }} - {{ promocion.fecha_fin | date: 'd MMM y' }}
+              </td>
+              <td>
+                <span class="badge" [class]="claseEstado(promocion.estado)">
+                  {{ etiquetaEstado(promocion.estado) }}
+                </span>
+              </td>
+              <td class="cell-secondary">{{ promocion.cantidad_productos }}</td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-actions__trigger"
+                    (click)="toggleMenu(promocion.id, $event)"
+                    aria-label="Acciones"
+                  >
+                    <app-icon name="dots" />
+                  </button>
+                  @if (openMenuId() === promocion.id) {
+                    <div class="row-actions__menu" (click)="$event.stopPropagation()">
+                      <button type="button" class="row-actions__item" (click)="openView(promocion, $event)">
+                        <app-icon name="eye" /> Ver
+                      </button>
+                      @if (esGestionable(promocion)) {
+                        <button type="button" class="row-actions__item" (click)="openEdit(promocion)">
+                          <app-icon name="edit" /> Editar
+                        </button>
+                        <button
+                          type="button"
+                          class="row-actions__item row-actions__item--danger"
+                          (click)="desactivar(promocion, $event)"
+                        >
+                          <app-icon name="power" /> Desactivar
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<app-promocion-form
+  [open]="drawerOpen()"
+  [promocionId]="editingId()"
+  [readonly]="viewMode()"
+  [submitting]="submitting()"
+  (save)="save($event)"
+  (close)="closeDrawer()"
+/>

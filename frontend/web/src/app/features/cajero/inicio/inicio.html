@@ -1,0 +1,19 @@
+<section class="admin-card welcome">
+  <h3>¡Bienvenido{{ usuario()?.nombre ? ', ' + usuario()!.nombre : '' }}!</h3>
+  <p>Elige qué quieres hacer.</p>
+</section>
+
+<div class="accesos">
+  <a routerLink="/cajero/ventas/nueva" class="acceso-card">
+    <span class="acceso-card__titulo">Ventas</span>
+    <span class="acceso-card__texto">Registra una venta directa de mostrador.</span>
+  </a>
+  <a routerLink="/cajero/reservas-pendientes" class="acceso-card">
+    <span class="acceso-card__titulo">Reservas para caja</span>
+    <span class="acceso-card__texto">Cobra las reservas que ya llegaron a caja.</span>
+  </a>
+  <a routerLink="/cajero/devoluciones" class="acceso-card">
+    <span class="acceso-card__titulo">Devoluciones y cambios</span>
+    <span class="acceso-card__texto">Gestiona prendas de ventas realizadas.</span>
+  </a>
+</div>

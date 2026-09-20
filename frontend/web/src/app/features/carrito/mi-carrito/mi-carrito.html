@@ -1,0 +1,91 @@
+<div class="container mi-carrito-page">
+  <div class="mi-carrito-ancho">
+    <div class="page-header">
+      <h1>Mi carrito</h1>
+      <p>Revisa las prendas que quieres comprar.</p>
+    </div>
+
+    @if (cargando()) {
+      <div class="item-lista">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="skeleton-item"></div>
+        }
+      </div>
+    } @else if (errorMessage()) {
+      <div class="state-block state-block--error">
+        <span class="state-block__title">No se pudo cargar tu carrito</span>
+        <span>{{ errorMessage() }}</span>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="cargar()">Reintentar</button>
+      </div>
+    } @else if (carrito()!.items.length === 0) {
+      <div class="carrito-vacio">
+        <app-icon name="bag" style="width: 34px; height: 34px" />
+        <span class="carrito-vacio__titulo">Tu carrito está vacío.</span>
+        <a routerLink="/catalogo" class="btn btn--primary">Seguir comprando</a>
+      </div>
+    } @else {
+      <div class="item-lista">
+        @for (item of carrito()!.items; track item.item_id) {
+          <article class="item-carrito" [class.item-carrito--procesando]="procesandoItemId() === item.item_id">
+            <label class="item-carrito__seleccion">
+              <input
+                type="checkbox"
+                [checked]="item.seleccionado"
+                [disabled]="procesandoItemId() !== null"
+                (change)="toggleSeleccion(item)"
+                aria-label="Seleccionar para la compra"
+              />
+              <span class="item-carrito__checkbox-visual"></span>
+            </label>
+
+            <div class="item-carrito__imagen">
+              @if (item.producto.imagen_principal_url) {
+                <img [src]="resolveMediaUrl(item.producto.imagen_principal_url)" [alt]="item.producto.nombre" loading="lazy" />
+              } @else {
+                <div class="item-carrito__placeholder">
+                  <app-icon name="products" style="width: 26px; height: 26px" />
+                </div>
+              }
+            </div>
+
+            <div class="item-carrito__info">
+              <span class="item-carrito__nombre">{{ item.producto.nombre }}</span>
+              <span class="item-carrito__variante">{{ item.variante.color.nombre }} · {{ item.variante.talla.nombre }}</span>
+              <div class="item-carrito__precios">
+                @if (item.en_promocion) {
+                  <span class="precio-anterior">Bs {{ formatearMonto(item.precio_base) }}</span>
+                }
+                <span class="item-carrito__precio">Precio: Bs {{ formatearMonto(item.precio_unitario) }}</span>
+                @if (item.en_promocion) {
+                  <span class="precio-descuento">-{{ item.porcentaje_descuento }}%</span>
+                }
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="item-carrito__eliminar"
+              [disabled]="procesandoItemId() !== null"
+              (click)="eliminar(item)"
+            >
+              Eliminar
+            </button>
+          </article>
+        }
+      </div>
+
+      <div class="carrito-resumen">
+        @if (haySeleccionados()) {
+          <span class="carrito-resumen__valor">
+            Subtotal seleccionado: Bs {{ formatearMonto(carrito()!.subtotal_seleccionado) }}
+          </span>
+          <a routerLink="/finalizar-compra" class="btn btn--primary carrito-resumen__continuar">
+            CONTINUAR COMPRA
+          </a>
+        } @else {
+          <span class="carrito-resumen__vacio">Selecciona una prenda para continuar.</span>
+        }
+      </div>
+    }
+  </div>
+</div>

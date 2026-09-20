@@ -36,7 +36,14 @@ class VarianteStockOut(BaseModel):
     id: int
     talla: TallaResumen
     color: ColorResumen
+    # cantidad = stock físico real (el que edita este panel vía "Registrar
+    # movimiento", CU16) -- reservar (CU17) NUNCA lo cambia. stock_reservado y
+    # disponible se agregan para que el Encargado vea también lo comprometido
+    # por reservas PENDIENTES, sin que esto habilite ninguna edición nueva
+    # aquí (ver CU17_CrearReservaPrendas para quién escribe stock_reservado).
     cantidad: int
+    stock_reservado: int
+    disponible: int
 
 
 class TemporadaResumen(BaseModel):

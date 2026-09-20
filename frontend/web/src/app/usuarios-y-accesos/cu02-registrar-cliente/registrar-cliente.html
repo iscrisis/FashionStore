@@ -1,0 +1,137 @@
+<div class="registro-page">
+  <div class="registro-card">
+    <a routerLink="/" class="registro-card__brand">FASHION<br />STORE</a>
+    <h1>Crear cuenta</h1>
+
+    @if (!exito()) {
+      <p class="registro-card__subtitle">Regístrate para reservar y comprar en FashionStore.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="registro-form" novalidate>
+        <label class="field" [class.has-error]="form.controls.nombre.invalid && form.controls.nombre.touched">
+          <span class="field__label">Nombre completo</span>
+          <div class="field__control">
+            <app-icon name="user" class="field__icon" />
+            <input type="text" formControlName="nombre" placeholder="Tu nombre" autocomplete="name" />
+          </div>
+          @if (form.controls.nombre.hasError('required') && form.controls.nombre.touched) {
+            <span class="field__error">El nombre es obligatorio.</span>
+          } @else if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+            <span class="field__error">El nombre debe tener entre 2 y 120 caracteres.</span>
+          }
+        </label>
+
+        <label class="field" [class.has-error]="form.controls.correo.invalid && form.controls.correo.touched">
+          <span class="field__label">Correo electrónico</span>
+          <div class="field__control">
+            <app-icon name="mail" class="field__icon" />
+            <input
+              type="email"
+              formControlName="correo"
+              placeholder="tucorreo@ejemplo.com"
+              autocomplete="email"
+            />
+          </div>
+          @if (form.controls.correo.hasError('required') && form.controls.correo.touched) {
+            <span class="field__error">El correo es obligatorio.</span>
+          } @else if (form.controls.correo.hasError('email') && form.controls.correo.touched) {
+            <span class="field__error">Ingresa un correo válido.</span>
+          }
+        </label>
+
+        <label class="field" [class.has-error]="form.controls.telefono.invalid && form.controls.telefono.touched">
+          <span class="field__label">Teléfono</span>
+          <div class="field__control">
+            <app-icon name="user" class="field__icon" />
+            <input type="tel" formControlName="telefono" placeholder="Ej. 70012345" autocomplete="tel" />
+          </div>
+          @if (form.controls.telefono.invalid && form.controls.telefono.touched) {
+            <span class="field__error">Ingresa un número de teléfono válido.</span>
+          }
+        </label>
+
+        <label class="field" [class.has-error]="form.controls.password.invalid && form.controls.password.touched">
+          <span class="field__label">Contraseña</span>
+          <div class="field__control">
+            <app-icon name="lock" class="field__icon" />
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="Mínimo 8 caracteres"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="field__toggle"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="showPassword()"
+            >
+              <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" style="width: 17px; height: 17px" />
+            </button>
+          </div>
+          @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+            <span class="field__error">La contraseña es obligatoria.</span>
+          } @else if (form.controls.password.hasError('minlength') && form.controls.password.touched) {
+            <span class="field__error">La contraseña debe tener al menos 8 caracteres.</span>
+          }
+        </label>
+
+        <label
+          class="field"
+          [class.has-error]="
+            (form.controls.confirmarPassword.invalid || form.hasError('passwordsNoCoinciden')) &&
+            form.controls.confirmarPassword.touched
+          "
+        >
+          <span class="field__label">Confirmar contraseña</span>
+          <div class="field__control">
+            <app-icon name="lock" class="field__icon" />
+            <input
+              [type]="showConfirmarPassword() ? 'text' : 'password'"
+              formControlName="confirmarPassword"
+              placeholder="Repite tu contraseña"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              class="field__toggle"
+              (click)="toggleConfirmarPasswordVisibility()"
+              [attr.aria-label]="showConfirmarPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="showConfirmarPassword()"
+            >
+              <app-icon [name]="showConfirmarPassword() ? 'eye-off' : 'eye'" style="width: 17px; height: 17px" />
+            </button>
+          </div>
+          @if (form.controls.confirmarPassword.hasError('required') && form.controls.confirmarPassword.touched) {
+            <span class="field__error">Confirma tu contraseña.</span>
+          } @else if (form.hasError('passwordsNoCoinciden') && form.controls.confirmarPassword.touched) {
+            <span class="field__error">Las contraseñas no coinciden.</span>
+          }
+        </label>
+
+        @if (errorMessage()) {
+          <p class="registro-form__error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        <button type="submit" class="btn btn--primary registro-form__submit" [disabled]="submitting()">
+          {{ submitting() ? 'Creando cuenta…' : 'Crear cuenta' }}
+        </button>
+      </form>
+    } @else {
+      <div class="registro-confirmacion">
+        <app-icon name="user" class="registro-confirmacion__icon" />
+        <p>Tu cuenta se creó correctamente. Ya puedes iniciar sesión.</p>
+        <a routerLink="/login" class="btn btn--primary registro-confirmacion__boton">Iniciar sesión</a>
+      </div>
+    }
+
+    @if (!exito()) {
+      <div class="registro-card__links">
+        <span class="registro-card__link-row">
+          <span class="registro-card__link-text">¿Ya tienes cuenta?</span>
+          <a routerLink="/login" class="registro-card__link">Inicia sesión</a>
+        </span>
+      </div>
+    }
+  </div>
+</div>

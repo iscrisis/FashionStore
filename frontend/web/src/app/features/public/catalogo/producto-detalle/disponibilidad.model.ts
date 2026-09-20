@@ -11,8 +11,12 @@
 //    └── disponibilidad
 //          ├── sucursal
 //          └── variantes (talla + color + cantidad)
+//
+// producto_variante_id se agregó para CU17 (crear reserva de prendas): el
+// Cliente lo necesita para reservar una variante puntual, no solo mostrarla.
 
 export interface VarianteDisponible {
+  producto_variante_id: number;
   talla_id: number;
   talla: string;
   color_id: number;

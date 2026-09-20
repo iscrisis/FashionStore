@@ -1,0 +1,155 @@
+<div class="cajero-content">
+  @if (paso() === 'armando') {
+      <div class="page-header">
+        <h1>Nueva venta</h1>
+        <p>Busca las prendas y arma la venta directa.</p>
+      </div>
+
+      <div class="buscador">
+        <input
+          type="text"
+          class="buscador__input"
+          placeholder="Buscar producto por nombre..."
+          [value]="termino()"
+          (input)="actualizarTermino($any($event.target).value)"
+          (keyup.enter)="buscar()"
+        />
+        <button type="button" class="btn btn--primary buscador__boton" (click)="buscar()">Buscar</button>
+      </div>
+
+      @if (buscando()) {
+        <div class="resultados-lista">
+          @for (i of [1, 2]; track i) {
+            <div class="skeleton-linea"></div>
+          }
+        </div>
+      } @else if (seBusco() && resultados().length === 0) {
+        <div class="state-block">
+          <span class="state-block__title">Sin resultados para "{{ termino() }}".</span>
+        </div>
+      } @else if (resultados().length > 0) {
+        <ul class="resultados-lista">
+          @for (resultado of resultados(); track resultado.producto_variante_id) {
+            <li class="resultado-item">
+              <div class="resultado-item__imagen">
+                @if (resultado.producto.imagen_principal_url) {
+                  <img [src]="resolveMediaUrl(resultado.producto.imagen_principal_url)" [alt]="resultado.producto.nombre" />
+                } @else {
+                  <div class="resultado-item__placeholder">
+                    <app-icon name="products" style="width: 20px; height: 20px" />
+                  </div>
+                }
+              </div>
+              <div class="resultado-item__info">
+                <span class="resultado-item__nombre">{{ resultado.producto.nombre }}</span>
+                <span class="resultado-item__variante">
+                  {{ resultado.variante.color.nombre }} · Talla {{ resultado.variante.talla.nombre }}
+                </span>
+                <span class="resultado-item__stock">Stock disponible: {{ resultado.disponible }}</span>
+              </div>
+              <div class="resultado-item__precios">
+                <span class="resultado-item__precio">Bs {{ resultado.precio_unitario.toFixed(2) }}</span>
+                @if (resultado.en_promocion) {
+                  <span class="precio-descuento">-{{ resultado.porcentaje_descuento }}%</span>
+                }
+              </div>
+              <button
+                type="button"
+                class="btn btn--primary btn--sm"
+                [disabled]="resultado.disponible <= 0"
+                (click)="agregarLinea(resultado)"
+              >
+                Agregar
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="detalle-venta">
+        <span class="detalle-venta__titulo">Detalle de la venta</span>
+
+        @if (lineas().length === 0) {
+          <div class="state-block">
+            <span class="state-block__title">Todavía no agregaste ninguna prenda.</span>
+          </div>
+        } @else {
+          <ul class="lineas-lista">
+            @for (linea of lineas(); track linea.producto_variante_id) {
+              <li class="linea-detalle">
+                <div class="linea-detalle__info">
+                  <span class="linea-detalle__nombre">{{ linea.producto.nombre }}</span>
+                  <span class="linea-detalle__variante">
+                    {{ linea.variante.color.nombre }} · Talla {{ linea.variante.talla.nombre }}
+                  </span>
+                </div>
+
+                <div class="cantidad-control">
+                  <button
+                    type="button"
+                    class="cantidad-control__btn"
+                    [disabled]="linea.cantidad <= 1"
+                    (click)="decrementar(linea)"
+                    aria-label="Disminuir cantidad"
+                  >
+                    −
+                  </button>
+                  <span class="cantidad-control__valor">{{ linea.cantidad }}</span>
+                  <button
+                    type="button"
+                    class="cantidad-control__btn"
+                    [disabled]="linea.cantidad >= linea.disponible"
+                    (click)="incrementar(linea)"
+                    aria-label="Aumentar cantidad"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <span class="linea-detalle__precio">
+                  Bs {{ linea.precio_unitario.toFixed(2) }}
+                  @if (linea.en_promocion) {
+                    <span class="precio-descuento">-{{ linea.porcentaje_descuento }}%</span>
+                  }
+                </span>
+                <span class="linea-detalle__subtotal">Bs {{ (linea.precio_unitario * linea.cantidad).toFixed(2) }}</span>
+
+                <button type="button" class="linea-detalle__eliminar" (click)="eliminarLinea(linea)">Eliminar</button>
+              </li>
+            }
+          </ul>
+
+          <div class="detalle-venta__total">
+            <span>Total</span>
+            <span class="detalle-venta__total-valor">Bs {{ total().toFixed(2) }}</span>
+          </div>
+        }
+
+        <div class="detalle-venta__acciones">
+          <button type="button" class="btn btn--ghost" (click)="onVolverAlPanel()">Volver</button>
+          <button
+            type="button"
+            class="btn btn--primary"
+            [disabled]="lineas().length === 0 || registrando()"
+            (click)="registrarVenta()"
+          >
+            {{ registrando() ? 'Registrando...' : 'Registrar venta' }}
+          </button>
+        </div>
+      </div>
+    } @else if (paso() === 'resumen' && ventaCreada()) {
+      <div class="page-header">
+        <h1>Venta registrada</h1>
+      </div>
+      <app-venta-resumen [venta]="ventaCreada()!" (volver)="onVolverAlPanel()" (continuarPago)="abrirModalPago()" />
+    }
+  </div>
+
+@if (modalPagoAbierto() && ventaCreada()) {
+  <app-procesar-pago
+    [venta]="ventaCreada()!"
+    (cerrar)="cerrarModalPago()"
+    (pagoRegistrado)="onPagoRegistrado()"
+    (nuevaVenta)="onNuevaVentaDesdeModal()"
+  />
+}

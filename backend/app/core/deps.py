@@ -41,6 +41,29 @@ def get_current_usuario(
     return usuario
 
 
+def get_current_usuario_opcional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
+    db: Session = Depends(get_db),
+) -> Usuario | None:
+    """Igual que get_current_usuario, pero nunca exige sesión -- para
+    endpoints públicos que, SI existe un token válido, personalizan la
+    respuesta (primer consumidor: CU29, el asistente funciona igual para
+    Invitado y Cliente). Sin token, con un token inválido/expirado, o con un
+    usuario inactivo, devuelve None en vez de un 401 -- nunca bloquea el
+    endpoint."""
+    if credentials is None:
+        return None
+    try:
+        payload = decode_access_token(credentials.credentials)
+    except jwt.PyJWTError:
+        return None
+    usuario_id = payload.get("sub")
+    usuario = UsuarioRepository(db).get_by_id(int(usuario_id)) if usuario_id else None
+    if usuario is None or not usuario.is_active:
+        return None
+    return usuario
+
+
 def require_roles(*roles: RolUsuario):
     """Dependencia factory: exige sesión válida Y uno de los roles indicados."""
 

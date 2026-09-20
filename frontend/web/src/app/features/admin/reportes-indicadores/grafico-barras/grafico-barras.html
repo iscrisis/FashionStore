@@ -1,0 +1,11 @@
+<div class="barras">
+  @for (item of items(); track item.etiqueta) {
+    <div class="barra-fila">
+      <span class="barra-fila__etiqueta">{{ item.etiqueta }}</span>
+      <div class="barra-fila__pista">
+        <div class="barra-fila__relleno" [style.width.%]="porcentaje(item.valor)"></div>
+      </div>
+      <span class="barra-fila__valor">{{ item.valorTexto ?? item.valor }}</span>
+    </div>
+  }
+</div>

@@ -1,0 +1,45 @@
+:host {
+  display: block;
+}
+
+// Estados propios de CU32 -- PROGRAMADA/ACTIVA/FINALIZADA (DESACTIVADA
+// reutiliza el .badge--inactive global, mismo criterio que el resto del
+// panel de Administrador).
+.badge--programada {
+  background: color-mix(in srgb, var(--color-primary) 10%, white);
+  color: var(--color-primary);
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-primary);
+  }
+}
+
+.badge--activa {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-success-text);
+  }
+}
+
+.badge--finalizada {
+  background: var(--color-inactive-bg);
+  color: var(--color-inactive-text);
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-inactive-text);
+  }
+}

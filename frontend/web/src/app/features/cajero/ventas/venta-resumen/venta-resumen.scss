@@ -1,0 +1,178 @@
+:host {
+  display: block;
+}
+
+.venta-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 22px;
+}
+
+.venta-resumen__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.venta-resumen__titulo {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.venta-resumen__codigo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.venta-resumen__reserva {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  padding: 10px 14px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.venta-resumen__reserva-item strong {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.venta-resumen__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.linea-venta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  & + & {
+    padding-top: 12px;
+    border-top: 1px dashed var(--color-border);
+  }
+}
+
+.linea-venta__imagen {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-card-bg);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.linea-venta__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.linea-venta__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.linea-venta__nombre {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text);
+  overflow-wrap: break-word;
+}
+
+.linea-venta__variante {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.linea-venta__subtotal {
+  flex-shrink: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.venta-resumen__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.venta-resumen__total-valor {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+// Botones perfectamente centrados (texto + alto coherente): el .btn global
+// (styles.scss) ya trae display:inline-flex + align-items:center, pero no
+// justify-content -- aquí SÍ se estiran (min-width), así que se corrige
+// localmente, sin tocar el .btn compartido.
+.venta-resumen__acciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 170px;
+  }
+}
+
+@media (max-width: 560px) {
+  .venta-resumen {
+    padding: 16px;
+  }
+
+  .venta-resumen__acciones {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    .btn {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+}

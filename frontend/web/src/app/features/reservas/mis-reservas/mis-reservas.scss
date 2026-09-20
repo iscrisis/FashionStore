@@ -1,0 +1,297 @@
+:host {
+  display: block;
+}
+
+.mis-reservas-page {
+  padding-top: 24px;
+  padding-bottom: 48px;
+}
+
+.page-header {
+  margin-bottom: 20px;
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+}
+
+// Tabs de CU18 -- Pendientes/Atendidas/Canceladas. flex-wrap en vez de un
+// scroller horizontal: en pantallas angostas las tabs simplemente pasan a una
+// segunda fila, nunca fuerzan scroll lateral de la página.
+.tabs-reserva {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.tab-reserva {
+  padding: 9px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-white);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+
+  &:hover:not(.is-active) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  &.is-active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+  }
+}
+
+.reservas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+// Una tarjeta = una reserva (cabecera): código + sucursal + fecha/horario
+// arriba, y la lista de prendas (`detalles`) debajo -- nunca una tarjeta por
+// prenda (ver Models/reserva.py en el backend).
+.reserva-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 14px;
+  transition: box-shadow var(--transition-fast);
+
+  &:hover {
+    box-shadow: var(--shadow-medium);
+  }
+}
+
+.reserva-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reserva-card__header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.reserva-card__codigo {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.reserva-card__sucursal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--color-text);
+
+  app-icon {
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+}
+
+.reserva-card__horario {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.reserva-card__estado {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+// Estados "activos" (CU20 -- Atender reserva): mismo tratamiento rojo suave
+// que PENDIENTE -- todos viven en la misma pestaña "Pendientes" de CU18 y
+// significan lo mismo para el Cliente: la reserva sigue en curso.
+.reserva-card__estado--pendiente,
+.reserva-card__estado--preparada,
+.reserva-card__estado--en_atencion,
+.reserva-card__estado--lista_para_caja {
+  background: color-mix(in srgb, var(--color-primary) 12%, white);
+  color: var(--color-primary);
+}
+
+.reserva-card__estado--atendida {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+// CANCELADA y VENCIDA comparten pestaña ("Canceladas", ver mis-reservas.ts)
+// y el mismo tratamiento gris -- el texto de cada una (ver estado-reserva.ts)
+// ya las distingue claramente.
+.reserva-card__estado--cancelada,
+.reserva-card__estado--vencida {
+  background: var(--color-inactive-bg);
+  color: var(--color-inactive-text);
+}
+
+// Lista de prendas dentro de la reserva -- una fila por ReservaDetalle.
+.reserva-card__detalles-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.detalle-prenda {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  & + & {
+    padding-top: 10px;
+    border-top: 1px dashed var(--color-border);
+  }
+}
+
+.detalle-prenda__imagen {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-card-bg);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.detalle-prenda__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.detalle-prenda__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detalle-prenda__nombre {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text);
+  overflow-wrap: break-word;
+}
+
+.detalle-prenda__variante {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.detalle-prenda__estado {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.detalle-prenda__estado--pendiente,
+.detalle-prenda__estado--preparada,
+.detalle-prenda__estado--en_atencion,
+.detalle-prenda__estado--lista_para_caja {
+  background: color-mix(in srgb, var(--color-primary) 12%, white);
+  color: var(--color-primary);
+}
+
+.detalle-prenda__estado--atendida {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.detalle-prenda__estado--cancelada,
+.detalle-prenda__estado--vencida {
+  background: var(--color-inactive-bg);
+  color: var(--color-inactive-text);
+}
+
+.skeleton-card {
+  height: 124px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    var(--color-card-bg) 25%,
+    color-mix(in srgb, var(--color-card-bg) 50%, white) 37%,
+    var(--color-card-bg) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .tab-reserva {
+    flex: 1;
+    text-align: center;
+    padding: 10px 12px;
+  }
+
+  .reservas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detalle-prenda {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .cancelar-btn {
+    margin-left: auto;
+  }
+}

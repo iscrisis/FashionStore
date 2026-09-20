@@ -1,0 +1,51 @@
+<div class="container historial-page">
+  <div class="page-header">
+    <h1>Mis compras</h1>
+    <p>Consulta tus compras realizadas en FashionStore.</p>
+  </div>
+
+  <app-filtro-historial (filtrar)="cargar($event)" />
+
+  @if (cargando()) {
+    <div class="compras-grid">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skeleton-card"></div>
+      }
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudo cargar tu información</span>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  } @else if (compras().length === 0) {
+    <div class="state-block">
+      <app-icon name="bag" style="width: 28px; height: 28px" />
+      <span class="state-block__title">No se encontraron compras.</span>
+    </div>
+  } @else {
+    <div class="compras-grid">
+      @for (compra of compras(); track compra.venta_id) {
+        <article class="compra-card">
+          <div class="compra-card__header">
+            <span class="compra-card__codigo">{{ compra.codigo_venta }}</span>
+            @if (compra.leyenda_postventa) {
+              <span class="compra-card__leyenda">{{ compra.leyenda_postventa }}</span>
+            }
+          </div>
+
+          <div class="compra-card__datos">
+            <span>{{ fecha(compra.fecha) }}</span>
+            <span>{{ compra.sucursal.nombre }}</span>
+            <span>{{ etiquetaTipo(compra.tipo) }}</span>
+            <span>{{ etiquetaMetodo(compra.metodo_pago) }}</span>
+          </div>
+
+          <div class="compra-card__footer">
+            <span class="compra-card__total">Bs {{ compra.total.toFixed(2) }}</span>
+            <a [routerLink]="['/comprobante', compra.venta_id]" class="btn btn--primary btn--sm">Ver</a>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>

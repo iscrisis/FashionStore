@@ -1,0 +1,109 @@
+<div class="container mis-reservas-page">
+  <div class="page-header">
+    <h1>Mis reservas</h1>
+    <p>Consulta el estado de las prendas que has reservado en nuestras sucursales.</p>
+  </div>
+
+  <div class="tabs-reserva" role="tablist">
+    @for (tab of tabs; track tab.key) {
+      <button
+        type="button"
+        class="tab-reserva"
+        role="tab"
+        [class.is-active]="tabActiva() === tab.key"
+        [attr.aria-selected]="tabActiva() === tab.key"
+        (click)="seleccionarTab(tab.key)"
+      >
+        {{ tab.etiqueta }}
+      </button>
+    }
+  </div>
+
+  @if (cargando()) {
+    <div class="reservas-grid">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skeleton-card"></div>
+      }
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudo cargar tu información</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else if (reservasFiltradas().length === 0) {
+    <div class="state-block">
+      <app-icon name="reservations" style="width: 28px; height: 28px" />
+      <span class="state-block__title">{{ mensajeVacio }}</span>
+    </div>
+  } @else {
+    <div class="reservas-grid">
+      @for (reserva of reservasFiltradas(); track reserva.id) {
+        <article class="reserva-card">
+          <div class="reserva-card__header">
+            <div class="reserva-card__header-top">
+              <span class="reserva-card__codigo">Reserva {{ reserva.codigo_reserva }}</span>
+              <span
+                class="reserva-card__estado"
+                [class]="'reserva-card__estado--' + reserva.estado_general.toLowerCase()"
+              >
+                {{ etiquetaEstadoReserva(reserva.estado_general) }}
+              </span>
+            </div>
+
+            <div class="reserva-card__sucursal">
+              <app-icon name="branches" style="width: 13px; height: 13px" />
+              <span>{{ reserva.sucursal.nombre }} · {{ reserva.sucursal.ciudad.nombre }}</span>
+            </div>
+
+            <div class="reserva-card__horario">
+              <span>{{ fecha(reserva) }}</span>
+              <span>{{ horario(reserva) }}</span>
+            </div>
+          </div>
+
+          <ul class="reserva-card__detalles-lista">
+            @for (detalle of reserva.detalles; track detalle.id) {
+              <li class="detalle-prenda">
+                <div class="detalle-prenda__imagen">
+                  @if (detalle.producto.imagen_principal_url) {
+                    <img
+                      [src]="resolveMediaUrl(detalle.producto.imagen_principal_url)"
+                      [alt]="detalle.producto.nombre"
+                    />
+                  } @else {
+                    <div class="detalle-prenda__placeholder">
+                      <app-icon name="products" style="width: 20px; height: 20px" />
+                    </div>
+                  }
+                </div>
+
+                <div class="detalle-prenda__info">
+                  <span class="detalle-prenda__nombre">{{ detalle.producto.nombre }}</span>
+                  <span class="detalle-prenda__variante">
+                    {{ detalle.variante.color.nombre }} · Talla {{ detalle.variante.talla.nombre }}
+                    @if (detalle.cantidad > 1) {
+                      · x{{ detalle.cantidad }}
+                    }
+                  </span>
+                  <span
+                    class="detalle-prenda__estado"
+                    [class]="'detalle-prenda__estado--' + detalle.estado.toLowerCase()"
+                  >
+                    {{ etiquetaEstadoReserva(detalle.estado) }}
+                  </span>
+                </div>
+
+                <app-cancelar-reserva
+                  [reserva]="reserva"
+                  [detalle]="detalle"
+                  (cancelada)="onDetalleCancelado(reserva.id, $event)"
+                />
+              </li>
+            }
+          </ul>
+        </article>
+      }
+    </div>
+  }
+</div>

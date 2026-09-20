@@ -1,0 +1,337 @@
+:host {
+  display: block;
+}
+
+.finalizar-compra-page {
+  padding-top: 28px;
+  padding-bottom: 56px;
+  display: flex;
+  justify-content: center;
+}
+
+// Mismo criterio que mi-carrito.scss (CU21): ancho propio, más angosto que
+// el .container general (1440px) -- un resumen de compra se lee mejor
+// centrado y contenido.
+.finalizar-compra-ancho {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.page-header {
+  text-align: center;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 13.5px;
+    color: var(--color-text-secondary);
+  }
+}
+
+.item-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item-linea {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.item-linea__imagen {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-card-bg);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.item-linea__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.item-linea__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.item-linea__nombre {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  overflow-wrap: break-word;
+}
+
+.item-linea__variante {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.item-linea__precio {
+  flex-shrink: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+// CU32 -- Gestionar promociones: solo aparecen cuando `en_promocion` es
+// true -- sin promoción, se ve exactamente igual que antes (un solo
+// .item-linea__precio).
+.item-linea__precios {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.precio-anterior {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+  white-space: nowrap;
+}
+
+.precio-descuento {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 12%, white);
+  color: var(--color-primary);
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.compra-resumen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.compra-resumen__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.compra-resumen__valor {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+// Botones de acción de CU22 -- el .btn global (styles.scss) ya trae
+// `display: inline-flex; align-items: center`, pero NO `justify-content`
+// (nunca hacía falta: en el resto del sitio estos botones se ciñen a su
+// propio contenido). Aquí SÍ se estiran (min-width / width: 100% en móvil),
+// así que sin justify-content:center el texto queda pegado a la izquierda
+// del botón en vez de centrado -- se corrige localmente, sin tocar el .btn
+// compartido (fuera de alcance de CU22).
+.paso-siguiente,
+.paso-anterior {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  min-width: 240px;
+}
+
+.campo-ciudad {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo-ciudad__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.campo-ciudad__select {
+  padding: 11px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  font-size: 14px;
+  color: var(--color-text);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
+}
+
+.sucursal-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sucursal-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 18px;
+  background: var(--color-white);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  text-align: left;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-medium);
+  }
+
+  &--no-disponible {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.sucursal-card__nombre {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.sucursal-card__direccion {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.sucursal-card__aviso {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-danger);
+}
+
+.sucursal-elegida {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 18px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.sucursal-elegida__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.sucursal-elegida__nombre {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.sucursal-elegida__direccion {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.acciones-confirmacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 180px;
+  }
+}
+
+.skeleton-item {
+  height: 88px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    var(--color-card-bg) 25%,
+    color-mix(in srgb, var(--color-card-bg) 50%, white) 37%,
+    var(--color-card-bg) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+
+  &--sm {
+    height: 64px;
+  }
+}
+
+@media (max-width: 560px) {
+  .finalizar-compra-page {
+    padding-top: 20px;
+  }
+
+  .item-linea {
+    padding: 12px 14px;
+  }
+
+  .paso-siguiente,
+  .paso-anterior {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .acciones-confirmacion {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    .btn {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+}

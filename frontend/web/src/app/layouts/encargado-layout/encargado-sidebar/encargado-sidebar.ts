@@ -26,11 +26,15 @@ export class EncargadoSidebar {
   // "Movimientos de inventario" es CU16: ajustes manuales justificados
   // (positivos/negativos) sobre ese mismo stock, con trazabilidad -- distinto
   // de CU15 (recepción de proveedor).
+  // "Reservas" es CU20: atender (preparar/confirmar llegada/finalizar/enviar
+  // a caja) las reservas de prendas (CU17) hechas por Clientes en SU
+  // sucursal -- panel de solo esa sucursal, resuelta siempre del token.
   protected readonly navItems: EncargadoNavItem[] = [
     { label: 'Inicio', icon: 'dashboard', route: '/encargado', exact: true },
     { label: 'Inventario', icon: 'inventory', route: '/encargado/inventario' },
     { label: 'Recepción de mercadería', icon: 'suppliers', route: '/encargado/recepcion-mercaderia' },
     { label: 'Movimientos de inventario', icon: 'edit', route: '/encargado/movimientos-inventario' },
+    { label: 'Reservas', icon: 'reservations', route: '/encargado/reservas' },
     { label: 'Mi perfil', icon: 'user', route: '/encargado/mi-perfil' },
   ];
 }

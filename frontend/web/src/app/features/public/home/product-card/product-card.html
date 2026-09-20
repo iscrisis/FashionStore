@@ -24,6 +24,14 @@
   <div class="card__info">
     <span class="card__coleccion">{{ product().coleccion.nombre }}</span>
     <span class="card__name">{{ product().nombre }}</span>
-    <span class="card__price">Bs {{ product().precio_venta.toFixed(2) }}</span>
+    <div class="card__precios">
+      @if (product().en_promocion) {
+        <span class="precio-anterior">Bs {{ product().precio_base.toFixed(2) }}</span>
+      }
+      <span class="card__price">Bs {{ product().precio_final.toFixed(2) }}</span>
+      @if (product().en_promocion) {
+        <span class="precio-descuento">-{{ product().porcentaje_descuento }}%</span>
+      }
+    </div>
   </div>
 </a>

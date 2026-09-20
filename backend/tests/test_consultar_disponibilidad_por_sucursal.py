@@ -275,3 +275,43 @@ def test_disponibilidad_producto_inexistente_devuelve_404():
 def test_disponibilidad_requiere_producto_id():
     response = client.get("/api/v1/disponibilidad")
     assert response.status_code == 422
+
+
+def test_disponibilidad_resta_stock_reservado_del_stock_actual():
+    """CU17 (crear reserva) compromete stock_reservado sin tocar `cantidad`
+    (el físico) -- la disponibilidad pública de CU12 debe reflejar
+    `cantidad - stock_reservado`, nunca el físico crudo (ver
+    repository.py cantidades_por_variantes)."""
+    escenario = _DisponibilidadDePrueba()
+    try:
+        db = SessionLocal()
+        try:
+            fila = (
+                db.query(StockSucursal)
+                .filter(
+                    StockSucursal.sucursal_id == escenario.sucursal_a.id,
+                    StockSucursal.producto_variante_id == escenario.variante_rojo_m.id,
+                )
+                .first()
+            )
+            fila.stock_reservado = 5  # Rojo/M en sucursal A tiene cantidad=5.
+            db.commit()
+        finally:
+            db.close()
+
+        response = client.get(
+            "/api/v1/disponibilidad", params={"producto_id": escenario.producto.id}
+        )
+        sucursales = {fila["sucursal_id"]: fila for fila in response.json()["disponibilidad"]}
+        variantes_a = {
+            (v["color"], v["talla"]): v["cantidad"] for v in sucursales[escenario.sucursal_a.id]["variantes"]
+        }
+        # cantidad=5, stock_reservado=5 -> disponible=0, aunque el físico
+        # siga siendo 5 -- debe mostrarse como agotado (0), no como 5.
+        assert variantes_a[(escenario.color_rojo.nombre, escenario.talla_m.nombre)] == 0
+
+        # Rojo/L en la sucursal A no tiene ninguna reserva -- sigue mostrando
+        # su cantidad física completa, sin verse afectado por la otra fila.
+        assert variantes_a[(escenario.color_rojo.nombre, escenario.talla_l.nombre)] == 3
+    finally:
+        escenario.cleanup()

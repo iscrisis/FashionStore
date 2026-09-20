@@ -63,7 +63,15 @@
         <!-- Código de producto: ProductoPublico no expone ese campo (ver
              catalogo.model.ts) -- se omite en vez de inventarlo. -->
 
-        <span class="info__precio">Bs {{ producto()!.precio_venta.toFixed(2) }}</span>
+        <div class="info__precios">
+          @if (producto()!.en_promocion) {
+            <span class="precio-anterior">Bs {{ producto()!.precio_base.toFixed(2) }}</span>
+          }
+          <span class="info__precio">Bs {{ producto()!.precio_final.toFixed(2) }}</span>
+          @if (producto()!.en_promocion) {
+            <span class="precio-descuento">-{{ producto()!.porcentaje_descuento }}%</span>
+          }
+        </div>
 
         <!-- Valoración: el modelo actual no expone rating ni reseñas. Se deja
              el espacio listo (sin estrellas ni números inventados) para
@@ -119,6 +127,30 @@
           </div>
         }
 
+        <!-- CU21: "Agregar al carrito" convive con "Reservar" (CU17), sin
+             tocar su lógica -- solo necesita la variante (color+talla) ya
+             elegida arriba, nunca ciudad/sucursal/fecha/hora. -->
+        <app-agregar-carrito
+          [productoVarianteId]="varianteSeleccionadaId()"
+          [returnUrl]="returnUrlCarrito()"
+          [autoAgregarParam]="agregarCarritoParam"
+        />
+
+        <!-- Botón único de CU17: arriba de "Stock por sucursal", después de
+             color y talla. Reacciona a la sucursal que el Cliente elija más
+             abajo (sucursalSeleccionadaId) -- no se mueve ni se repite ahí.
+             Al presionarlo abre el modal "Programar reserva" (fecha +
+             horario), sin navegar a otra pantalla. -->
+        <app-crear-reserva
+          [productoVarianteId]="varianteSeleccionadaId()"
+          [sucursalId]="sucursalSeleccionadaId()"
+          [sucursalNombre]="sucursalSeleccionadaNombre()"
+          [returnUrl]="returnUrlReserva()"
+          [fechaRestaurada]="fechaParam"
+          [horaRestaurada]="horaParam"
+          (reservado)="onReservaCreada()"
+        />
+
         <div class="disponibilidad">
           <div class="disponibilidad__header">
             <span class="info__label">Stock por sucursal</span>
@@ -130,6 +162,8 @@
               >
                 @if (ciudades().length === 0) {
                   <option [ngValue]="null">Sin ciudades disponibles</option>
+                } @else if (ciudadId() === null) {
+                  <option [ngValue]="null" disabled>Selecciona una ciudad</option>
                 }
                 @for (ciudad of ciudades(); track ciudad.id) {
                   <option [ngValue]="ciudad.id">{{ ciudad.nombre }}</option>
@@ -148,12 +182,28 @@
               <span>{{ errorDisponibilidad() }}</span>
               <button type="button" class="btn btn--ghost btn--sm" (click)="loadDisponibilidad()">Reintentar</button>
             </div>
+          } @else if (ciudadId() === null) {
+            <span class="disponibilidad__vacio">Selecciona una ciudad para ver sucursales disponibles.</span>
           } @else if (disponibilidad().length === 0) {
             <span class="disponibilidad__vacio">Sin sucursales en esta ciudad.</span>
           } @else {
             <div class="disponibilidad__sucursales">
               @for (item of disponibilidad(); track item.sucursal_id) {
-                <div class="sucursal-card">
+                @let variante = varianteDe(item);
+                @let disponible = (variante?.cantidad ?? 0) > 0;
+                <!-- Tarjeta seleccionable (un <button>, igual que
+                     .talla-btn/.color-swatch arriba) -- no un radio, un punto
+                     ni un ícono de check: la selección se distingue SOLO por
+                     borde y fondo (.is-seleccionada). No repite color/talla:
+                     ya se eligieron una sola vez arriba. El botón "Reservar"
+                     (CU17) vive una sola vez, arriba de esta lista. -->
+                <button
+                  type="button"
+                  class="sucursal-card"
+                  [class.is-seleccionada]="disponible && sucursalSeleccionadaId() === item.sucursal_id"
+                  [disabled]="!disponible"
+                  (click)="seleccionarSucursal(item.sucursal_id, disponible)"
+                >
                   <div class="sucursal-card__head">
                     <app-icon name="branches" style="width: 14px; height: 14px" />
                     <div class="sucursal-card__head-texto">
@@ -161,22 +211,10 @@
                       <span class="sucursal-card__direccion">{{ item.ciudad }}</span>
                     </div>
                   </div>
-
-                  <!-- Solo la variante (color + talla) elegida arriba -- evita
-                       repetir todas las combinaciones debajo. Misma respuesta
-                       de CU12 para esta sucursal, solo filtrada en la
-                       plantilla por colorSeleccionadoId()/tallaSeleccionadaId(). -->
-                  @for (variante of item.variantes; track variante.talla_id + '-' + variante.color_id) {
-                    @if (variante.color_id === colorSeleccionadoId() && variante.talla_id === tallaSeleccionadaId()) {
-                      <div class="sucursal-card__variante-seleccionada">
-                        <span class="sucursal-card__variante-nombre">{{ variante.color }} - {{ variante.talla }}</span>
-                        <span class="talla-estado" [class.is-disponible]="variante.cantidad > 0">
-                          {{ variante.cantidad > 0 ? 'Disponible' : 'Agotado' }}
-                        </span>
-                      </div>
-                    }
-                  }
-                </div>
+                  <span class="talla-estado" [class.is-disponible]="disponible">
+                    {{ disponible ? 'Disponible' : 'Agotado' }}
+                  </span>
+                </button>
               }
             </div>
           }

@@ -30,9 +30,19 @@ class DisponibilidadLecturaRepository:
         return list(self.db.execute(stmt).scalars().all())
 
     def cantidades_por_variantes(self, variante_ids: list[int]) -> dict[tuple[int, int], int]:
-        """{(sucursal_id, producto_variante_id): cantidad} para las variantes dadas."""
+        """{(sucursal_id, producto_variante_id): disponible} para las variantes
+        dadas. "Disponible" es SIEMPRE cantidad - stock_reservado (nunca el
+        stock físico crudo): stock_reservado lo escribe CU17 al crear una
+        reserva PENDIENTE (ver Models/stock_sucursal.py) -- una unidad
+        reservada no debe seguir apareciendo como disponible para reservar de
+        nuevo, aunque el físico no haya cambiado. Se aplica max(0, ...) por
+        higiene defensiva: si el Encargado (CU14) redujera `cantidad` por
+        debajo de lo ya reservado, esto nunca debe mostrarse como negativo."""
         if not variante_ids:
             return {}
         stmt = select(StockSucursal).where(StockSucursal.producto_variante_id.in_(variante_ids))
         filas = self.db.execute(stmt).scalars().all()
-        return {(fila.sucursal_id, fila.producto_variante_id): fila.cantidad for fila in filas}
+        return {
+            (fila.sucursal_id, fila.producto_variante_id): max(0, fila.cantidad - fila.stock_reservado)
+            for fila in filas
+        }

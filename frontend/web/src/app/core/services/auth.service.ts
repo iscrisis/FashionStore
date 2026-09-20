@@ -8,6 +8,7 @@ import {
   LoginResponse,
   MensajeGenericoResponse,
   MiPerfilResponse,
+  RegistroClienteRequest,
   ResetPasswordRequest,
   RolUsuario,
   Usuario,
@@ -39,6 +40,14 @@ export class AuthService {
     return this.http
       .post<LoginResponse>(`${environment.apiUrl}/auth/login`, { correo, password })
       .pipe(tap((response) => this.guardarSesion(response)));
+  }
+
+  // CU02 -- Registrar cliente. A diferencia de login(), NO guarda sesión ni
+  // token: el backend no emite JWT en este endpoint (ver router.py, CU02 --
+  // "no duplica la emisión de tokens"). El Cliente recién registrado inicia
+  // sesión llamando a login() por separado, desde la pantalla de Login.
+  register(datos: RegistroClienteRequest): Observable<Usuario> {
+    return this.http.post<Usuario>(`${environment.apiUrl}/auth/register`, datos);
   }
 
   // CU03 -- Recuperar contraseña. A diferencia de login(), no guarda sesión

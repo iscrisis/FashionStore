@@ -1,0 +1,10 @@
+<div class="linea-chart">
+  <svg [attr.viewBox]="viewBox" preserveAspectRatio="none" class="linea-chart__svg">
+    <polygon [attr.points]="areaSvg()" class="linea-chart__area" />
+    <polyline [attr.points]="puntosSvg()" class="linea-chart__linea" />
+  </svg>
+  <div class="linea-chart__ejes">
+    <span>{{ primerEtiqueta() }}</span>
+    <span>{{ ultimaEtiqueta() }}</span>
+  </div>
+</div>

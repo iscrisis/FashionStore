@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { Icon } from '../../core/ui/icon/icon';
 import { ToastService } from '../../core/ui/toast/toast.service';
+import { RUTA_POR_ROL } from '../../core/utils/ruta-por-rol';
 
 const TELEFONO_PATTERN = /^[0-9+\-\s()]{6,20}$/;
 
@@ -75,16 +76,20 @@ export class MiPerfil implements OnInit {
     });
   }
 
-  // Esta misma pantalla la usan '/mi-perfil' (Cliente, layout público) y
-  // '/encargado/mi-perfil' (Encargado, dentro de su panel) -- el enlace de
-  // salida debe respetar en cuál está, para que un Encargado autenticado
-  // nunca termine en el layout público desde su propio perfil.
+  // Esta misma pantalla la usan '/mi-perfil' (Cliente, layout público),
+  // '/encargado/mi-perfil', '/proveedor/mi-perfil' y '/cajero/mi-perfil' --
+  // el enlace de salida debe respetar en cuál está, para que ningún rol
+  // interno autenticado termine en el layout público desde su propio
+  // perfil (mismo problema de arquitectura de roles corregido en
+  // login.ts/role.guard.ts: RUTA_POR_ROL cubre los 5 roles).
   protected get destinoVolver(): string {
-    return this.authService.hasRole('ENCARGADO_SUCURSAL') ? '/encargado' : '/';
+    const rol = this.authService.usuario()?.rol;
+    return rol && rol !== 'CLIENTE' ? RUTA_POR_ROL[rol] : '/';
   }
 
   protected get etiquetaVolver(): string {
-    return this.authService.hasRole('ENCARGADO_SUCURSAL') ? 'Volver al panel' : 'Volver a la tienda';
+    const rol = this.authService.usuario()?.rol;
+    return rol && rol !== 'CLIENTE' ? 'Volver al panel' : 'Volver a la tienda';
   }
 
   private mensajeDeError(error: HttpErrorResponse): string {

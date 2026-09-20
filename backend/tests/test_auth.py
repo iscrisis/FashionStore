@@ -104,6 +104,26 @@ def test_login_reutilizable_por_cualquier_actor_humano_incluido_proveedor():
         _delete_test_user(usuario.id)
 
 
+def test_login_con_cajero_devuelve_rol_cajero_sin_reclasificarlo_como_cliente():
+    # Corrige el problema de acceso reportado: CAJERO terminaba viéndose como
+    # un Cliente en Angular. Auditado aquí primero -- el backend nunca fue la
+    # causa (no hay ninguna lógica que reclasifique roles), pero se deja esta
+    # prueba explícita para ese rol puntual además de la genérica de arriba.
+    correo = f"test-{uuid.uuid4().hex[:8]}@fashionstore.com"
+    password = "ClaveSegura123!"
+    usuario = _create_test_user(correo, password, rol=RolUsuario.CAJERO)
+
+    try:
+        response = client.post("/api/v1/auth/login", json={"correo": correo, "password": password})
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["usuario"]["rol"] == "CAJERO"
+        assert body["usuario"]["rol"] != "CLIENTE"
+    finally:
+        _delete_test_user(usuario.id)
+
+
 def test_login_con_usuario_inactivo_es_rechazado():
     correo = f"test-{uuid.uuid4().hex[:8]}@fashionstore.com"
     usuario = _create_test_user(correo, "ClaveSegura123!", is_active=False)

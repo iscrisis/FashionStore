@@ -1,0 +1,155 @@
+@if (!isAuthenticated() || esCliente) {
+  <button
+    type="button"
+    class="btn btn--primary reserva-btn"
+    [disabled]="!haySeleccionBase || verificandoCompatibles()"
+    [title]="haySeleccionBase ? '' : 'Selecciona una sucursal disponible'"
+    (click)="abrir()"
+  >
+    <app-icon name="reservations" style="width: 14px; height: 14px" />
+    {{ verificandoCompatibles() ? 'Un momento...' : 'Reservar' }}
+  </button>
+
+  @if (modalCompatiblesAbierto()) {
+    <div
+      class="reserva-modal-overlay"
+      (click)="cerrarModalCompatibles()"
+      (keydown.escape)="cerrarModalCompatibles()"
+    >
+      <div
+        class="reserva-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="compatibles-modal-titulo"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="reserva-modal__header">
+          <h2 id="compatibles-modal-titulo">Tienes una reserva pendiente en esta sucursal</h2>
+          <button
+            type="button"
+            class="reserva-modal__cerrar"
+            [disabled]="agregando()"
+            (click)="cerrarModalCompatibles()"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="compatibles-lista">
+          @for (reserva of reservasCompatibles(); track reserva.id) {
+            <article class="compatible-card">
+              <div class="compatible-card__info">
+                <span class="compatible-card__codigo">Reserva {{ reserva.codigo_reserva }}</span>
+                <span class="compatible-card__linea">
+                  <app-icon name="branches" style="width: 12px; height: 12px" />
+                  {{ reserva.sucursal.nombre }} · {{ reserva.sucursal.ciudad.nombre }}
+                </span>
+                <span class="compatible-card__linea">
+                  {{ formatearFecha(reserva.fecha_reserva) }} ·
+                  {{ formatearHorario(reserva.hora_inicio, reserva.hora_fin) }}
+                </span>
+                <span class="compatible-card__linea">
+                  {{ reserva.detalles.length }} {{ reserva.detalles.length === 1 ? 'prenda' : 'prendas' }} en esta
+                  reserva
+                </span>
+              </div>
+              <button
+                type="button"
+                class="btn btn--primary btn--sm compatible-card__agregar"
+                [disabled]="agregando()"
+                (click)="elegirAgregarAReserva(reserva)"
+              >
+                {{ agregando() ? 'Agregando...' : 'Agregar a esta reserva' }}
+              </button>
+            </article>
+          }
+        </div>
+
+        <button
+          type="button"
+          class="btn btn--ghost compatibles-modal__otra"
+          [disabled]="agregando()"
+          (click)="elegirProgramarOtraVisita()"
+        >
+          Programar otra visita
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (modalAbierto()) {
+    <div class="reserva-modal-overlay" (click)="cerrar()" (keydown.escape)="cerrar()">
+      <div
+        class="reserva-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reserva-modal-titulo"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="reserva-modal__header">
+          <h2 id="reserva-modal-titulo">Programar reserva</h2>
+          <button type="button" class="reserva-modal__cerrar" (click)="cerrar()" aria-label="Cerrar">✕</button>
+        </div>
+
+        <div class="reserva-modal__sucursal">
+          <app-icon name="branches" style="width: 14px; height: 14px" />
+          <span>{{ sucursalNombre() }}</span>
+        </div>
+
+        <div class="reserva-modal__body">
+          <div class="reserva-modal__seccion">
+            <span class="reserva-modal__label">Fecha</span>
+            <div class="reserva-dias-grid">
+              @for (dia of dias; track dia.iso) {
+                <button
+                  type="button"
+                  class="reserva-dia-btn"
+                  [class.is-selected]="dia.iso === fechaSeleccionada()"
+                  [disabled]="dia.esDomingo"
+                  (click)="seleccionarFecha(dia.iso, dia.esDomingo)"
+                >
+                  <span>{{ dia.etiqueta }}</span>
+                  @if (dia.esDomingo) {
+                    <span class="reserva-dia-btn__nota">No disponible</span>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (fechaSeleccionada()) {
+            <div class="reserva-modal__seccion">
+              <span class="reserva-modal__label">Horario</span>
+              @if (bloquesDisponibles().length === 0) {
+                <span class="reserva-modal__vacio">Sin horarios disponibles ese día.</span>
+              } @else {
+                <div class="horario-list">
+                  @for (bloque of bloquesDisponibles(); track bloque) {
+                    <button
+                      type="button"
+                      class="horario-btn"
+                      [class.is-selected]="bloque === horaSeleccionada()"
+                      (click)="seleccionarHora(bloque)"
+                    >
+                      {{ bloque }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <button
+          type="button"
+          class="btn btn--primary reserva-modal__confirmar"
+          [disabled]="!puedeConfirmar"
+          (click)="confirmar()"
+        >
+          {{ submitting() ? 'Reservando...' : 'Confirmar reserva' }}
+        </button>
+      </div>
+    </div>
+  }
+}

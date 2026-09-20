@@ -1,0 +1,171 @@
+<div class="container finalizar-compra-page">
+  <div class="finalizar-compra-ancho">
+    @if (cargando()) {
+      <div class="item-lista">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="skeleton-item"></div>
+        }
+      </div>
+    } @else if (errorMessage()) {
+      <div class="state-block state-block--error">
+        <span class="state-block__title">No se pudo continuar con la compra</span>
+        <span>{{ errorMessage() }}</span>
+        <a routerLink="/carrito" class="btn btn--primary">Volver al carrito</a>
+      </div>
+    } @else {
+      <!-- Paso 1: FINALIZAR COMPRA -- prendas seleccionadas -->
+      @if (paso() === 'resumen') {
+        <div class="page-header">
+          <h1>Finalizar compra</h1>
+          <p>Revisa las prendas que vas a comprar.</p>
+        </div>
+
+        <div class="item-lista">
+          @for (linea of resumen()!.items; track linea.item_id) {
+            <article class="item-linea">
+              <div class="item-linea__imagen">
+                @if (linea.producto.imagen_principal_url) {
+                  <img
+                    [src]="resolveMediaUrl(linea.producto.imagen_principal_url)"
+                    [alt]="linea.producto.nombre"
+                    loading="lazy"
+                  />
+                } @else {
+                  <div class="item-linea__placeholder">
+                    <app-icon name="products" style="width: 24px; height: 24px" />
+                  </div>
+                }
+              </div>
+              <div class="item-linea__info">
+                <span class="item-linea__nombre">{{ linea.producto.nombre }}</span>
+                <span class="item-linea__variante">{{ linea.variante.color.nombre }} · {{ linea.variante.talla.nombre }}</span>
+              </div>
+              <div class="item-linea__precios">
+                @if (linea.en_promocion) {
+                  <span class="precio-anterior">Bs {{ linea.precio_base.toFixed(2) }}</span>
+                }
+                <span class="item-linea__precio">Bs {{ linea.precio_unitario.toFixed(2) }}</span>
+                @if (linea.en_promocion) {
+                  <span class="precio-descuento">-{{ linea.porcentaje_descuento }}%</span>
+                }
+              </div>
+            </article>
+          }
+        </div>
+
+        <div class="compra-resumen">
+          <span class="compra-resumen__label">Subtotal</span>
+          <span class="compra-resumen__valor">Bs {{ resumen()!.total.toFixed(2) }}</span>
+        </div>
+
+        <button type="button" class="btn btn--primary paso-siguiente" (click)="irAElegirSucursal()">
+          Elegir sucursal de retiro
+        </button>
+      }
+
+      <!-- Paso 2: Ciudad -> Sucursal de retiro -->
+      @if (paso() === 'sucursal') {
+        <div class="page-header">
+          <h1>Sucursal de retiro</h1>
+          <p>Elige la ciudad y la sucursal donde retirarás tu compra.</p>
+        </div>
+
+        <label class="campo-ciudad">
+          <span class="campo-ciudad__label">Ciudad</span>
+          <select class="campo-ciudad__select" (change)="seleccionarCiudad($any($event.target).value)">
+            <option value="">Selecciona una ciudad</option>
+            @for (ciudad of ciudades(); track ciudad.id) {
+              <option [value]="ciudad.id">{{ ciudad.nombre }}</option>
+            }
+          </select>
+        </label>
+
+        @if (cargandoSucursales()) {
+          <div class="item-lista">
+            @for (i of [1, 2]; track i) {
+              <div class="skeleton-item skeleton-item--sm"></div>
+            }
+          </div>
+        } @else if (sucursalesConsultadas() && !haySucursalDisponible) {
+          <div class="state-block state-block--error">
+            <span class="state-block__title">Sin disponibilidad</span>
+            <span>No existe una sucursal con disponibilidad para todas las prendas seleccionadas.</span>
+            <a routerLink="/carrito" class="btn btn--primary">Volver al carrito</a>
+          </div>
+        } @else if (sucursalesConsultadas()) {
+          <div class="sucursal-lista">
+            @for (sucursal of sucursales(); track sucursal.id) {
+              <button
+                type="button"
+                class="sucursal-card"
+                [class.sucursal-card--no-disponible]="!sucursal.disponible_para_compra"
+                [disabled]="!sucursal.disponible_para_compra"
+                (click)="elegirSucursal(sucursal)"
+              >
+                <span class="sucursal-card__nombre">{{ sucursal.nombre }}</span>
+                <span class="sucursal-card__direccion">{{ sucursal.direccion }}</span>
+                @if (!sucursal.disponible_para_compra) {
+                  <span class="sucursal-card__aviso">No disponible para todas las prendas</span>
+                }
+              </button>
+            }
+          </div>
+        }
+
+        <button type="button" class="btn btn--ghost paso-anterior" (click)="volverAResumen()">Volver</button>
+      }
+
+      <!-- Paso 3: RESUMEN DE COMPRA -->
+      @if (paso() === 'confirmacion' && sucursalElegida()) {
+        <div class="page-header">
+          <h1>Resumen de compra</h1>
+        </div>
+
+        <div class="sucursal-elegida">
+          <span class="sucursal-elegida__label">Sucursal de retiro</span>
+          <span class="sucursal-elegida__nombre">{{ sucursalElegida()!.nombre }}</span>
+          <span class="sucursal-elegida__direccion">{{ sucursalElegida()!.direccion }}</span>
+        </div>
+
+        <div class="item-lista">
+          @for (linea of resumen()!.items; track linea.item_id) {
+            <article class="item-linea">
+              <div class="item-linea__imagen">
+                @if (linea.producto.imagen_principal_url) {
+                  <img
+                    [src]="resolveMediaUrl(linea.producto.imagen_principal_url)"
+                    [alt]="linea.producto.nombre"
+                    loading="lazy"
+                  />
+                } @else {
+                  <div class="item-linea__placeholder">
+                    <app-icon name="products" style="width: 24px; height: 24px" />
+                  </div>
+                }
+              </div>
+              <div class="item-linea__info">
+                <span class="item-linea__nombre">{{ linea.producto.nombre }}</span>
+                <span class="item-linea__variante">{{ linea.variante.color.nombre }} · {{ linea.variante.talla.nombre }}</span>
+              </div>
+              <span class="item-linea__precio">Bs {{ linea.precio_unitario.toFixed(2) }}</span>
+            </article>
+          }
+        </div>
+
+        <div class="compra-resumen">
+          <span class="compra-resumen__label">Total</span>
+          <span class="compra-resumen__valor">Bs {{ resumen()!.total.toFixed(2) }}</span>
+        </div>
+
+        <div class="acciones-confirmacion">
+          <button type="button" class="btn btn--ghost" [disabled]="confirmando()" (click)="volverAElegirSucursal()">
+            Volver
+          </button>
+          <button type="button" class="btn btn--primary" [disabled]="confirmando()" (click)="continuarAlPago()">
+            {{ confirmando() ? 'Procesando...' : 'Continuar al pago' }}
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

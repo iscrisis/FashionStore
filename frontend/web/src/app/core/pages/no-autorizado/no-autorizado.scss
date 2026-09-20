@@ -1,0 +1,60 @@
+:host {
+  display: block;
+}
+
+.no-autorizado-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background:
+    radial-gradient(
+      circle at 12% 8%,
+      color-mix(in srgb, var(--color-primary) 7%, transparent) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 88% 92%,
+      color-mix(in srgb, var(--color-primary) 6%, transparent) 0%,
+      transparent 50%
+    ),
+    var(--color-bg);
+}
+
+.no-autorizado-card {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-medium);
+  padding: 40px 36px;
+
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  p {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .no-autorizado-page {
+    padding: 28px 16px;
+  }
+
+  .no-autorizado-card {
+    padding: 32px 24px;
+  }
+}

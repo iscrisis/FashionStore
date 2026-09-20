@@ -2,7 +2,7 @@
   <div class="login-card">
     <a routerLink="/" class="login-card__brand">FASHION<br />STORE</a>
     <h1>Iniciar sesión</h1>
-    <p class="login-card__subtitle">Ingresa tus datos para continuar.</p>
+    <p class="login-card__subtitle">{{ mensajeReserva ?? 'Ingresa tus datos para continuar.' }}</p>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="login-form" novalidate>
       <label class="field" [class.has-error]="form.controls.correo.invalid && form.controls.correo.touched">

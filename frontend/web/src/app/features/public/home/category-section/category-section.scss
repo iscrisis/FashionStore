@@ -4,8 +4,9 @@
 
 .section-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .section-header h2 {
@@ -14,10 +15,17 @@
   color: var(--color-text);
 }
 
+.section-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .section-link {
   font-size: 12px;
   font-weight: 600;
   color: var(--color-primary);
+  white-space: nowrap;
 
   &:hover {
     text-decoration: underline;
@@ -29,6 +37,44 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
+}
+
+// Flechas de scroll -- SOLO se muestran en móvil (ver media query más
+// abajo), y viven en el header (junto a "Ver todas"), NO junto a las
+// tarjetas: así el carril de abajo (.category-grid) usa el 100% del ancho
+// de la sección en vez de que los propios botones le resten espacio --
+// causa real de que las tarjetas se vieran angostas. Discretas, identidad
+// FashionStore (blanco + borde gris, rojo al hover).
+.category-nav {
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.category-carousel__arrow {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  transition: color var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
 }
 
 .skeleton-card {
@@ -53,20 +99,57 @@
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1199px) {
   .category-grid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
-@media (max-width: 780px) {
+// Móvil: la lista deja de ser grid y pasa a UNA fila con scroll horizontal
+// -- swipe táctil o las flechas del header, nunca automático (sin
+// autoplay/dots/loop, ver category-section.ts). Cada tarjeta ocupa
+// prácticamente la mitad del ancho REAL de la sección (igual presencia
+// visual que "Destacados para ti", que usa 2 columnas de grid) -- antes se
+// calculaba sobre un contenedor ya angostado por las flechas, por eso se
+// veían pequeñas.
+@media (max-width: 767px) {
+  .category-nav {
+    display: flex;
+  }
+
   .category-grid {
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    gap: 10px;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  // calc(50% - mitad del gap): dos tarjetas llenan prácticamente todo el
+  // ancho disponible (como el grid de productos), con solo un asomo mínimo
+  // de la tercera como pista de que se puede seguir deslizando.
+  app-category-card {
+    flex: 0 0 calc(50% - 5px);
+    width: calc(50% - 5px);
+    scroll-snap-align: start;
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 479px) {
   .category-grid {
-    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  app-category-card {
+    flex-basis: calc(50% - 4px);
+    width: calc(50% - 4px);
   }
 }

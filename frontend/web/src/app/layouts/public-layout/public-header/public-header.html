@@ -48,6 +48,14 @@
               <a [routerLink]="destinoCuenta" class="account-menu__item" (click)="accountMenuOpen.set(false)">
                 {{ etiquetaCuenta }}
               </a>
+              @if (authService.hasRole('CLIENTE')) {
+                <a routerLink="/mis-reservas" class="account-menu__item" (click)="accountMenuOpen.set(false)">
+                  Mis reservas
+                </a>
+                <a routerLink="/mis-compras" class="account-menu__item" (click)="accountMenuOpen.set(false)">
+                  Mis compras
+                </a>
+              }
               <button type="button" class="account-menu__item account-menu__item--danger" (click)="logout()">
                 Cerrar sesión
               </button>
@@ -60,7 +68,7 @@
           <span class="account-link__label">Iniciar sesión</span>
         </a>
       }
-      <button type="button" class="icon-btn" aria-label="Carrito">
+      <button type="button" class="icon-btn" aria-label="Carrito" (click)="irAlCarrito()">
         <app-icon name="bag" style="width: 18px; height: 18px" />
         @if (cartCount() > 0) {
           <span class="icon-btn__badge">{{ cartCount() }}</span>

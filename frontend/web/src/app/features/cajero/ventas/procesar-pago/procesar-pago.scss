@@ -1,0 +1,401 @@
+:host {
+  display: block;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: color-mix(in srgb, black 45%, transparent);
+  animation: procesar-pago-aparecer 0.15s ease;
+}
+
+@keyframes procesar-pago-aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-ficha {
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-medium);
+  padding: 22px;
+}
+
+.modal-ficha__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-ficha__titulo {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.modal-ficha__cerrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+
+  &:hover {
+    background: var(--color-border);
+    color: var(--color-text);
+  }
+}
+
+.modal-ficha__venta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  padding: 10px 14px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--color-text);
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+.modal-ficha__productos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.producto-linea {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  & + & {
+    padding-top: 10px;
+    border-top: 1px dashed var(--color-border);
+  }
+}
+
+.producto-linea__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.producto-linea__nombre {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  overflow-wrap: break-word;
+}
+
+.producto-linea__variante {
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+}
+
+.producto-linea__subtotal {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.modal-ficha__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.modal-ficha__total-valor {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+// Tarjetas de método -- grandes, claramente seleccionables, sin icono
+// (ninguno de los disponibles hoy representa bien efectivo/tarjeta/QR --
+// no se instala ninguna librería nueva solo por eso, ver app/core/ui/icon).
+.metodos-pago {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.metodo-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 18px 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text);
+  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+
+  &--activo {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 8%, white);
+    color: var(--color-primary);
+    box-shadow: inset 0 0 0 1.5px var(--color-primary);
+  }
+}
+
+.metodo-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+.metodo-detalle__subtitulo {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.metodo-detalle__texto {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.campo__input {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  font-size: 14px;
+  color: var(--color-text);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
+}
+
+.campo-monto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.campo-monto__valor {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.campo-monto__valor--cambio {
+  color: var(--color-text);
+}
+
+.opciones-tarjeta {
+  display: flex;
+  gap: 10px;
+}
+
+.opcion-tarjeta {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+
+  &--activa {
+    border-color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 8%, white);
+    color: var(--color-primary);
+  }
+}
+
+.modal-ficha__confirmar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+// "PAGO REGISTRADO" -- predominio rojo, centrado, mismo criterio que
+// .compra-realizada (CU23) / .carrito-vacio (CU21).
+.pago-registrado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 10px;
+  text-align: center;
+
+  app-icon {
+    color: var(--color-primary);
+    margin-bottom: 4px;
+  }
+}
+
+.pago-registrado__titulo {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.pago-registrado__codigo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.03em;
+}
+
+.pago-registrado__total {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.pago-registrado__metodo,
+.pago-registrado__cambio {
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+}
+
+.pago-registrado__comprobante {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.pago-registrado__comprobante-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+  width: 100%;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+  }
+}
+
+.pago-registrado__acciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+  width: 100%;
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-ficha {
+    max-width: none;
+    width: 100%;
+    max-height: 92vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .metodos-pago {
+    grid-template-columns: 1fr;
+  }
+
+  .opciones-tarjeta {
+    flex-direction: column;
+  }
+
+  .pago-registrado__acciones {
+    flex-direction: column-reverse;
+
+    .btn {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+}

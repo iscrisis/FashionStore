@@ -1,0 +1,65 @@
+@if (puedeCancelar) {
+  <button type="button" class="btn btn--primary btn--sm cancelar-btn" (click)="abrir()">
+    Cancelar
+  </button>
+
+  @if (modalAbierto()) {
+    <div class="cancelar-modal-overlay" (click)="cerrar()" (keydown.escape)="cerrar()">
+      <div
+        class="cancelar-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cancelar-modal-titulo"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="cancelar-modal__header">
+          <h2 id="cancelar-modal-titulo">¿Deseas cancelar esta prenda?</h2>
+          <button type="button" class="cancelar-modal__cerrar" (click)="cerrar()" aria-label="Cerrar">✕</button>
+        </div>
+
+        <div class="cancelar-modal__resumen">
+          <div class="cancelar-modal__imagen">
+            @if (detalle().producto.imagen_principal_url) {
+              <img
+                [src]="resolveMediaUrl(detalle().producto.imagen_principal_url)"
+                [alt]="detalle().producto.nombre"
+              />
+            } @else {
+              <div class="cancelar-modal__placeholder">
+                <app-icon name="products" style="width: 22px; height: 22px" />
+              </div>
+            }
+          </div>
+          <div class="cancelar-modal__datos">
+            <span class="cancelar-modal__nombre">{{ detalle().producto.nombre }}</span>
+            <span class="cancelar-modal__linea">Reserva {{ reserva().codigo_reserva }}</span>
+            <span class="cancelar-modal__linea">
+              <app-icon name="branches" style="width: 12px; height: 12px" />
+              {{ reserva().sucursal.nombre }} · {{ reserva().sucursal.ciudad.nombre }}
+            </span>
+            <span class="cancelar-modal__linea">{{ fecha }} · {{ horario }}</span>
+          </div>
+        </div>
+
+        <div class="cancelar-modal__acciones">
+          <button
+            type="button"
+            class="btn btn--ghost cancelar-modal__volver"
+            [disabled]="cancelando()"
+            (click)="cerrar()"
+          >
+            Volver
+          </button>
+          <button
+            type="button"
+            class="btn btn--primary cancelar-modal__confirmar"
+            [disabled]="cancelando()"
+            (click)="confirmar()"
+          >
+            {{ cancelando() ? 'Cancelando...' : 'Cancelar prenda' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+}

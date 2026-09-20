@@ -1,0 +1,232 @@
+:host {
+  display: block;
+}
+
+.cajero-content {
+  padding: 0;
+}
+
+.page-header {
+  margin-bottom: 20px;
+
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+}
+
+// CU24 -- acción "+ Nueva venta" arriba de la lista, sin tocar el resto del
+// encabezado.
+.page-header--con-accion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.page-header__accion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+// Tarjetas -- mismo patrón visual que el panel del Encargado
+// (features/encargado/reservas/reservas.scss): una tarjeta = una reserva,
+// con sus prendas para caja anidadas debajo. Sin ninguna acción: esta
+// pantalla es puramente de consulta.
+.reservas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.reserva-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 14px;
+  transition: box-shadow var(--transition-fast);
+
+  &:hover {
+    box-shadow: var(--shadow-medium);
+  }
+}
+
+.reserva-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reserva-card__header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.reserva-card__codigo {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.reserva-card__cliente {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--color-text);
+
+  app-icon {
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+}
+
+.reserva-card__horario {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.reserva-card__estado {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--color-primary) 12%, white);
+  color: var(--color-primary);
+}
+
+.reserva-card__detalles-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.detalle-prenda {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  & + & {
+    padding-top: 10px;
+    border-top: 1px dashed var(--color-border);
+  }
+}
+
+.detalle-prenda__imagen {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-card-bg);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.detalle-prenda__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.detalle-prenda__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detalle-prenda__nombre {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text);
+  overflow-wrap: break-word;
+}
+
+.detalle-prenda__variante {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+// CU24 -- botón propio de la tarjeta, separado del resto (nunca toda la
+// tarjeta clicable): texto perfectamente centrado, mismo alto que el resto
+// de los botones .btn.
+.reserva-card__cargar-venta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  margin-top: 2px;
+}
+
+.skeleton-card {
+  height: 124px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    90deg,
+    var(--color-card-bg) 25%,
+    color-mix(in srgb, var(--color-card-bg) 50%, white) 37%,
+    var(--color-card-bg) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .reservas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detalle-prenda {
+    flex-wrap: wrap;
+  }
+
+  .page-header__accion {
+    width: 100%;
+  }
+}

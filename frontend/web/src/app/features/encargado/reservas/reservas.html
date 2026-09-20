@@ -1,0 +1,200 @@
+<div class="reservas-page">
+  <div class="page-header">
+    <h1>Reservas</h1>
+    <p>Gestiona las reservas de prendas de tu sucursal.</p>
+  </div>
+
+  <div class="grupos-reserva" role="tablist">
+    @for (grupo of grupos; track grupo.key) {
+      <button
+        type="button"
+        class="grupo-reserva"
+        role="tab"
+        [class.is-active]="grupoActivo() === grupo.key"
+        [attr.aria-selected]="grupoActivo() === grupo.key"
+        (click)="seleccionarGrupo(grupo.key)"
+      >
+        {{ grupo.etiqueta }}
+      </button>
+    }
+  </div>
+
+  @if (cargando()) {
+    <div class="reservas-grid">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skeleton-card"></div>
+      }
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-block state-block--error">
+      <span class="state-block__title">No se pudo cargar el panel</span>
+      <span>{{ errorMessage() }}</span>
+      <button type="button" class="btn btn--ghost btn--sm" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else if (reservasFiltradas().length === 0) {
+    <div class="state-block">
+      <app-icon name="reservations" style="width: 28px; height: 28px" />
+      <span class="state-block__title">{{ mensajeVacio }}</span>
+    </div>
+  } @else {
+    <div class="reservas-grid">
+      @for (reserva of reservasFiltradas(); track reserva.id) {
+        <article class="reserva-card">
+          <div class="reserva-card__header">
+            <div class="reserva-card__header-top">
+              <span class="reserva-card__codigo">Reserva {{ reserva.codigo_reserva }}</span>
+              <span
+                class="reserva-card__estado"
+                [class]="'reserva-card__estado--' + reserva.estado_general.toLowerCase()"
+              >
+                {{ etiquetaEstado(reserva.estado_general) }}
+              </span>
+            </div>
+
+            <div class="reserva-card__cliente">
+              <app-icon name="user" style="width: 13px; height: 13px" />
+              <span>{{ reserva.cliente.nombre }}</span>
+            </div>
+
+            <div class="reserva-card__horario">
+              <span>{{ fecha(reserva) }}</span>
+              <span>{{ horario(reserva) }}</span>
+            </div>
+
+            @if (reserva.estado_general === 'PENDIENTE' || reserva.estado_general === 'PREPARADA') {
+              <button
+                type="button"
+                class="btn btn--primary btn--sm reserva-card__confirmar-llegada"
+                [disabled]="confirmandoLlegadaId() === reserva.id"
+                (click)="confirmarLlegada(reserva)"
+              >
+                {{ confirmandoLlegadaId() === reserva.id ? 'Confirmando...' : 'Confirmar llegada' }}
+              </button>
+            }
+          </div>
+
+          <ul class="reserva-card__detalles-lista">
+            @for (detalle of reserva.detalles; track detalle.id) {
+              <li class="detalle-prenda">
+                <div class="detalle-prenda__imagen">
+                  @if (detalle.producto.imagen_principal_url) {
+                    <img
+                      [src]="resolveMediaUrl(detalle.producto.imagen_principal_url)"
+                      [alt]="detalle.producto.nombre"
+                    />
+                  } @else {
+                    <div class="detalle-prenda__placeholder">
+                      <app-icon name="products" style="width: 20px; height: 20px" />
+                    </div>
+                  }
+                </div>
+
+                <div class="detalle-prenda__info">
+                  <span class="detalle-prenda__nombre">{{ detalle.producto.nombre }}</span>
+                  <span class="detalle-prenda__variante">
+                    {{ detalle.variante.color.nombre }} · Talla {{ detalle.variante.talla.nombre }}
+                    @if (detalle.cantidad > 1) {
+                      · x{{ detalle.cantidad }}
+                    }
+                  </span>
+                  <span
+                    class="detalle-prenda__estado"
+                    [class]="'detalle-prenda__estado--' + detalle.estado.toLowerCase()"
+                  >
+                    {{ etiquetaEstado(detalle.estado) }}
+                  </span>
+
+                  <app-atender-reserva
+                    [detalle]="detalle"
+                    [estadoGeneralReserva]="reserva.estado_general"
+                    (actualizada)="onDetalleActualizado(reserva.id, $event)"
+                  />
+                </div>
+              </li>
+            }
+          </ul>
+
+          @if (reserva.estado_general === 'EN_ATENCION') {
+            <button
+              type="button"
+              class="btn btn--primary reserva-card__finalizar"
+              [disabled]="!puedeFinalizarAtencion(reserva)"
+              [title]="puedeFinalizarAtencion(reserva) ? '' : 'Todavía hay prendas sin una decisión.'"
+              (click)="abrirModalFinalizar(reserva)"
+            >
+              Finalizar atención
+            </button>
+          }
+        </article>
+      }
+    </div>
+  }
+
+  @if (reservaAFinalizar(); as reserva) {
+    <div class="reserva-modal-overlay" (click)="cerrarModalFinalizar()" (keydown.escape)="cerrarModalFinalizar()">
+      <div
+        class="reserva-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="finalizar-modal-titulo"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="reserva-modal__header">
+          <h2 id="finalizar-modal-titulo">¿Finalizar la atención de esta reserva?</h2>
+          <button
+            type="button"
+            class="reserva-modal__cerrar"
+            [disabled]="finalizando()"
+            (click)="cerrarModalFinalizar()"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="reserva-modal__body">
+          @if (detallesParaCaja(reserva).length > 0) {
+            <div class="reserva-modal__seccion">
+              <span class="reserva-modal__label">Para caja</span>
+              <ul class="finalizar-resumen-lista">
+                @for (detalle of detallesParaCaja(reserva); track detalle.id) {
+                  <li>{{ detalle.producto.nombre }} · {{ detalle.variante.color.nombre }} {{ detalle.variante.talla.nombre }}</li>
+                }
+              </ul>
+            </div>
+          }
+
+          @if (detallesNoCompra(reserva).length > 0) {
+            <div class="reserva-modal__seccion">
+              <span class="reserva-modal__label">No comprará</span>
+              <ul class="finalizar-resumen-lista">
+                @for (detalle of detallesNoCompra(reserva); track detalle.id) {
+                  <li>{{ detalle.producto.nombre }} · {{ detalle.variante.color.nombre }} {{ detalle.variante.talla.nombre }}</li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+
+        <div class="reserva-modal__acciones">
+          <button
+            type="button"
+            class="btn btn--ghost reserva-modal__volver"
+            [disabled]="finalizando()"
+            (click)="cerrarModalFinalizar()"
+          >
+            Volver
+          </button>
+          <button
+            type="button"
+            class="btn btn--primary reserva-modal__confirmar"
+            [disabled]="finalizando()"
+            (click)="confirmarFinalizarAtencion()"
+          >
+            {{ finalizando() ? 'Finalizando...' : 'Finalizar atención' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
