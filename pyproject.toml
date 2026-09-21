@@ -19,6 +19,9 @@ dependencies = [
     "vercel==0.10.0",
     "bcrypt==5.0.0",
     "pyjwt==2.13.0",
+    "stripe==15.6.1",
+    "fpdf2==2.8.8",
+    "google-genai==1.51.0",
 ]
 
 [tool.vercel]
