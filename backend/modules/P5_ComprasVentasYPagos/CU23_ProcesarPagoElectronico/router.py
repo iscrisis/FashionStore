@@ -6,9 +6,18 @@ usuario autenticado), nunca del body: un Cliente jamás puede pagar ni
 verificar el pago de la Venta de otro.
 
 Rutas REST bajo "/pagos". `success_url`/`cancel_url` de Stripe se arman acá
-(no en el service, que no necesita conocer rutas de Angular) apuntando a
-FRONTEND_URL (ya existente, reutilizada -- ver app/core/config.py) +
-"/pago/resultado", con `{CHECKOUT_SESSION_ID}` como placeholder literal que
+(no en el service, que no necesita conocer rutas de Angular ni del esquema
+de Flutter) según `payload.platform`:
+  - "mobile": esquema propio de la app (`fashionstore://pago/resultado`),
+    para que Stripe devuelva al Cliente directo a FashionStore Mobile en vez
+    de abrir la web Angular en su navegador -- ver mobile/android/app/src/
+    main/AndroidManifest.xml (intent-filter que registra ese esquema) y
+    mobile/lib/features/pago_electronico/ (quien lo captura y llama
+    POST /pagos/verificar).
+  - "web" o ausente (Angular nunca manda `platform`, así que cae acá):
+    comportamiento ORIGINAL, sin cambios -- FRONTEND_URL (ver
+    app/core/config.py) + "/pago/resultado".
+En ambos casos, `{CHECKOUT_SESSION_ID}` es el mismo placeholder literal que
 Stripe reemplaza por el id real de la sesión al redirigir de vuelta.
 
 Los mensajes de error nunca exponen el detalle interno de Stripe ni un
@@ -54,9 +63,18 @@ def crear_checkout(
     db: Session = Depends(get_db),
     actor: Usuario = Depends(require_cliente),
 ) -> CheckoutSessionOut:
-    base = settings.FRONTEND_URL.rstrip("/")
-    success_url = f"{base}/pago/resultado?venta_id={payload.venta_id}&session_id={{CHECKOUT_SESSION_ID}}"
-    cancel_url = f"{base}/pago/resultado?venta_id={payload.venta_id}&cancelado=1"
+    if payload.platform == "mobile":
+        # Esquema propio de FashionStore Mobile -- ver docstring del módulo.
+        # Nunca se valida que ese esquema esté realmente registrado en el
+        # dispositivo: si no lo estuviera, Stripe simplemente no podría abrir
+        # la URL de retorno al terminar, lo mismo que pasaría con cualquier
+        # deep link mal configurado -- no es responsabilidad de este backend.
+        success_url = f"fashionstore://pago/resultado?venta_id={payload.venta_id}&session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"fashionstore://pago/resultado?venta_id={payload.venta_id}&cancelado=1"
+    else:
+        base = settings.FRONTEND_URL.rstrip("/")
+        success_url = f"{base}/pago/resultado?venta_id={payload.venta_id}&session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{base}/pago/resultado?venta_id={payload.venta_id}&cancelado=1"
 
     try:
         checkout_url = PagoElectronicoService(db).crear_checkout(

@@ -11,11 +11,20 @@ serializa `Decimal` como STRING por defecto, bug real ya corregido en CU21
 service.py, esto solo cambia cómo se serializa hacia afuera.
 """
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 
 class CrearCheckoutRequest(BaseModel):
     venta_id: int
+    # Agregado para que Flutter reciba de vuelta a la propia app en vez de
+    # a la web Angular (ver router.py:crear_checkout, que arma success_url/
+    # cancel_url según este valor) -- opcional y con default None a
+    # propósito: Angular nunca lo envía, así que su comportamiento queda
+    # exactamente igual que antes (rama "web"). Solo "mobile" cambia algo;
+    # cualquier otro valor (incluido None) se trata como "web".
+    platform: Literal["web", "mobile"] | None = None
 
 
 class CheckoutSessionOut(BaseModel):
