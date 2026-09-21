@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:label="mobile"
+        android:label="FashionStore"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -25,6 +25,21 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- CU23: Procesar pago electrónico. Retorno móvil de Stripe
+                 Checkout. Stripe redirige aquí (fashionstore://pago/resultado
+                 con venta_id y session_id, o con cancelado=1) cuando
+                 POST /pagos/checkout se llamó con "platform": "mobile" (ver
+                 backend/modules/P5_ComprasVentasYPagos/
+                 CU23_ProcesarPagoElectronico/router.py). Esquema propio, sin
+                 verificación de dominio (no es un Android App Link con
+                 autoVerify): no requiere ningún archivo assetlinks.json ni
+                 configuración adicional del lado del backend/dominio. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="fashionstore" android:host="pago"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

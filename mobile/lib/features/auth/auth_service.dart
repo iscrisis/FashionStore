@@ -12,10 +12,16 @@ import 'models/usuario_sesion.dart';
 /// se le pide que cambie el rol, Flutter simplemente rechaza la sesión móvil.
 class RolNoPermitidoError implements Exception {}
 
-/// CU02 -- ya existe una cuenta con ese correo (mismo caso que
-/// CorreoYaRegistradoError en el backend, ver
-/// CU02_RegistrarCliente/service.py -> 409).
+/// CU02/CU04 -- ya existe una cuenta con ese correo (mismo caso que
+/// CorreoYaRegistradoError en el backend, ver CU02_RegistrarCliente/
+/// service.py y CU04_ActualizarPerfil/service.py -> 409 en ambos).
 class CorreoYaRegistradoError implements Exception {}
+
+/// No hay token guardado, o FastAPI respondió 401 al usarlo (expiró o ya no
+/// es válido) -- en ambos casos la sesión ya se limpió (TokenStorage) y la
+/// UI debe tratarlo exactamente como "no hay sesión", nunca como un error
+/// de red genérico.
+class SesionExpiradaError implements Exception {}
 
 /// CU01 -- Iniciar sesión. Reutiliza el mismo `POST /auth/login` que ya usa
 /// Angular (frontend/web/.../auth.service.ts): la respuesta ya trae el
@@ -125,6 +131,93 @@ class AuthService {
       }
       rethrow;
     }
+  }
+
+  /// CU04 -- obtener mi perfil (`GET /auth/me`). Requiere el JWT guardado;
+  /// devuelve el usuario completo INCLUYENDO `telefono` (CU01/CU02 no lo
+  /// traen) -- por eso Perfil llama esto al abrir, en vez de confiar
+  /// únicamente en lo que ya guardó el login. Un 401 aquí significa que el
+  /// token ya no es válido para FastAPI: se limpia la sesión y se traduce a
+  /// [SesionExpiradaError], nunca a un error de red genérico.
+  Future<UsuarioSesion> obtenerMiPerfil() async {
+    final token = await TokenStorage.getToken();
+    if (token == null) throw SesionExpiradaError();
+
+    try {
+      final data = await _apiClient.get('/auth/me', token: token) as Map<String, dynamic>;
+      return UsuarioSesion.fromJson(data);
+    } on ApiException catch (e) {
+      if (e.statusCode == 401) {
+        await TokenStorage.clearSession();
+        throw SesionExpiradaError();
+      }
+      rethrow;
+    }
+  }
+
+  /// CU04 -- actualizar mi perfil (`PUT /auth/me`). Solo nombre/correo/
+  /// telefono -- el backend ni siquiera acepta un campo `rol` aquí (ver
+  /// ActualizarPerfilRequest, schemas.py), así que Flutter no lo envía.
+  /// Actualiza también la sesión guardada (TokenStorage) con la respuesta
+  /// real del backend, para que un reinicio de la app no muestre datos
+  /// obsoletos.
+  Future<UsuarioSesion> actualizarMiPerfil({
+    required String nombre,
+    required String correo,
+    required String telefono,
+  }) async {
+    final token = await TokenStorage.getToken();
+    if (token == null) throw SesionExpiradaError();
+
+    try {
+      final data = await _apiClient.put(
+        '/auth/me',
+        token: token,
+        body: {'nombre': nombre, 'correo': correo, 'telefono': telefono},
+      ) as Map<String, dynamic>;
+      final actualizado = UsuarioSesion.fromJson(data);
+      await TokenStorage.saveUsuario(jsonEncode(actualizado.toJson()));
+      return actualizado;
+    } on ApiException catch (e) {
+      if (e.statusCode == 401) {
+        await TokenStorage.clearSession();
+        throw SesionExpiradaError();
+      }
+      if (e.statusCode == 409) {
+        throw CorreoYaRegistradoError();
+      }
+      rethrow;
+    }
+  }
+
+  /// CU03 -- Recuperar contraseña (`POST /auth/forgot-password`). El
+  /// backend SIEMPRE responde 200 con el mismo mensaje genérico exista o no
+  /// la cuenta (ver PasswordResetService.solicitar, service.py -- así no se
+  /// puede enumerar cuentas por correo); Flutter nunca debe intentar
+  /// distinguir ese caso. Se devuelve el `message` real del backend en vez
+  /// de uno hardcodeado en Flutter, para no arriesgarse a decir algo
+  /// distinto de lo que el backend realmente hizo.
+  Future<String> solicitarRecuperacion({required String correo}) async {
+    // DIAGNÓSTICO TEMPORAL (CU03) -- el correo no es un dato sensible (a
+    // diferencia de la contraseña), se registra tal cual para confirmar que
+    // lo que sale del TextFormField es exactamente lo que el usuario espera.
+    debugPrint('[CU03] Solicitando recuperación -- correo="$correo" (${correo.length} chars)');
+
+    late final Map<String, dynamic> data;
+    try {
+      data = await _apiClient.post(
+        '/auth/forgot-password',
+        body: {'correo': correo},
+      ) as Map<String, dynamic>;
+    } on ApiException catch (e) {
+      debugPrint('[CU03] forgot-password FALLÓ -- statusCode=${e.statusCode} mensaje="${e.message}"');
+      rethrow;
+    }
+    debugPrint('[CU03] forgot-password OK -- message="${data['message']}"');
+
+    return data['message'] as String? ??
+        'Si existe una cuenta asociada a ese correo, recibirás instrucciones '
+            'para restablecer tu contraseña.';
   }
 
   /// Lee el claim `exp` del JWT (segundo segmento, base64url) sin verificar

@@ -9,6 +9,7 @@ import '../../shared/widgets/auth_header.dart';
 import '../../shared/widgets/primary_button.dart';
 import 'auth_service.dart';
 import 'models/usuario_sesion.dart';
+import 'recuperar_password_page.dart';
 import 'registro_page.dart';
 
 /// CU01 -- Iniciar sesión. Nunca es la pantalla inicial de la app -- Home
@@ -183,6 +184,23 @@ class _LoginPageState extends State<LoginPage> {
                               },
                             ),
                           ],
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _cargando
+                              ? null
+                              : () => Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => const RecuperarPasswordPage()),
+                                  ),
+                          child: Text(
+                            '¿Olvidaste tu contraseña?',
+                            style: AppTextStyles.bodyMuted.copyWith(
+                              color: AppColors.red,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                       if (_errorMensaje != null) ...[

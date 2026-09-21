@@ -1,5 +1,5 @@
 name: mobile
-description: "A new Flutter project."
+description: "FashionStore -- app móvil de FashionStore para clientes."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.6.0
   shared_preferences: ^2.5.5
+  url_launcher: ^6.3.2
+  app_links: ^7.2.1
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +49,47 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # Identidad visual (ícono de app + splash screen) -- generan recursos
+  # nativos a partir de assets/branding/*.png, ver configuración más abajo.
+  # Solo se usan en tiempo de build (`dart run ...`), nunca en runtime --
+  # por eso viven en dev_dependencies, no en dependencies.
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.6
+
+# Configuración de flutter_launcher_icons -- ícono con la identidad
+# FashionStore (F serif sobre burdeos + regla dorada, ver
+# assets/branding/app_icon.png). `adaptive_icon_*` cubre Android 8+
+# (ícono adaptativo con fondo/foreground separados); `image_path` es el
+# fallback para iOS, Android heredado y web.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/branding/app_icon.png"
+  adaptive_icon_background: "#6F1D2A"
+  adaptive_icon_foreground: "assets/branding/app_icon_foreground.png"
+  min_sdk_android: 21
+  # app_icon.png es opaco (fondo burdeos sólido) pero sigue siendo RGBA --
+  # App Store rechaza cualquier canal alfa en el ícono, aunque esté al 100%.
+  remove_alpha_ios: true
+
+# Configuración de flutter_native_splash -- pantalla de carga nativa
+# (se pinta ANTES de que el motor de Flutter dibuje su primer frame, así
+# que nunca hay un flash blanco ni el splash genérico de Flutter). Mismo
+# fondo burdeos de marca + logo (F + wordmark, ver
+# assets/branding/splash_logo.png) centrado. `android_12` usa su propia
+# API de splash (Android 12+ exige ícono dentro de un círculo de 1152x1152
+# con contenido en el 66% central) -- se reutiliza el mismo logo, ya
+# diseñado dentro de esa zona segura.
+flutter_native_splash:
+  color: "#6F1D2A"
+  image: assets/branding/splash_logo.png
+  android_12:
+    image: assets/branding/splash_logo.png
+    color: "#6F1D2A"
+  android: true
+  ios: true
+  web: false
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,5 +1,11 @@
-/// Refleja `UsuarioPublico` (CU01 -- backend/modules/P2_UsuariosYAccesos/
-/// CU01_IniciarSesion/schemas.py): nunca incluye password ni password_hash.
+/// Refleja `UsuarioPublico` (CU01) y, cuando viene de CU04 (`GET`/`PUT
+/// /auth/me`), también `telefono` (`MiPerfilResponse` = `UsuarioPublico` +
+/// `telefono`, ver backend/modules/P2_UsuariosYAccesos/
+/// CU04_ActualizarPerfil/schemas.py). Nunca incluye password ni
+/// password_hash.
+///
+/// `telefono` es `null` cuando este objeto viene del login/registro (CU01/
+/// CU02 no lo devuelven) -- Perfil lo completa consultando `/auth/me`.
 ///
 /// `rol` usa exactamente los valores reales de `RolUsuario`
 /// (backend/modules/P2_UsuariosYAccesos/Models/rol.py): ADMINISTRADOR,
@@ -10,12 +16,14 @@ class UsuarioSesion {
     required this.nombre,
     required this.correo,
     required this.rol,
+    this.telefono,
   });
 
   final int id;
   final String nombre;
   final String correo;
   final String rol;
+  final String? telefono;
 
   bool get esCliente => rol == 'CLIENTE';
 
@@ -25,6 +33,7 @@ class UsuarioSesion {
       nombre: json['nombre'] as String,
       correo: json['correo'] as String,
       rol: json['rol'] as String,
+      telefono: json['telefono'] as String?,
     );
   }
 
@@ -33,5 +42,6 @@ class UsuarioSesion {
         'nombre': nombre,
         'correo': correo,
         'rol': rol,
+        if (telefono != null) 'telefono': telefono,
       };
 }
