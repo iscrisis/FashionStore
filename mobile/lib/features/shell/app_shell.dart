@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../asistente_ia/widgets/asistente_ia_overlay.dart';
 import '../auth/auth_service.dart';
 import '../auth/models/usuario_sesion.dart';
 import '../carrito/mi_carrito_page.dart';
@@ -91,7 +92,17 @@ class _AppShellState extends State<AppShell> {
     ];
 
     return Scaffold(
-      body: IndexedStack(index: _index, children: paginas),
+      // El asistente IA (CU29) vive por encima del IndexedStack, no dentro
+      // de una de sus páginas -- mismo criterio que Angular (montado en
+      // public-layout, fuera del <router-outlet>): la conversación sobrevive
+      // aunque el Cliente cambie de tab (Inicio/Explorar/Reservas/Carrito/
+      // Perfil), y nunca tapa el bottomNavigationBar (fuera de este Stack).
+      body: Stack(
+        children: [
+          IndexedStack(index: _index, children: paginas),
+          const AsistenteIaOverlay(),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         onTap: _irA,

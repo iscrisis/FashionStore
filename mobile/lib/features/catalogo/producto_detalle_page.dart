@@ -18,6 +18,8 @@ import '../reservas/widgets/crear_reserva_sheet.dart';
 import '../reservas/widgets/reserva_confirmacion_dialog.dart';
 import '../sucursales/models/ciudad.dart';
 import '../sucursales/sucursales_service.dart';
+import '../vestidor_virtual/models/prenda_virtual.dart';
+import '../vestidor_virtual/vestidor_virtual_page.dart';
 import 'models/producto.dart';
 
 /// Detalle de un producto ya cargado por el catálogo (CU11) -- reutiliza el
@@ -383,6 +385,29 @@ class _ProductoDetallePageState extends State<ProductoDetallePage> {
     return e.statusCode == 422 && e.message.toLowerCase().contains('disponibilidad');
   }
 
+  // Último caso de uso -- "Utilizar vestidor virtual mediante cámara móvil".
+  // Solo necesita la talla/color YA elegidos arriba (siempre tienen un
+  // valor, ver comentario de _tallaSeleccionadaId/_colorSeleccionadoId):
+  // no depende de ciudad, sucursal ni de ninguna llamada a disponibilidad,
+  // así que puede abrirse en cualquier momento de la ficha.
+  void _probarVirtualmente() {
+    final producto = widget.producto;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => VestidorVirtualPage(
+          prenda: PrendaVirtual(
+            productoId: producto.id,
+            nombre: producto.nombre,
+            categoriaNombre: producto.categoria.nombre,
+            tallaNombre: _tallaSeleccionadaNombre ?? 'Talla única',
+            colorNombre: _colorSeleccionadoNombre ?? 'Color único',
+            imagenCatalogoUrl: MediaUrl.resolve(producto.imagenPrincipalUrl),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final producto = widget.producto;
@@ -516,6 +541,25 @@ class _ProductoDetallePageState extends State<ProductoDetallePage> {
                   }).toList(),
                 ),
               ],
+
+              // Último caso de uso -- "Probar virtualmente" abre el vestidor
+              // virtual (cámara + overlay) con la talla/color ya elegidos
+              // arriba. Vive antes de "Agregar al carrito" porque en el
+              // flujo el Cliente prueba la prenda ANTES de decidir
+              // comprarla o reservarla.
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _probarVirtualmente,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.burgundy,
+                    side: const BorderSide(color: AppColors.burgundy),
+                  ),
+                  icon: const Icon(Icons.camera_alt_outlined, size: 18),
+                  label: const Text('PROBAR VIRTUALMENTE'),
+                ),
+              ),
 
               // CU21 -- Agregar al carrito. Vive junto a "Reservar" (CU17),
               // sin tocar su lógica -- secundario (contorno rojo, no

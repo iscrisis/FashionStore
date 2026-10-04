@@ -39,6 +39,18 @@ dependencies:
   url_launcher: ^6.3.2
   app_links: ^7.2.1
 
+  # Vestidor virtual (último caso de uso) -- cámara en vivo del
+  # dispositivo. `camera` ya dispara el permiso nativo al inicializar el
+  # controlador, no hace falta agregar permission_handler.
+  camera: ^0.11.2
+
+  # Detección de pose (torso) para ajustar automáticamente posición/escala
+  # de la prenda superpuesta -- SOLO landmarks de hombros/cadera, nunca
+  # identidad ni medidas corporales (ver PoseTrackerService). Elegido tras
+  # auditoría: mantenido activamente, compatible con minSdk 21/compileSdk
+  # 35 (el proyecto usa 24/36) y con Flutter 3.47.2/Dart 3.13.2.
+  google_mlkit_pose_detection: ^0.16.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -101,6 +113,14 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # assets/vestidor/ -- PNGs transparentes de prendas para el vestidor
+  # virtual (ver lib/features/vestidor_virtual/), convención de nombre
+  # `producto_<id>.png` (ProductoOut.id del catálogo). Recurso propio del
+  # vestidor: nunca se usa para la imagen normal del catálogo, que sigue
+  # viniendo del backend (Producto.imagenPrincipalUrl).
+  assets:
+    - assets/vestidor/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -26,6 +26,11 @@
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
+		<!-- Vestidor virtual (último caso de uso): cámara en vivo para
+		     superponer la prenda seleccionada, ver
+		     lib/features/vestidor_virtual/. -->
+		<key>NSCameraUsageDescription</key>
+		<string>FashionStore usa la cámara para el vestidor virtual, que te permite ver cómo luce una prenda sobre ti antes de comprarla.</string>
 		<!-- CU23: Procesar pago electrónico. Retorno móvil de Stripe Checkout.
 	     Stripe redirige aquí (fashionstore://pago/resultado con venta_id y
 	     session_id, o con cancelado=1) cuando POST /pagos/checkout se llamó

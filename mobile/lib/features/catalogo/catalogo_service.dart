@@ -76,4 +76,14 @@ class CatalogoService {
     if (data == null) return null;
     return ColeccionDestacada.fromJson(data as Map<String, dynamic>);
   }
+
+  /// CU11 -- detalle de un producto por id (`GET /catalogo/productos/{id}`).
+  /// Mismo endpoint que usa Angular al navegar a `/producto/:id`
+  /// (producto-detalle.ts) -- reutilizado aquí por el asistente IA (CU29)
+  /// para abrir el detalle REAL de un producto recomendado en el chat, que
+  /// solo trae un subconjunto de campos (ver ProductoRecomendado).
+  Future<Producto> obtenerProducto(int id) async {
+    final data = await _apiClient.get('/catalogo/productos/$id');
+    return Producto.fromJson(data as Map<String, dynamic>);
+  }
 }
