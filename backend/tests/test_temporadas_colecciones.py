@@ -8,7 +8,12 @@ from fastapi.testclient import TestClient
 from app.core.security import create_access_token, hash_password
 from app.db.session import SessionLocal
 from app.main import app
+from modules.P1_SucursalesYCatalogos.Models.categoria import Categoria
 from modules.P1_SucursalesYCatalogos.Models.coleccion import Coleccion
+from modules.P1_SucursalesYCatalogos.Models.color import Color
+from modules.P1_SucursalesYCatalogos.Models.producto import Producto
+from modules.P1_SucursalesYCatalogos.Models.proveedor import Proveedor
+from modules.P1_SucursalesYCatalogos.Models.talla import Talla
 from modules.P1_SucursalesYCatalogos.Models.temporada import Temporada
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
@@ -85,6 +90,86 @@ def _delete_test_coleccion(coleccion_id: int) -> None:
         if coleccion is not None:
             db.delete(coleccion)
             db.commit()
+    finally:
+        db.close()
+
+
+def _create_test_producto(
+    temporada_id: int, coleccion_id: int, nombre: str | None = None
+) -> tuple[int, int, int, int, int]:
+    """Crea un producto de prueba con dependencias. Retorna IDs: (producto_id, proveedor_id, categoria_id, talla_id, color_id)."""
+    db = SessionLocal()
+    try:
+        sufijo = uuid.uuid4().hex[:6]
+
+        # Crear dependencias
+        proveedor = Proveedor(
+            razon_social=f"Proveedor {sufijo}",
+            nombre_contacto="Juan Pérez",
+            correo=f"proveedor-{sufijo}@textiles.com",
+            telefono="70012345",
+            is_active=True,
+        )
+        categoria = Categoria(nombre=f"Categoría {sufijo}", is_active=True)
+        talla = Talla(nombre=f"S-{sufijo}", is_active=True)
+        color = Color(nombre=f"Negro-{sufijo}", is_active=True)
+
+        db.add_all([proveedor, categoria, talla, color])
+        db.commit()
+
+        proveedor_id = proveedor.id
+        categoria_id = categoria.id
+        talla_id = talla.id
+        color_id = color.id
+
+        # Crear producto
+        producto = Producto(
+            nombre=nombre or f"Producto {sufijo}",
+            descripcion="Prenda de prueba",
+            proveedor_id=proveedor_id,
+            categoria_id=categoria_id,
+            temporada_id=temporada_id,
+            coleccion_id=coleccion_id,
+            precio_venta=399.00,
+            is_active=True,
+        )
+        db.add(producto)
+        db.commit()
+        producto_id = producto.id
+
+        return producto_id, proveedor_id, categoria_id, talla_id, color_id
+    finally:
+        db.close()
+
+
+def _delete_test_producto_with_deps(
+    producto_id: int, proveedor_id: int, categoria_id: int, talla_id: int, color_id: int
+) -> None:
+    """Elimina un producto y sus dependencias."""
+    db = SessionLocal()
+    try:
+        producto = db.get(Producto, producto_id)
+        if producto is not None:
+            db.delete(producto)
+            db.commit()
+
+        proveedor = db.get(Proveedor, proveedor_id)
+        if proveedor is not None:
+            db.delete(proveedor)
+
+        categoria = db.get(Categoria, categoria_id)
+        if categoria is not None:
+            db.delete(categoria)
+
+        talla = db.get(Talla, talla_id)
+        if talla is not None:
+            db.delete(talla)
+
+        color = db.get(Color, color_id)
+        if color is not None:
+            db.delete(color)
+
+        db.commit()
     finally:
         db.close()
 
@@ -543,4 +628,145 @@ def test_coleccion_destacada_pero_inactiva_no_aparece_en_publico():
     finally:
         _delete_test_user(admin.id)
         _delete_test_coleccion(coleccion["id"])
+        _delete_test_temporada(temporada.id)
+
+
+# --------------------------------------------------------------------------
+# Eliminar temporada
+# --------------------------------------------------------------------------
+
+
+def test_eliminar_temporada_sin_relaciones_devuelve_204():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    temporada = _create_test_temporada()
+    try:
+        response = client.delete(
+            f"/api/v1/temporadas/{temporada.id}", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 204
+    finally:
+        _delete_test_user(admin.id)
+        # Intentar limpiar en caso de que no se haya eliminado
+        _delete_test_temporada(temporada.id)
+
+
+def test_eliminar_temporada_inexistente_devuelve_404():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    try:
+        response = client.delete(
+            "/api/v1/temporadas/9_999_999", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 404
+        assert "no encontrada" in response.json()["detail"].lower()
+    finally:
+        _delete_test_user(admin.id)
+
+
+def test_eliminar_temporada_con_colecciones_devuelve_409():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    temporada = _create_test_temporada()
+    coleccion_id = None
+    try:
+        # Crear una colección bajo la temporada
+        col_response = client.post(
+            "/api/v1/colecciones",
+            headers=_auth_headers(admin),
+            json={"nombre": f"Colección {uuid.uuid4().hex[:6]}", "temporada_id": temporada.id},
+        )
+        assert col_response.status_code == 201
+        coleccion_id = col_response.json()["id"]
+
+        # Intentar eliminar la temporada
+        response = client.delete(
+            f"/api/v1/temporadas/{temporada.id}", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 409
+        assert "colecciones asociadas" in response.json()["detail"].lower()
+
+        # Verificar que la temporada sigue existiendo
+        check = client.get(f"/api/v1/temporadas", headers=_auth_headers(admin))
+        temporada_ids = [t["id"] for t in check.json()]
+        assert temporada.id in temporada_ids
+    finally:
+        _delete_test_user(admin.id)
+        if coleccion_id:
+            _delete_test_coleccion(coleccion_id)
+        _delete_test_temporada(temporada.id)
+
+
+# --------------------------------------------------------------------------
+# Eliminar colección
+# --------------------------------------------------------------------------
+
+
+def test_eliminar_coleccion_sin_relaciones_devuelve_204():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    temporada = _create_test_temporada()
+    coleccion_response = client.post(
+        "/api/v1/colecciones",
+        headers=_auth_headers(admin),
+        json={"nombre": f"Colección {uuid.uuid4().hex[:6]}", "temporada_id": temporada.id},
+    )
+    coleccion_id = coleccion_response.json()["id"]
+    try:
+        response = client.delete(
+            f"/api/v1/colecciones/{coleccion_id}", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 204
+    finally:
+        _delete_test_user(admin.id)
+        # Intentar limpiar en caso de que no se haya eliminado
+        _delete_test_coleccion(coleccion_id)
+        _delete_test_temporada(temporada.id)
+
+
+def test_eliminar_coleccion_inexistente_devuelve_404():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    try:
+        response = client.delete(
+            "/api/v1/colecciones/9_999_999", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 404
+        assert "no encontrada" in response.json()["detail"].lower()
+    finally:
+        _delete_test_user(admin.id)
+
+
+def test_eliminar_coleccion_con_productos_devuelve_409():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    temporada = _create_test_temporada()
+    coleccion_response = client.post(
+        "/api/v1/colecciones",
+        headers=_auth_headers(admin),
+        json={"nombre": f"Colección {uuid.uuid4().hex[:6]}", "temporada_id": temporada.id},
+    )
+    coleccion_id = coleccion_response.json()["id"]
+    producto_id = None
+    proveedor_id = None
+    categoria_id = None
+    talla_id = None
+    color_id = None
+
+    try:
+        # Crear un producto bajo la colección
+        producto_id, proveedor_id, categoria_id, talla_id, color_id = _create_test_producto(
+            temporada_id=temporada.id, coleccion_id=coleccion_id
+        )
+
+        # Intentar eliminar la colección
+        response = client.delete(
+            f"/api/v1/colecciones/{coleccion_id}", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 409
+        assert "productos asociados" in response.json()["detail"].lower()
+
+        # Verificar que la colección sigue existiendo
+        check = client.get(f"/api/v1/colecciones?temporada_id={temporada.id}", headers=_auth_headers(admin))
+        coleccion_ids = [c["id"] for c in check.json()]
+        assert coleccion_id in coleccion_ids
+    finally:
+        _delete_test_user(admin.id)
+        if producto_id and proveedor_id and categoria_id and talla_id and color_id:
+            _delete_test_producto_with_deps(producto_id, proveedor_id, categoria_id, talla_id, color_id)
+        _delete_test_coleccion(coleccion_id)
         _delete_test_temporada(temporada.id)

@@ -73,6 +73,10 @@ class ProveedoresService:
         proveedor.is_active = activo
         return self._repo.guardar(proveedor)
 
+    def eliminar(self, proveedor_id: int) -> None:
+        proveedor = self.obtener(proveedor_id)
+        self._repo.eliminar(proveedor)
+
 
 class ProductoNoEncontradoError(Exception):
     """No existe, o no pertenece al proveedor autenticado (mismo mensaje: no se

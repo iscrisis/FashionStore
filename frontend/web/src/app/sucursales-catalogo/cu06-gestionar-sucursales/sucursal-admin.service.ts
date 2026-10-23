@@ -62,4 +62,12 @@ export class SucursalAdminService {
       is_active: isActive,
     });
   }
+
+  deleteCiudad(id: number): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/ciudades/${id}`);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

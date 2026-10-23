@@ -148,6 +148,12 @@ class PromocionService:
         self._promociones.guardar()
         return self._a_detalle(promocion, date.today())
 
+    def eliminar(self, promocion_id: int) -> None:
+        promocion = self._promociones.obtener_por_id(promocion_id)
+        if promocion is None:
+            raise PromocionNoEncontradaError
+        self._promociones.eliminar(promocion)
+
     @staticmethod
     def _validar_rango(fecha_inicio: date, fecha_fin: date) -> None:
         if fecha_fin < fecha_inicio:

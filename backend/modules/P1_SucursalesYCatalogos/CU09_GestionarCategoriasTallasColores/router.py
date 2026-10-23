@@ -7,6 +7,7 @@ para que Flutter pueda consumirla igual más adelante.
 """
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_roles
@@ -130,6 +131,22 @@ def eliminar_imagen_categoria(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Categoría no encontrada.") from exc
 
 
+@router_categorias.delete("/{categoria_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_categoria(
+    categoria_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+) -> None:
+    try:
+        CategoriasService(db).eliminar(categoria_id)
+    except RegistroNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Categoría no encontrada.") from exc
+    except IntegrityError as exc:
+        # PostgreSQL rechaza eliminación si existen productos asociados a esta categoría
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "No se puede eliminar esta categoría porque existen productos asociados.",
+        ) from exc
+
+
 # --------------------------------------------------------------------------
 # Tallas
 # --------------------------------------------------------------------------
@@ -183,6 +200,22 @@ def cambiar_estado_talla(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Talla no encontrada.") from exc
 
 
+@router_tallas.delete("/{talla_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_talla(
+    talla_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+) -> None:
+    try:
+        TallasService(db).eliminar(talla_id)
+    except RegistroNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Talla no encontrada.") from exc
+    except IntegrityError as exc:
+        # PostgreSQL rechaza eliminación si existen variantes de productos que usan esta talla
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "No se puede eliminar esta talla porque existen variantes de productos asociadas.",
+        ) from exc
+
+
 # --------------------------------------------------------------------------
 # Colores
 # --------------------------------------------------------------------------
@@ -234,3 +267,19 @@ def cambiar_estado_color(
         return ColoresService(db).cambiar_estado(color_id, payload.is_active)
     except RegistroNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Color no encontrado.") from exc
+
+
+@router_colores.delete("/{color_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_color(
+    color_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+) -> None:
+    try:
+        ColoresService(db).eliminar(color_id)
+    except RegistroNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Color no encontrado.") from exc
+    except IntegrityError as exc:
+        # PostgreSQL rechaza eliminación si existen variantes de productos que usan este color
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "No se puede eliminar este color porque existen variantes de productos asociadas.",
+        ) from exc

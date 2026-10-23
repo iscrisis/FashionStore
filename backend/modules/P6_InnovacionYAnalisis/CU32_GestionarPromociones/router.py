@@ -102,3 +102,13 @@ def desactivar_promocion(
         return PromocionService(db).desactivar(promocion_id)
     except PromocionNoEncontradaError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, _MSG_NO_ENCONTRADA) from exc
+
+
+@router.delete("/{promocion_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_promocion(
+    promocion_id: int, db: Session = Depends(get_db), actor: Usuario = Depends(require_administrador)
+) -> None:
+    try:
+        PromocionService(db).eliminar(promocion_id)
+    except PromocionNoEncontradaError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, _MSG_NO_ENCONTRADA) from exc

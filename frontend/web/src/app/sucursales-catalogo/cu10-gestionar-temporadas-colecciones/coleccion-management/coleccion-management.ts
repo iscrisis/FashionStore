@@ -176,4 +176,35 @@ export class ColeccionManagement {
       error: () => this.toast.error('No se pudo actualizar el estado de la colección.'),
     });
   }
+
+  async deleteColeccion(coleccion: Coleccion, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.openMenuId.set(null);
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: '¿Eliminar colección?',
+      message: `Se eliminará permanentemente "${coleccion.nombre}". Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.coleccionService.delete(coleccion.id).subscribe({
+      next: () => {
+        this.toast.success('Colección eliminada correctamente.');
+        this.load();
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          this.toast.error('No se puede eliminar esta colección porque tiene productos asociados.');
+        } else if (err.status === 404) {
+          this.toast.error('La colección no existe o ya fue eliminada.');
+        } else {
+          this.toast.error('No se pudo eliminar la colección.');
+        }
+      },
+    });
+  }
 }

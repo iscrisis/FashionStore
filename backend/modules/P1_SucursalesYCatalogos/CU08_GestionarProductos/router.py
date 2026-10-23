@@ -8,6 +8,7 @@ adelante.
 """
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_roles
@@ -223,6 +224,23 @@ def cambiar_estado_producto(
         return ProductosService(db).cambiar_estado(producto_id, payload.is_active)
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
+
+
+@router.delete("/{producto_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_producto(
+    producto_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+) -> None:
+    try:
+        ProductosService(db).eliminar(producto_id)
+    except ProductoNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
+    except IntegrityError as exc:
+        # PostgreSQL rechaza eliminación si existen registros relacionados.
+        # Se devuelve 409 para indicar que el producto está siendo utilizado.
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "No se puede eliminar este producto porque existen registros asociados.",
+        ) from exc
 
 
 # --------------------------------------------------------------------------

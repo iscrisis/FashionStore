@@ -5,9 +5,7 @@ import { environment } from '../../../../environments/environment';
 import { PromocionDetalle, PromocionListado, PromocionPayload } from './promocion.model';
 
 /** Consume CU32 -- Gestionar promociones. Requiere un ADMINISTRADOR
- * autenticado (el interceptor HTTP ya adjunta el Bearer token). Sin DELETE:
- * "desactivar" es la única baja posible (ver backend, service.py -- no
- * existe ningún método que borre una promoción). */
+ * autenticado (el interceptor HTTP ya adjunta el Bearer token). */
 @Injectable({ providedIn: 'root' })
 export class PromocionService {
   private readonly http = inject(HttpClient);
@@ -31,5 +29,9 @@ export class PromocionService {
 
   deactivate(id: number): Observable<PromocionDetalle> {
     return this.http.patch<PromocionDetalle>(`${this.baseUrl}/${id}/desactivar`, {});
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

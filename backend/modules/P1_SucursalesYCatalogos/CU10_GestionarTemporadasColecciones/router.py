@@ -7,6 +7,7 @@ para que Flutter pueda consumirla igual más adelante.
 """
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.deps import require_roles
@@ -102,6 +103,22 @@ def cambiar_estado_temporada(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Temporada no encontrada.") from exc
 
 
+@router_temporadas.delete("/{temporada_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_temporada(
+    temporada_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+) -> None:
+    try:
+        TemporadasService(db).eliminar(temporada_id)
+    except RegistroNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Temporada no encontrada.") from exc
+    except IntegrityError as exc:
+        # PostgreSQL rechaza eliminación si existen colecciones asociadas a esta temporada
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "No se puede eliminar esta temporada porque existen colecciones asociadas.",
+        ) from exc
+
+
 # --------------------------------------------------------------------------
 # Colecciones
 # --------------------------------------------------------------------------
@@ -168,6 +185,22 @@ def cambiar_estado_coleccion(
         return ColeccionesService(db).cambiar_estado(coleccion_id, payload.is_active)
     except RegistroNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Colección no encontrada.") from exc
+
+
+@router_colecciones.delete("/{coleccion_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_coleccion(
+    coleccion_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+) -> None:
+    try:
+        ColeccionesService(db).eliminar(coleccion_id)
+    except RegistroNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Colección no encontrada.") from exc
+    except IntegrityError as exc:
+        # PostgreSQL rechaza eliminación si existen productos asociados a esta colección
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "No se puede eliminar esta colección porque existen productos asociados.",
+        ) from exc
 
 
 @router_colecciones.patch("/{coleccion_id}/destacada-inicio", response_model=ColeccionOut)

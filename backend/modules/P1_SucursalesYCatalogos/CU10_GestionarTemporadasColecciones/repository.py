@@ -46,6 +46,10 @@ class TemporadasRepository:
         self.db.refresh(temporada)
         return temporada
 
+    def eliminar(self, temporada: Temporada) -> None:
+        self.db.delete(temporada)
+        self.db.commit()
+
 
 class ColeccionesRepository:
     def __init__(self, db: Session):
@@ -107,3 +111,7 @@ class ColeccionesRepository:
             Coleccion.es_destacada_inicio.is_(True), Coleccion.is_active.is_(True)
         )
         return self.db.execute(stmt).scalars().first()
+
+    def eliminar(self, coleccion: Coleccion) -> None:
+        self.db.delete(coleccion)
+        self.db.commit()

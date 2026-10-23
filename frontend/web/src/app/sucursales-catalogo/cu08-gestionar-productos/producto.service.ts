@@ -80,4 +80,8 @@ export class ProductoService {
   removeImagen(id: number, imagenId: number): Observable<Producto> {
     return this.http.delete<Producto>(`${this.baseUrl}/${id}/imagenes/${imagenId}`);
   }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

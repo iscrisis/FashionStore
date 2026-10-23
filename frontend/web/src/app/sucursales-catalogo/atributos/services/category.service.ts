@@ -42,4 +42,8 @@ export class CategoryService {
   removeImagen(id: number): Observable<Category> {
     return this.http.delete<Category>(`${this.baseUrl}/${id}/imagen`);
   }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

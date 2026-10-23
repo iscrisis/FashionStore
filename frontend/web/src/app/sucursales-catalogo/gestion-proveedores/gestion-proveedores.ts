@@ -179,4 +179,35 @@ export class GestionProveedores {
       error: () => this.toast.error('No se pudo actualizar el estado del proveedor.'),
     });
   }
+
+  async deleteProveedor(proveedor: Proveedor, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.openMenuId.set(null);
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: '¿Eliminar proveedor?',
+      message: `Se eliminará permanentemente "${proveedor.razon_social}". Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.proveedorService.delete(proveedor.id).subscribe({
+      next: () => {
+        this.toast.success('Proveedor eliminado correctamente.');
+        this.load();
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          this.toast.error('No se puede eliminar este proveedor porque tiene productos, usuarios o recepción de mercadería asociados.');
+        } else if (err.status === 404) {
+          this.toast.error('El proveedor no existe o ya fue eliminado.');
+        } else {
+          this.toast.error('No se pudo eliminar el proveedor.');
+        }
+      },
+    });
+  }
 }

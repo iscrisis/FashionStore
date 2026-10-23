@@ -19,6 +19,7 @@ from modules.P1_SucursalesYCatalogos.Models.talla import Talla
 from modules.P1_SucursalesYCatalogos.Models.temporada import Temporada
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
+from modules.P6_InnovacionYAnalisis.Models.promocion import Promocion
 
 client = TestClient(app)
 
@@ -184,6 +185,38 @@ def _delete_test_producto(producto_id: int) -> None:
         producto = db.get(Producto, producto_id)
         if producto is not None:
             db.delete(producto)
+            db.commit()
+    finally:
+        db.close()
+
+
+def _create_test_promocion(producto_id: int) -> Promocion:
+    """Crea una promoción de prueba que referencia un producto."""
+    db = SessionLocal()
+    try:
+        producto = db.get(Producto, producto_id)
+        promocion = Promocion(
+            nombre=f"Promoción {uuid.uuid4().hex[:8]}",
+            porcentaje_descuento=10.00,
+            fecha_inicio=date(2026, 1, 1),
+            fecha_fin=date(2026, 12, 31),
+            activa=True,
+            productos=[producto],
+        )
+        db.add(promocion)
+        db.commit()
+        db.refresh(promocion)
+        return promocion
+    finally:
+        db.close()
+
+
+def _delete_test_promocion(promocion_id: int) -> None:
+    db = SessionLocal()
+    try:
+        promocion = db.get(Promocion, promocion_id)
+        if promocion is not None:
+            db.delete(promocion)
             db.commit()
     finally:
         db.close()
@@ -727,6 +760,73 @@ def test_eliminar_imagen_adicional_inexistente_es_rechazado():
         )
         assert response.status_code == 404
     finally:
+        _delete_test_producto(producto_id)
+        catalogo.cleanup()
+        _delete_test_user(admin.id)
+
+
+# --------------------------------------------------------------------------
+# Eliminar producto
+# --------------------------------------------------------------------------
+
+
+def test_eliminar_producto_sin_relaciones_devuelve_204():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    catalogo = _Catalogo()
+    creado = client.post("/api/v1/productos", headers=_auth_headers(admin), json=catalogo.payload())
+    producto_id = creado.json()["id"]
+    try:
+        response = client.delete(
+            f"/api/v1/productos/{producto_id}", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 204
+
+        # Verificar que el producto fue eliminado
+        check = client.get(f"/api/v1/productos/{producto_id}", headers=_auth_headers(admin))
+        assert check.status_code == 404
+    finally:
+        catalogo.cleanup()
+        _delete_test_user(admin.id)
+
+
+def test_eliminar_producto_inexistente_devuelve_404():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    try:
+        response = client.delete(
+            "/api/v1/productos/9999999", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 404
+        assert "no encontrado" in response.json()["detail"].lower()
+    finally:
+        _delete_test_user(admin.id)
+
+
+def test_eliminar_producto_con_relaciones_devuelve_409():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    catalogo = _Catalogo()
+    creado = client.post("/api/v1/productos", headers=_auth_headers(admin), json=catalogo.payload())
+    producto_id = creado.json()["id"]
+    promocion_id = None
+
+    try:
+        # Crear una promoción que referencia el producto
+        promocion = _create_test_promocion(producto_id)
+        promocion_id = promocion.id
+
+        # Intentar eliminar el producto
+        response = client.delete(
+            f"/api/v1/productos/{producto_id}", headers=_auth_headers(admin)
+        )
+        assert response.status_code == 409
+        assert "registros asociados" in response.json()["detail"].lower()
+
+        # Verificar que el producto sigue existiendo
+        check = client.get(f"/api/v1/productos/{producto_id}", headers=_auth_headers(admin))
+        assert check.status_code == 200
+        assert check.json()["id"] == producto_id
+    finally:
+        if promocion_id:
+            _delete_test_promocion(promocion_id)
         _delete_test_producto(producto_id)
         catalogo.cleanup()
         _delete_test_user(admin.id)

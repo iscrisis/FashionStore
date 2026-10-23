@@ -155,4 +155,35 @@ export class SizeManagement {
       error: () => this.toast.error('No se pudo actualizar el estado de la talla.'),
     });
   }
+
+  async deleteSize(size: Size, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.openMenuId.set(null);
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: '¿Eliminar talla?',
+      message: `Se eliminará permanentemente "${size.nombre}". Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.sizeService.delete(size.id).subscribe({
+      next: () => {
+        this.toast.success('Talla eliminada correctamente.');
+        this.load();
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          this.toast.error('No se puede eliminar esta talla porque existen productos asociados.');
+        } else if (err.status === 404) {
+          this.toast.error('La talla no existe o ya fue eliminada.');
+        } else {
+          this.toast.error('No se pudo eliminar la talla.');
+        }
+      },
+    });
+  }
 }

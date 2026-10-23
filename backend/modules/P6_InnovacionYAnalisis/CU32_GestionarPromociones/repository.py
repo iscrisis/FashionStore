@@ -57,6 +57,10 @@ class PromocionRepository:
     def guardar(self) -> None:
         self.db.commit()
 
+    def eliminar(self, promocion: Promocion) -> None:
+        self.db.delete(promocion)
+        self.db.commit()
+
     def existe_solapamiento(
         self,
         producto_ids: list[int],

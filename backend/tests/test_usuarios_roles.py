@@ -843,3 +843,69 @@ def test_cuenta_proveedor_creada_por_admin_puede_iniciar_sesion_por_cu01():
         _delete_test_user(admin.id)
         _delete_test_user(creado.json()["id"])
         _delete_test_proveedor(proveedor.id)
+
+
+# --------------------------------------------------------------------------
+# Eliminar usuario
+# --------------------------------------------------------------------------
+
+
+def test_eliminar_usuario_ok():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    objetivo = _create_test_user(RolUsuario.CAJERO)
+    objetivo_id = objetivo.id
+    try:
+        response = client.delete(
+            f"/api/v1/usuarios/{objetivo_id}",
+            headers=_auth_headers(admin),
+        )
+        assert response.status_code == 204
+
+        # Verificar que el usuario fue eliminado
+        db = SessionLocal()
+        try:
+            usuario = db.get(Usuario, objetivo_id)
+            assert usuario is None
+        finally:
+            db.close()
+    finally:
+        _delete_test_user(admin.id)
+
+
+def test_no_puede_eliminar_su_propia_cuenta():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    try:
+        response = client.delete(
+            f"/api/v1/usuarios/{admin.id}",
+            headers=_auth_headers(admin),
+        )
+        assert response.status_code == 400
+        assert "No puedes eliminar tu propia cuenta" in response.json()["detail"]
+    finally:
+        _delete_test_user(admin.id)
+
+
+def test_no_puede_eliminar_administrador():
+    admin_actor = _create_test_user(RolUsuario.ADMINISTRADOR)
+    admin_objetivo = _create_test_user(RolUsuario.ADMINISTRADOR)
+    try:
+        response = client.delete(
+            f"/api/v1/usuarios/{admin_objetivo.id}",
+            headers=_auth_headers(admin_actor),
+        )
+        assert response.status_code == 404
+    finally:
+        _delete_test_user(admin_actor.id)
+        _delete_test_user(admin_objetivo.id)
+
+
+def test_eliminar_usuario_inexistente_es_rechazado():
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    try:
+        response = client.delete(
+            "/api/v1/usuarios/9999999",
+            headers=_auth_headers(admin),
+        )
+        assert response.status_code == 404
+    finally:
+        _delete_test_user(admin.id)

@@ -47,6 +47,10 @@ class CategoriasRepository:
         self.db.refresh(categoria)
         return categoria
 
+    def eliminar(self, categoria: Categoria) -> None:
+        self.db.delete(categoria)
+        self.db.commit()
+
 
 class TallasRepository:
     def __init__(self, db: Session):
@@ -83,6 +87,10 @@ class TallasRepository:
         self.db.refresh(talla)
         return talla
 
+    def eliminar(self, talla: Talla) -> None:
+        self.db.delete(talla)
+        self.db.commit()
+
 
 class ColoresRepository:
     def __init__(self, db: Session):
@@ -118,3 +126,7 @@ class ColoresRepository:
         self.db.commit()
         self.db.refresh(color)
         return color
+
+    def eliminar(self, color: Color) -> None:
+        self.db.delete(color)
+        self.db.commit()

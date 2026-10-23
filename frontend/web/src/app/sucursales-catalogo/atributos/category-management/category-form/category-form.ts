@@ -27,7 +27,7 @@ export class CategoryForm {
   private readonly categoryService = inject(CategoryService);
 
   protected readonly form = this.fb.nonNullable.group({
-    nombre: ['', [Validators.required, Validators.maxLength(80)]],
+    nombre: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(80)]],
     is_active: [true],
   });
 

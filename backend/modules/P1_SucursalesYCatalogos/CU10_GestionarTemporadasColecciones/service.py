@@ -62,6 +62,10 @@ class TemporadasService:
         temporada.is_active = activo
         return self._repo.guardar(temporada)
 
+    def eliminar(self, temporada_id: int) -> None:
+        temporada = self.obtener(temporada_id)
+        self._repo.eliminar(temporada)
+
 
 class ColeccionesService:
     def __init__(self, db: Session):
@@ -134,3 +138,7 @@ class ColeccionesService:
 
     def obtener_destacada_publica(self) -> Coleccion | None:
         return self._repo.obtener_destacada_activa()
+
+    def eliminar(self, coleccion_id: int) -> None:
+        coleccion = self.obtener(coleccion_id)
+        self._repo.eliminar(coleccion)

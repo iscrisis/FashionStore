@@ -162,4 +162,35 @@ export class CategoryManagement {
       error: () => this.toast.error('No se pudo actualizar el estado de la categoría.'),
     });
   }
+
+  async deleteCategory(category: Category, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.openMenuId.set(null);
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: '¿Eliminar categoría?',
+      message: `Se eliminará permanentemente "${category.nombre}". Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.categoryService.delete(category.id).subscribe({
+      next: () => {
+        this.toast.success('Categoría eliminada correctamente.');
+        this.load();
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          this.toast.error('No se puede eliminar esta categoría porque existen productos asociados. Primero debe eliminar o desasociar los productos.');
+        } else if (err.status === 404) {
+          this.toast.error('La categoría no existe o ya fue eliminada.');
+        } else {
+          this.toast.error('No se pudo eliminar la categoría.');
+        }
+      },
+    });
+  }
 }

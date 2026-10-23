@@ -73,3 +73,7 @@ class UsuariosRolesRepository:
         self.db.commit()
         self.db.refresh(usuario)
         return usuario
+
+    def eliminar(self, usuario: Usuario) -> None:
+        self.db.delete(usuario)
+        self.db.commit()

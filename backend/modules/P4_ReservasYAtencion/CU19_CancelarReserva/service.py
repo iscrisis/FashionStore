@@ -45,10 +45,12 @@ from modules.P1_SucursalesYCatalogos.Models.producto import Producto
 from modules.P4_ReservasYAtencion.CU17_CrearReservaPrendas.schemas import (
     ColorResumen,
     ProductoResumen,
-    ReservaDetalleOut,
-    ReservaOut,
     TallaResumen,
     VarianteResumen,
+)
+from modules.P4_ReservasYAtencion.CU19_CancelarReserva.schemas import (
+    ReservaDetalleOut,
+    ReservaOut,
 )
 from modules.P4_ReservasYAtencion.CU17_CrearReservaPrendas.service import reserva_a_salida
 from modules.P4_ReservasYAtencion.Models.reserva import EstadoReserva, Reserva, ReservaDetalle

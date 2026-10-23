@@ -212,4 +212,35 @@ export class UsuariosRoles {
       },
     });
   }
+
+  async deleteUser(usuario: UsuarioAdmin, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.openMenuId.set(null);
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: '¿Eliminar usuario?',
+      message: `Se eliminará permanentemente a ${usuario.nombre} del sistema. Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.usuarioService.delete(usuario.id).subscribe({
+      next: () => {
+        this.toast.success('Usuario eliminado correctamente.');
+        this.load();
+      },
+      error: (err) => {
+        if (err.status === 400) {
+          this.toast.error('No puedes eliminar tu propia cuenta.');
+        } else if (err.status === 404) {
+          this.toast.error('El usuario no existe o ya fue eliminado.');
+        } else {
+          this.toast.error('No se pudo eliminar el usuario.');
+        }
+      },
+    });
+  }
 }

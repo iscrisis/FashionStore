@@ -323,3 +323,44 @@ def test_establecer_imagen_de_categoria_con_formato_invalido_es_rechazado():
     finally:
         _delete_test_user(admin.id)
         _delete_registro("categorias", categoria_id)
+
+
+# --------------------------------------------------------------------------
+# Eliminación
+# --------------------------------------------------------------------------
+
+
+def test_eliminar_ok(endpoint):
+    """Eliminar un registro sin relaciones debe ser exitoso."""
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    nombre = f"Eliminar {uuid.uuid4().hex[:8]}"
+    creado = client.post(
+        f"/api/v1/{endpoint}",
+        headers=_auth_headers(admin),
+        json={"nombre": nombre},
+    )
+    registro_id = creado.json()["id"]
+    try:
+        # Verificar que el registro fue creado
+        assert creado.status_code == 201
+
+        # Eliminar el registro
+        response = client.delete(f"/api/v1/{endpoint}/{registro_id}", headers=_auth_headers(admin))
+        assert response.status_code == 204
+
+        # Verificar que ya no existe listando (búsqueda exacta no debería encontrarlo)
+        listar = client.get(f"/api/v1/{endpoint}", headers=_auth_headers(admin))
+        nombres = [r["nombre"] for r in listar.json()]
+        assert nombre not in nombres
+    finally:
+        _delete_test_user(admin.id)
+
+
+def test_eliminar_inexistente_es_rechazado(endpoint):
+    """Eliminar un registro que no existe debe retornar 404."""
+    admin = _create_test_user(RolUsuario.ADMINISTRADOR)
+    try:
+        response = client.delete(f"/api/v1/{endpoint}/9999999", headers=_auth_headers(admin))
+        assert response.status_code == 404
+    finally:
+        _delete_test_user(admin.id)

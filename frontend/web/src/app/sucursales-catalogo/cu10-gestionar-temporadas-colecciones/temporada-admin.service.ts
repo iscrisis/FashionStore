@@ -31,4 +31,8 @@ export class TemporadaAdminService {
   setActive(id: number, isActive: boolean): Observable<Temporada> {
     return this.http.patch<Temporada>(`${this.baseUrl}/${id}/estado`, { is_active: isActive });
   }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

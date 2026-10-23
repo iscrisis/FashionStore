@@ -90,6 +90,13 @@
                       >
                         <app-icon name="power" /> {{ size.is_active ? 'Desactivar' : 'Activar' }}
                       </button>
+                      <button
+                        type="button"
+                        class="row-actions__item row-actions__item--danger"
+                        (click)="deleteSize(size, $event)"
+                      >
+                        <app-icon name="close" /> Eliminar
+                      </button>
                     </div>
                   }
                 </div>

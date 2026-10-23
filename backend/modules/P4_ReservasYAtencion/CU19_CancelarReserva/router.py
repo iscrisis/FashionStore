@@ -24,8 +24,8 @@ from app.core.deps import require_roles
 from app.db.session import get_db
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
-from modules.P4_ReservasYAtencion.CU17_CrearReservaPrendas.schemas import ReservaDetalleOut, ReservaOut
 
+from .schemas import ReservaDetalleOut, ReservaOut
 from .service import CancelarReservaService, ReservaNoCancelableError, ReservaNoEncontradaError
 
 require_cliente = require_roles(RolUsuario.CLIENTE)

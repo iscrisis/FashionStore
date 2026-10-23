@@ -52,6 +52,10 @@ class ProveedoresRepository:
         self.db.refresh(proveedor)
         return proveedor
 
+    def eliminar(self, proveedor: Proveedor) -> None:
+        self.db.delete(proveedor)
+        self.db.commit()
+
 
 class ProductosProveedorRepository:
     def __init__(self, db: Session):

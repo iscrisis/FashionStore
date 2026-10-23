@@ -54,6 +54,10 @@ class CiudadesService:
         ciudad.is_active = activo
         return self._repo.guardar(ciudad)
 
+    def eliminar(self, ciudad_id: int) -> None:
+        ciudad = self.obtener(ciudad_id)
+        self._repo.eliminar(ciudad)
+
 
 class SucursalesService:
     def __init__(self, db: Session):
@@ -108,3 +112,7 @@ class SucursalesService:
         sucursal = self.obtener(sucursal_id)
         sucursal.is_active = activo
         return self._repo.guardar(sucursal)
+
+    def eliminar(self, sucursal_id: int) -> None:
+        sucursal = self.obtener(sucursal_id)
+        self._repo.eliminar(sucursal)

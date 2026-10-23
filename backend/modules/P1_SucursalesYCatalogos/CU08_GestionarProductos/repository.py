@@ -76,6 +76,10 @@ class ProductosRepository:
         self.db.refresh(producto)
         return producto
 
+    def eliminar(self, producto: Producto) -> None:
+        self.db.delete(producto)
+        self.db.commit()
+
 
 class CatalogoLecturaRepository:
     """Solo lectura de Proveedor, Categoria, Temporada, Coleccion, Talla y

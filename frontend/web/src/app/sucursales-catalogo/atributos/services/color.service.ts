@@ -32,4 +32,8 @@ export class ColorService {
   setActive(id: number, isActive: boolean): Observable<ColorItem> {
     return this.http.patch<ColorItem>(`${this.baseUrl}/${id}/estado`, { is_active: isActive });
   }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

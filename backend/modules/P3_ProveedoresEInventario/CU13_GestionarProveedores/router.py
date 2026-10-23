@@ -113,6 +113,16 @@ def cambiar_estado_proveedor(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Proveedor no encontrado.") from exc
 
 
+@router.delete("/{proveedor_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_proveedor(
+    proveedor_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+) -> None:
+    try:
+        ProveedoresService(db).eliminar(proveedor_id)
+    except ProveedorNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Proveedor no encontrado.") from exc
+
+
 # --------------------------------------------------------------------------
 # Panel del Proveedor — el proveedor_id SIEMPRE se deriva del usuario
 # autenticado (actor.proveedor_id), nunca de un id recibido del cliente. Así

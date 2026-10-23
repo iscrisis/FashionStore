@@ -69,6 +69,16 @@ def cambiar_estado_ciudad(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Ciudad no encontrada.") from exc
 
 
+@router_ciudades.delete("/{ciudad_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_ciudad(
+    ciudad_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+) -> None:
+    try:
+        CiudadesService(db).eliminar(ciudad_id)
+    except CiudadNoEncontradaError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Ciudad no encontrada.") from exc
+
+
 @router_sucursales.get("", response_model=list[SucursalAdminView])
 def listar_sucursales(
     search: str | None = Query(default=None),
@@ -133,5 +143,15 @@ def cambiar_estado(
 ) -> SucursalAdminView:
     try:
         return SucursalesService(db).cambiar_estado(sucursal_id, payload.is_active)
+    except SucursalNoEncontradaError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Sucursal no encontrada.") from exc
+
+
+@router_sucursales.delete("/{sucursal_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_sucursal(
+    sucursal_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+) -> None:
+    try:
+        SucursalesService(db).eliminar(sucursal_id)
     except SucursalNoEncontradaError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Sucursal no encontrada.") from exc

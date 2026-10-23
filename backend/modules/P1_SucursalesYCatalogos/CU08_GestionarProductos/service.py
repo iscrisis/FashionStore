@@ -236,6 +236,10 @@ class ProductosService:
         producto.is_active = activo
         return self._repo.guardar(producto)
 
+    def eliminar(self, producto_id: int) -> None:
+        producto = self.obtener(producto_id)
+        self._repo.eliminar(producto)
+
     def establecer_imagen_principal(self, producto_id: int, archivo: UploadFile, contenido: bytes) -> Producto:
         producto = self.obtener(producto_id)
         url_anterior = producto.imagen_principal_url

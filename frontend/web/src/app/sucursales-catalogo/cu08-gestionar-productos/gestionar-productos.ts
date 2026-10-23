@@ -220,4 +220,35 @@ export class GestionarProductos {
       error: () => this.toast.error('No se pudo actualizar el estado del producto.'),
     });
   }
+
+  async deleteProducto(producto: Producto, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.openMenuId.set(null);
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: '¿Eliminar producto?',
+      message: `Se eliminará permanentemente "${producto.nombre}". Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.productoService.delete(producto.id).subscribe({
+      next: () => {
+        this.toast.success('Producto eliminado correctamente.');
+        this.load();
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          this.toast.error('No se puede eliminar este producto porque tiene promociones o relaciones asociadas.');
+        } else if (err.status === 404) {
+          this.toast.error('El producto no existe o ya fue eliminado.');
+        } else {
+          this.toast.error('No se pudo eliminar el producto.');
+        }
+      },
+    });
+  }
 }

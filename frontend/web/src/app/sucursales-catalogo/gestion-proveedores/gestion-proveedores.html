@@ -96,6 +96,13 @@
                       >
                         <app-icon name="power" /> {{ proveedor.is_active ? 'Desactivar' : 'Activar' }}
                       </button>
+                      <button
+                        type="button"
+                        class="row-actions__item row-actions__item--danger"
+                        (click)="deleteProveedor(proveedor, $event)"
+                      >
+                        <app-icon name="close" /> Eliminar
+                      </button>
                     </div>
                   }
                 </div>

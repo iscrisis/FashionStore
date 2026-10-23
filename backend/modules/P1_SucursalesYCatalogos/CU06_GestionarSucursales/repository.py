@@ -44,6 +44,10 @@ class CiudadesRepository:
         self.db.refresh(ciudad)
         return ciudad
 
+    def eliminar(self, ciudad: Ciudad) -> None:
+        self.db.delete(ciudad)
+        self.db.commit()
+
 
 class SucursalesRepository:
     def __init__(self, db: Session):
@@ -90,3 +94,7 @@ class SucursalesRepository:
         self.db.commit()
         self.db.refresh(sucursal)
         return sucursal
+
+    def eliminar(self, sucursal: Sucursal) -> None:
+        self.db.delete(sucursal)
+        self.db.commit()

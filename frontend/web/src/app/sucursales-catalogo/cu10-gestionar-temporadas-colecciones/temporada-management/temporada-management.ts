@@ -159,4 +159,35 @@ export class TemporadaManagement {
       error: () => this.toast.error('No se pudo actualizar el estado de la temporada.'),
     });
   }
+
+  async deleteTemporada(temporada: Temporada, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.openMenuId.set(null);
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: '¿Eliminar temporada?',
+      message: `Se eliminará permanentemente "${temporada.nombre}". Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.temporadaService.delete(temporada.id).subscribe({
+      next: () => {
+        this.toast.success('Temporada eliminada correctamente.');
+        this.load();
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          this.toast.error('No se puede eliminar esta temporada porque tiene colecciones o productos asociados.');
+        } else if (err.status === 404) {
+          this.toast.error('La temporada no existe o ya fue eliminada.');
+        } else {
+          this.toast.error('No se pudo eliminar la temporada.');
+        }
+      },
+    });
+  }
 }

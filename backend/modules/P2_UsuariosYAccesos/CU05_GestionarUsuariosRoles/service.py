@@ -45,6 +45,10 @@ class OperacionNoPermitidaError(Exception):
     """Auto-desactivación bloqueada."""
 
 
+class UsuarioNoEliminableError(Exception):
+    """Auto-eliminación bloqueada o usuario no se puede eliminar."""
+
+
 class UsuariosRolesService:
     def __init__(self, db: Session):
         self._repo = UsuariosRolesRepository(db)
@@ -140,3 +144,11 @@ class UsuariosRolesService:
 
         usuario.is_active = activo
         return self._repo.guardar(usuario)
+
+    def eliminar(self, usuario_id: int, actor: Usuario) -> None:
+        usuario = self.obtener(usuario_id)
+
+        if usuario.id == actor.id:
+            raise UsuarioNoEliminableError
+
+        self._repo.eliminar(usuario)

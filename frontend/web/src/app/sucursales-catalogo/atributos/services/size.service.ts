@@ -32,4 +32,8 @@ export class SizeService {
   setActive(id: number, isActive: boolean): Observable<Size> {
     return this.http.patch<Size>(`${this.baseUrl}/${id}/estado`, { is_active: isActive });
   }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

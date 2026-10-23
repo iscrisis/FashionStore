@@ -155,4 +155,35 @@ export class ColorManagement {
       error: () => this.toast.error('No se pudo actualizar el estado del color.'),
     });
   }
+
+  async deleteColor(color: ColorItem, event: Event): Promise<void> {
+    event.stopPropagation();
+    this.openMenuId.set(null);
+
+    const confirmed = await this.confirmDialog.confirm({
+      title: '¿Eliminar color?',
+      message: `Se eliminará permanentemente "${color.nombre}". Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.colorService.delete(color.id).subscribe({
+      next: () => {
+        this.toast.success('Color eliminado correctamente.');
+        this.load();
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          this.toast.error('No se puede eliminar este color porque existen productos asociados.');
+        } else if (err.status === 404) {
+          this.toast.error('El color no existe o ya fue eliminado.');
+        } else {
+          this.toast.error('No se pudo eliminar el color.');
+        }
+      },
+    });
+  }
 }

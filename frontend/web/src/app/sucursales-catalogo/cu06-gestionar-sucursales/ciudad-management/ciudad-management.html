@@ -68,9 +68,14 @@
                     <td class="cell-secondary">{{ ciudad.departamento }}</td>
                     <td><app-status-badge [active]="ciudad.is_active" /></td>
                     <td>
-                      <button type="button" class="btn btn--ghost btn--sm" (click)="toggleStatus(ciudad)">
-                        {{ ciudad.is_active ? 'Desactivar' : 'Activar' }}
-                      </button>
+                      <div style="display: flex; gap: 0.5rem;">
+                        <button type="button" class="btn btn--ghost btn--sm" (click)="toggleStatus(ciudad)">
+                          {{ ciudad.is_active ? 'Desactivar' : 'Activar' }}
+                        </button>
+                        <button type="button" class="btn btn--ghost btn--sm" style="color: var(--color-danger)" (click)="deleteCiudad(ciudad)">
+                          Eliminar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 }

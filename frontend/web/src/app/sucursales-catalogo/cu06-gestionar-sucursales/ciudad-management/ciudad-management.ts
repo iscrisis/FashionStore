@@ -1,5 +1,6 @@
 import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ConfirmDialogService } from '../../../core/ui/confirm-dialog/confirm-dialog.service';
 import { ToastService } from '../../../core/ui/toast/toast.service';
 import { Icon } from '../../../core/ui/icon/icon';
 import { StatusBadge } from '../../../core/ui/status-badge/status-badge';
@@ -21,6 +22,7 @@ export class CiudadManagement {
   private readonly fb = inject(FormBuilder);
   private readonly ciudadService = inject(SucursalAdminService);
   private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   protected readonly ciudades = signal<Ciudad[]>([]);
   protected readonly loading = signal(true);
@@ -91,6 +93,35 @@ export class CiudadManagement {
         this.changed.emit();
       },
       error: () => this.toast.error('No se pudo actualizar el estado de la ciudad.'),
+    });
+  }
+
+  async deleteCiudad(ciudad: Ciudad): Promise<void> {
+    const confirmed = await this.confirmDialog.confirm({
+      title: '¿Eliminar ciudad?',
+      message: `Se eliminará permanentemente "${ciudad.nombre}". Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      danger: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.ciudadService.deleteCiudad(ciudad.id).subscribe({
+      next: () => {
+        this.toast.success('Ciudad eliminada correctamente.');
+        this.load();
+        this.changed.emit();
+      },
+      error: (err) => {
+        if (err.status === 409) {
+          this.toast.error('No se puede eliminar esta ciudad porque tiene sucursales asociadas. Primero debe eliminar o reubicar las sucursales.');
+        } else if (err.status === 404) {
+          this.toast.error('La ciudad no existe o ya fue eliminada.');
+        } else {
+          this.toast.error('No se pudo eliminar la ciudad.');
+        }
+      },
     });
   }
 }

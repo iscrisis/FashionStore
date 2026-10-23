@@ -31,4 +31,8 @@ export class ProveedorService {
   setActive(id: number, isActive: boolean): Observable<Proveedor> {
     return this.http.patch<Proveedor>(`${this.baseUrl}/${id}/estado`, { is_active: isActive });
   }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

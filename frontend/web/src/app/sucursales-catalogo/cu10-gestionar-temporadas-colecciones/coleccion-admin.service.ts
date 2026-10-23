@@ -46,4 +46,8 @@ export class ColeccionAdminService {
     formData.append('archivo', archivo);
     return this.http.post<Coleccion>(`${this.baseUrl}/${id}/imagen-destacada`, formData);
   }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

@@ -29,6 +29,7 @@ from .service import (
     ProveedorYaVinculadoError,
     RolNoAsignableError,
     SucursalNoEncontradaError,
+    UsuarioNoEliminableError,
     UsuarioNoEncontradoError,
     UsuariosRolesService,
 )
@@ -152,4 +153,21 @@ def cambiar_estado(
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
             "No puedes desactivar tu propia cuenta.",
+        ) from exc
+
+
+@router.delete("/{usuario_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_usuario(
+    usuario_id: int,
+    db: Session = Depends(get_db),
+    actor: Usuario = Depends(require_admin),
+) -> None:
+    try:
+        UsuariosRolesService(db).eliminar(usuario_id, actor)
+    except UsuarioNoEncontradoError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Usuario no encontrado.") from exc
+    except UsuarioNoEliminableError as exc:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "No puedes eliminar tu propia cuenta.",
         ) from exc

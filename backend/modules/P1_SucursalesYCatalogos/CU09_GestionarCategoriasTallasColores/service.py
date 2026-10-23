@@ -66,6 +66,10 @@ class CategoriasService:
         eliminar_archivo_imagen(url_anterior)
         return categoria
 
+    def eliminar(self, categoria_id: int) -> None:
+        categoria = self.obtener(categoria_id)
+        self._repo.eliminar(categoria)
+
 
 class TallasService:
     def __init__(self, db: Session):
@@ -97,6 +101,10 @@ class TallasService:
         talla.is_active = activo
         return self._repo.guardar(talla)
 
+    def eliminar(self, talla_id: int) -> None:
+        talla = self.obtener(talla_id)
+        self._repo.eliminar(talla)
+
 
 class ColoresService:
     def __init__(self, db: Session):
@@ -127,3 +135,7 @@ class ColoresService:
         color = self.obtener(color_id)
         color.is_active = activo
         return self._repo.guardar(color)
+
+    def eliminar(self, color_id: int) -> None:
+        color = self.obtener(color_id)
+        self._repo.eliminar(color)
