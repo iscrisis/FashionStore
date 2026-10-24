@@ -46,7 +46,10 @@ class CatalogoPublicoRepository:
         talla_id: int | None = None,
         color_id: int | None = None,
     ) -> list[Producto]:
-        stmt = select(Producto).where(Producto.is_active.is_(True))
+        stmt = select(Producto).where(
+            Producto.is_active.is_(True),
+            Producto.coleccion.has(Coleccion.is_active.is_(True))
+        )
         if search:
             stmt = stmt.where(func.lower(Producto.nombre).like(f"%{search.strip().lower()}%"))
         if categoria_id is not None:
@@ -61,5 +64,9 @@ class CatalogoPublicoRepository:
         return list(self.db.execute(stmt).scalars().all())
 
     def obtener_producto_activo(self, producto_id: int) -> Producto | None:
-        stmt = select(Producto).where(Producto.id == producto_id, Producto.is_active.is_(True))
+        stmt = select(Producto).where(
+            Producto.id == producto_id,
+            Producto.is_active.is_(True),
+            Producto.coleccion.has(Coleccion.is_active.is_(True))
+        )
         return self.db.execute(stmt).scalar_one_or_none()

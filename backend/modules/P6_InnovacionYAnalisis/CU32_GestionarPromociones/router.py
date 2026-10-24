@@ -94,6 +94,16 @@ def editar_promocion(
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, _MSG_SOLAPAMIENTO) from exc
 
 
+@router.patch("/{promocion_id}/activar", response_model=PromocionDetalleOut)
+def activar_promocion(
+    promocion_id: int, db: Session = Depends(get_db), actor: Usuario = Depends(require_administrador)
+) -> PromocionDetalleOut:
+    try:
+        return PromocionService(db).activar(promocion_id)
+    except PromocionNoEncontradaError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, _MSG_NO_ENCONTRADA) from exc
+
+
 @router.patch("/{promocion_id}/desactivar", response_model=PromocionDetalleOut)
 def desactivar_promocion(
     promocion_id: int, db: Session = Depends(get_db), actor: Usuario = Depends(require_administrador)

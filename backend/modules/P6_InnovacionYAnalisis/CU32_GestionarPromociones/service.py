@@ -16,9 +16,9 @@ crear()/editar() validan, en este orden, ANTES de tocar la base:
   3. Ninguno de esos productos ya tiene otra promoción `activa` cuyo rango
      se cruce con el nuevo (ver PromocionRepository.existe_solapamiento) --
      nunca se acumulan descuentos.
-editar() además rechaza una promoción FINALIZADA o DESACTIVADA -- ya cumplió
-su ciclo, no tiene sentido reabrirla para editarla (sí se puede seguir
-consultando con VER).
+editar() rechaza una promoción FINALIZADA que ya pasó su vigencia.
+Una promoción DESACTIVADA puede editarse para modificar sus parámetros antes
+de reactivarla.
 
 desactivar() SOLO apaga la bandera `activa` -- nunca hay un DELETE físico en
 este módulo (ver Models/promocion.py): una promoción que ya tuvo vigencia
@@ -48,7 +48,7 @@ from .schemas import (
     PromocionListadoOut,
 )
 
-_ESTADOS_NO_EDITABLES = (EstadoPromocion.FINALIZADA, EstadoPromocion.DESACTIVADA)
+_ESTADOS_NO_EDITABLES = (EstadoPromocion.FINALIZADA,)
 
 
 class RangoFechaInvalidoError(Exception):
@@ -69,7 +69,7 @@ class PromocionNoEncontradaError(Exception):
 
 
 class PromocionNoEditableError(Exception):
-    """La promoción ya está FINALIZADA o DESACTIVADA -- no se puede editar,
+    """La promoción ya está FINALIZADA -- no se puede editar,
     solo consultar (VER)."""
 
 
@@ -139,6 +139,14 @@ class PromocionService:
         promocion.productos = list(productos.values())
         self._promociones.guardar()
         return self._a_detalle(promocion, hoy)
+
+    def activar(self, promocion_id: int) -> PromocionDetalleOut:
+        promocion = self._promociones.obtener_por_id_bloqueado(promocion_id)
+        if promocion is None:
+            raise PromocionNoEncontradaError
+        promocion.activa = True
+        self._promociones.guardar()
+        return self._a_detalle(promocion, date.today())
 
     def desactivar(self, promocion_id: int) -> PromocionDetalleOut:
         promocion = self._promociones.obtener_por_id_bloqueado(promocion_id)

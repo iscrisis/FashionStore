@@ -101,26 +101,24 @@
                       <button type="button" class="row-actions__item" (click)="openView(usuario, $event)">
                         <app-icon name="eye" /> Ver
                       </button>
-                      @if (usuario.rol !== 'CLIENTE') {
-                        <button type="button" class="row-actions__item" (click)="openEdit(usuario)">
-                          <app-icon name="edit" /> Editar
-                        </button>
-                        <button
-                          type="button"
-                          class="row-actions__item"
-                          [class.row-actions__item--danger]="usuario.is_active"
-                          (click)="toggleStatus(usuario, $event)"
-                        >
-                          <app-icon name="power" /> {{ usuario.is_active ? 'Desactivar' : 'Activar' }}
-                        </button>
-                        <button
-                          type="button"
-                          class="row-actions__item row-actions__item--danger"
-                          (click)="deleteUser(usuario, $event)"
-                        >
-                          <app-icon name="close" /> Eliminar
-                        </button>
-                      }
+                      <button type="button" class="row-actions__item" (click)="openEdit(usuario)">
+                        <app-icon name="edit" /> Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="row-actions__item"
+                        [class.row-actions__item--danger]="usuario.is_active"
+                        (click)="toggleStatus(usuario, $event)"
+                      >
+                        <app-icon name="power" /> {{ usuario.is_active ? 'Desactivar' : 'Activar' }}
+                      </button>
+                      <button
+                        type="button"
+                        class="row-actions__item row-actions__item--danger"
+                        (click)="deleteUser(usuario, $event)"
+                      >
+                        <app-icon name="close" /> Eliminar
+                      </button>
                     </div>
                   }
                 </div>

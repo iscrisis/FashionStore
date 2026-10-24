@@ -27,6 +27,10 @@ export class PromocionService {
     return this.http.put<PromocionDetalle>(`${this.baseUrl}/${id}`, payload);
   }
 
+  activate(id: number): Observable<PromocionDetalle> {
+    return this.http.patch<PromocionDetalle>(`${this.baseUrl}/${id}/activar`, {});
+  }
+
   deactivate(id: number): Observable<PromocionDetalle> {
     return this.http.patch<PromocionDetalle>(`${this.baseUrl}/${id}/desactivar`, {});
   }

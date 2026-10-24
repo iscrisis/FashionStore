@@ -69,10 +69,18 @@
                       <button type="button" class="row-actions__item" (click)="openView(promocion, $event)">
                         <app-icon name="eye" /> Ver
                       </button>
-                      @if (esGestionable(promocion)) {
-                        <button type="button" class="row-actions__item" (click)="openEdit(promocion)">
-                          <app-icon name="edit" /> Editar
+                      <button type="button" class="row-actions__item" (click)="openEdit(promocion)">
+                        <app-icon name="edit" /> Editar
+                      </button>
+                      @if (promocion.estado === 'DESACTIVADA') {
+                        <button
+                          type="button"
+                          class="row-actions__item"
+                          (click)="activar(promocion, $event)"
+                        >
+                          <app-icon name="power" /> Activar
                         </button>
+                      } @else {
                         <button
                           type="button"
                           class="row-actions__item row-actions__item--danger"
@@ -81,6 +89,13 @@
                           <app-icon name="power" /> Desactivar
                         </button>
                       }
+                      <button
+                        type="button"
+                        class="row-actions__item row-actions__item--danger"
+                        (click)="eliminar(promocion, $event)"
+                      >
+                        <app-icon name="close" /> Eliminar
+                      </button>
                     </div>
                   }
                 </div>
