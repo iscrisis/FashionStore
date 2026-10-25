@@ -88,12 +88,13 @@ import enum
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, DateTime, Enum as SAEnum, ForeignKey, Integer, Numeric, String, func
+from sqlalchemy import CheckConstraint, DateTime, Enum as SAEnum, ForeignKey, ForeignKeyConstraint, Integer, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from modules.P1_SucursalesYCatalogos.Models.producto_variante import ProductoVariante
 from modules.P1_SucursalesYCatalogos.Models.sucursal import Sucursal
+from modules.P7_GestionSaaSySuscripciones.Models.empresa import Empresa
 
 
 class TipoVenta(str, enum.Enum):
@@ -115,11 +116,19 @@ class OrigenVenta(str, enum.Enum):
 
 class Venta(Base):
     __tablename__ = "ventas"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["empresa_id", "sucursal_id"],
+            ["sucursales.empresa_id", "sucursales.id"],
+            name="fk_venta_sucursal_compuesto"
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    empresa_id: Mapped[int] = mapped_column(ForeignKey("empresas.id"), nullable=False)
     codigo_venta: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     cliente_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"), nullable=True)
-    sucursal_id: Mapped[int] = mapped_column(ForeignKey("sucursales.id"), nullable=False)
+    sucursal_id: Mapped[int] = mapped_column(nullable=False)
     tipo: Mapped[TipoVenta] = mapped_column(SAEnum(TipoVenta, name="tipo_venta"), nullable=False)
     estado: Mapped[EstadoVenta] = mapped_column(
         SAEnum(EstadoVenta, name="estado_venta"), nullable=False, default=EstadoVenta.PENDIENTE_PAGO
@@ -133,6 +142,7 @@ class Venta(Base):
         ForeignKey("reservas.id", ondelete="SET NULL"), nullable=True
     )
 
+    empresa: Mapped[Empresa] = relationship(lazy="joined")
     sucursal: Mapped[Sucursal] = relationship(lazy="joined")
     # order_by por id: los detalles se muestran siempre en el orden en que se
     # confirmaron, igual que Reserva.detalles.

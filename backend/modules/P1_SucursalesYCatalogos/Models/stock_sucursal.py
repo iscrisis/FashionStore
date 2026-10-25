@@ -11,6 +11,11 @@ duplicar ninguna de esas dos entidades. La restricción de unicidad evita dos
 filas de stock para la misma sucursal+variante -- se actualiza la cantidad
 existente en su lugar (ver CU14_ConsultarInventario).
 
+Multitenant: StockSucursal.empresa_id SIEMPRE debe coincidir con
+Sucursal.empresa_id. Se incluye empresa_id directo para:
+- Facilitar consultas filtradas por tenant en la capa de repositorio
+- Garantizar integridad mediante CHECK constraint o índice compuesto
+
 producto_variante_id usa ON DELETE CASCADE porque CU08 elimina físicamente una
 ProductoVariante cuando el Administrador quita esa combinación talla/color de
 un producto (ver Producto.variantes, cascade="all, delete-orphan"); sin este
@@ -28,11 +33,11 @@ siguen leyendo/escribiendo únicamente `cantidad` -- el stock físico real no
 cambia por reservar, solo por recepción/ajuste/venta.
 """
 
-from sqlalchemy import CheckConstraint, ForeignKey, Integer, UniqueConstraint
+from sqlalchemy import CheckConstraint, ForeignKey, ForeignKeyConstraint, Integer, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-
+from modules.P7_GestionSaaSySuscripciones.Models.empresa import Empresa
 from .producto_variante import ProductoVariante
 from .sucursal import Sucursal
 
@@ -43,10 +48,16 @@ class StockSucursal(Base):
         UniqueConstraint("sucursal_id", "producto_variante_id"),
         CheckConstraint("cantidad >= 0", name="ck_stock_sucursal_cantidad_no_negativa"),
         CheckConstraint("stock_reservado >= 0", name="ck_stock_sucursal_reservado_no_negativo"),
+        ForeignKeyConstraint(
+            ["empresa_id", "sucursal_id"],
+            ["sucursales.empresa_id", "sucursales.id"],
+            name="fk_stock_sucursal_sucursal_compuesto"
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    sucursal_id: Mapped[int] = mapped_column(ForeignKey("sucursales.id"), nullable=False)
+    empresa_id: Mapped[int] = mapped_column(ForeignKey("empresas.id"), nullable=False)
+    sucursal_id: Mapped[int] = mapped_column(nullable=False)
     producto_variante_id: Mapped[int] = mapped_column(
         ForeignKey("producto_variantes.id", ondelete="CASCADE"), nullable=False
     )
@@ -55,5 +66,6 @@ class StockSucursal(Base):
         Integer, nullable=False, default=0, server_default="0"
     )
 
+    empresa: Mapped[Empresa] = relationship(lazy="joined")
     sucursal: Mapped[Sucursal] = relationship(lazy="joined")
     producto_variante: Mapped[ProductoVariante] = relationship(lazy="joined")

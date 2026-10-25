@@ -3,8 +3,47 @@ import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
   {
-    path: '',
+    path: 'login',
+    loadComponent: () =>
+      import('./usuarios-y-accesos/cu01-iniciar-sesion/login').then((m) => m.Login),
+    title: 'Iniciar sesión · Fashion Store',
+  },
+  {
+    path: 'registro',
+    loadComponent: () =>
+      import('./usuarios-y-accesos/cu02-registrar-cliente/registrar-cliente').then(
+        (m) => m.RegistrarCliente,
+      ),
+    title: 'Crear cuenta · Fashion Store',
+  },
+  {
+    path: 'registrar-empresa',
+    loadComponent: () =>
+      import('./features/cu01-registrar-empresa/cu01-registrar-empresa').then(
+        (m) => m.RegistrarEmpresaComponent,
+      ),
+    title: 'Registrar empresa · FashionStore SaaS',
+  },
+  {
+    path: 'recuperar-contrasena',
+    loadComponent: () =>
+      import('./usuarios-y-accesos/cu03-recuperar-contrasena/solicitar-recuperacion').then(
+        (m) => m.SolicitarRecuperacion,
+      ),
+    title: 'Recuperar contraseña · Fashion Store',
+  },
+  {
+    path: 'restablecer-contrasena',
+    loadComponent: () =>
+      import('./usuarios-y-accesos/cu03-recuperar-contrasena/restablecer-contrasena').then(
+        (m) => m.RestablecerContrasena,
+      ),
+    title: 'Restablecer contraseña · Fashion Store',
+  },
+  {
+    path: 'home',
     loadComponent: () =>
       import('./layouts/public-layout/public-layout').then((m) => m.PublicLayout),
     children: [
@@ -12,38 +51,6 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./features/public/home/home').then((m) => m.Home),
         title: 'Fashion Store',
-      },
-      {
-        path: 'login',
-        loadComponent: () =>
-          import('./usuarios-y-accesos/cu01-iniciar-sesion/login').then((m) => m.Login),
-        title: 'Iniciar sesión · Fashion Store',
-      },
-      {
-        // CU02 -- Registrar cliente. Público, sin guard -- el link "¿No
-        // tienes cuenta? Regístrate" de login.html ya apuntaba aquí.
-        path: 'registro',
-        loadComponent: () =>
-          import('./usuarios-y-accesos/cu02-registrar-cliente/registrar-cliente').then(
-            (m) => m.RegistrarCliente,
-          ),
-        title: 'Crear cuenta · Fashion Store',
-      },
-      {
-        path: 'recuperar-contrasena',
-        loadComponent: () =>
-          import('./usuarios-y-accesos/cu03-recuperar-contrasena/solicitar-recuperacion').then(
-            (m) => m.SolicitarRecuperacion,
-          ),
-        title: 'Recuperar contraseña · Fashion Store',
-      },
-      {
-        path: 'restablecer-contrasena',
-        loadComponent: () =>
-          import('./usuarios-y-accesos/cu03-recuperar-contrasena/restablecer-contrasena').then(
-            (m) => m.RestablecerContrasena,
-          ),
-        title: 'Restablecer contraseña · Fashion Store',
       },
       {
         path: 'mi-perfil',
@@ -161,6 +168,21 @@ export const routes: Routes = [
             (m) => m.ProductoDetalle,
           ),
         title: 'Detalle de producto · Fashion Store',
+      },
+    ],
+  },
+  {
+    path: 'superadmin',
+    loadComponent: () =>
+      import('./layouts/superadmin-layout/superadmin-layout').then((m) => m.SuperadminLayout),
+    canActivate: [authGuard, roleGuard('SUPERADMIN')],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/superadmin/dashboard/dashboard').then((m) => m.SuperadminDashboard),
+        title: 'Panel de administración · Fashion Store Superadmin',
       },
     ],
   },

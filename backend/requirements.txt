@@ -17,6 +17,7 @@ vercel==0.10.0
 # CU01 - Iniciar sesión (usuarios_y_accesos): hashing de contraseñas y JWT
 bcrypt==5.0.0
 pyjwt==2.13.0
+email-validator==2.1.0
 
 # CU23 - Procesar pago electrónico (Stripe Checkout Hosted, modo TEST):
 # ver app/integrations/stripe_client.py.

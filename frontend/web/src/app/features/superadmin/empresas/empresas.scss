@@ -1,0 +1,218 @@
+.empresas-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.empresas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.btn-secondary {
+  background: var(--color-bg);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-primary) 8%, white);
+  }
+}
+
+.loading,
+.error {
+  padding: 24px;
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-size: 14px;
+}
+
+.loading {
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+}
+
+.error {
+  background: #fee;
+  color: #c00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  button {
+    padding: 6px 12px;
+    border: 1px solid #c00;
+    background: transparent;
+    color: #c00;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 200ms;
+
+    &:hover {
+      background: #fdf;
+    }
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--color-text-secondary);
+
+  app-icon {
+    opacity: 0.5;
+  }
+
+  p {
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+.table-wrapper {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.empresas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  thead {
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
+  }
+
+  tbody tr:hover {
+    background: var(--color-bg);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.empresa-name {
+  font-weight: 600;
+}
+
+.empresa-slug {
+  color: var(--color-text-secondary);
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.date {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #eee;
+  color: #666;
+  text-transform: uppercase;
+
+  &.active {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+}
+
+.actions {
+  text-align: right;
+  width: 40px;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 200ms;
+
+  &:hover {
+    background: var(--color-bg);
+    color: var(--color-primary);
+  }
+}
+
+@media (max-width: 768px) {
+  .empresas-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-primary {
+    justify-content: center;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+}

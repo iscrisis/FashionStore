@@ -1,7 +1,7 @@
 """create devoluciones_cambios table (cu26)
 
 Revision ID: c8d4a1f6e930
-Revises: d2b8e5f19a4c
+Revises: h8i9j0k1l2m3
 Create Date: 2026-09-17 10:00:00.000000
 
 """
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = 'c8d4a1f6e930'
-down_revision: Union[str, Sequence[str], None] = 'd2b8e5f19a4c'
+down_revision: Union[str, Sequence[str], None] = 'i9j0k1l2m3n4'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

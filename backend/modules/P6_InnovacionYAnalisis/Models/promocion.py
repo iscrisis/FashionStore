@@ -43,6 +43,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Numeric,
     String,
     Table,
@@ -52,12 +53,19 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from modules.P1_SucursalesYCatalogos.Models.producto import Producto
+from modules.P7_GestionSaaSySuscripciones.Models.empresa import Empresa
 
 promocion_productos = Table(
     "promocion_productos",
     Base.metadata,
     Column("promocion_id", ForeignKey("promociones.id", ondelete="CASCADE"), primary_key=True),
-    Column("producto_id", ForeignKey("productos.id"), primary_key=True),
+    Column("empresa_id", ForeignKey("empresas.id"), primary_key=True),
+    Column("producto_id", primary_key=False),
+    ForeignKeyConstraint(
+        ["empresa_id", "producto_id"],
+        ["productos.empresa_id", "productos.id"],
+        name="fk_promocion_productos_producto_compuesto"
+    ),
 )
 
 
@@ -82,6 +90,7 @@ class Promocion(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    empresa_id: Mapped[int] = mapped_column(ForeignKey("empresas.id"), nullable=False)
     nombre: Mapped[str] = mapped_column(String(150), nullable=False)
     porcentaje_descuento: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
     fecha_inicio: Mapped[date] = mapped_column(Date, nullable=False)
@@ -89,6 +98,7 @@ class Promocion(Base):
     activa: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     fecha_creacion: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+    empresa: Mapped[Empresa] = relationship(lazy="joined")
     productos: Mapped[list[Producto]] = relationship(
         secondary=promocion_productos, lazy="selectin", order_by=Producto.nombre
     )

@@ -28,10 +28,21 @@ class UsuariosRolesRepository:
         search: str | None = None,
         rol: RolUsuario | None = None,
         is_active: bool | None = None,
+        current_user: "Usuario | None" = None,
     ) -> list[Usuario]:
         # El Administrador General queda siempre fuera de CU05, sin importar los
-        # filtros solicitados (ver también obtener() en service.py).
-        stmt = select(Usuario).where(Usuario.rol != RolUsuario.ADMINISTRADOR)
+        # filtros solicitados (ver también obtener() en service.py). SUPERADMIN
+        # también queda excluido (rol de plataforma, no de empresa).
+        stmt = select(Usuario).where(
+            Usuario.rol.notin_([RolUsuario.ADMINISTRADOR, RolUsuario.SUPERADMIN])
+        )
+
+        # Filtro multitenant: ADMINISTRADOR solo ve usuarios de su empresa.
+        # SUPERADMIN ve todos. Si no se proporciona current_user, no filtrar
+        # (comportamiento para queries internas/test).
+        if current_user is not None and current_user.rol == RolUsuario.ADMINISTRADOR:
+            stmt = stmt.where(Usuario.empresa_id == current_user.empresa_id)
+
         if search:
             patron = f"%{search.strip().lower()}%"
             stmt = stmt.where(

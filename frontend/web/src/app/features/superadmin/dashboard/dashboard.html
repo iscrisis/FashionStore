@@ -1,0 +1,25 @@
+<div class="dashboard">
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    @for (card of statsCards; track card.label) {
+      <div class="stat-card">
+        <div class="stat-value">{{ card.value }}</div>
+        <div class="stat-label">{{ card.label }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="section">
+    <h2 class="section-title">Acciones rápidas</h2>
+    <div class="actions-grid">
+      <a href="/superadmin/registrar-empresa" class="action-card">
+        <span class="action-icon">➕</span>
+        <div class="action-text">
+          <span class="action-title">Registrar empresa</span>
+          <p class="action-description">Agregar una nueva empresa a la plataforma.</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>

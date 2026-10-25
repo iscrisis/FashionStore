@@ -1,7 +1,7 @@
 """extend pago for cu25 (pago presencial)
 
 Revision ID: d2b8e5f19a4c
-Revises: a7f21c4d9b3e
+Revises: c8d4a1f6e930
 Create Date: 2026-09-19 15:00:00.000000
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'd2b8e5f19a4c'
-down_revision: Union[str, Sequence[str], None] = 'a7f21c4d9b3e'
+down_revision: Union[str, Sequence[str], None] = 'c8d4a1f6e930'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

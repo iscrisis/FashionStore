@@ -43,6 +43,19 @@ class Settings(BaseSettings):
     ADMIN_INITIAL_EMAIL: str = "admin@fashionstore.com"
     ADMIN_INITIAL_PASSWORD: str = "changeme"
 
+    # Usado únicamente por scripts/seed_superadmin.py para crear el SUPERADMIN inicial.
+    SUPERADMIN_INITIAL_NAME: str = "SuperAdmin FashionStore"
+    SUPERADMIN_INITIAL_EMAIL: str = "superadmin@fashionstore.com"
+    SUPERADMIN_INITIAL_PASSWORD: str = "changeme"
+
+    # Usado únicamente por scripts/seed_empresa.py para crear la empresa del primer parcial.
+    # Esta es la empresa "por defecto" a la cual pertenecen todos los datos del primer parcial.
+    EMPRESA_INICIAL_NOMBRE: str = "FashionStore - Empresa Principal"
+    EMPRESA_INICIAL_SLUG: str = "fashionstore-empresa-principal"
+    EMPRESA_INICIAL_RAZON_SOCIAL: str = "FashionStore Empresa Principal"
+    EMPRESA_INICIAL_CORREO: str = "admin@fashionstore-principal.com"
+    EMPRESA_INICIAL_TELEFONO: str = "+591 2 123456789"
+
     # CU03 - Recuperar contraseña: SMTP estándar para enviar el correo real con
     # el enlace de restablecimiento (ver app/integrations/mailer.py). Vacíos
     # por defecto: sin MAIL_HOST/MAIL_FROM configurados, el envío falla de

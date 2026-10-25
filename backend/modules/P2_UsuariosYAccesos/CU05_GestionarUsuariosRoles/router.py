@@ -1,14 +1,14 @@
 """Endpoints de CU05 — Gestionar usuarios y roles.
 
-Todos requieren un ADMINISTRADOR autenticado (única autoridad de alcance global
-definida hoy en el sistema). La autorización se valida en FastAPI, no solo en
-el frontend.
+Todos requieren SUPERADMIN o ADMINISTRADOR autenticado. SUPERADMIN tiene alcance
+global; ADMINISTRADOR solo sobre su empresa. La autorización se valida en FastAPI,
+no solo en el frontend.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import require_roles
+from app.core.deps import require_admin_roles, require_roles
 from app.db.session import get_db
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
@@ -37,14 +37,15 @@ from .service import (
 router = APIRouter(prefix="/usuarios", tags=["CU05 - Gestionar usuarios y roles"])
 
 _ETIQUETAS_ROL = {
-    RolUsuario.ADMINISTRADOR: "Administrador general",
+    RolUsuario.SUPERADMIN: "SuperAdmin (plataforma global)",
+    RolUsuario.ADMINISTRADOR: "Administrador de empresa",
     RolUsuario.ENCARGADO_SUCURSAL: "Encargado de sucursal",
     RolUsuario.CAJERO: "Cajero",
     RolUsuario.PROVEEDOR: "Proveedor",
     RolUsuario.CLIENTE: "Cliente",
 }
 
-require_admin = require_roles(RolUsuario.ADMINISTRADOR)
+require_admin = require_admin_roles()
 
 
 @router.get("/roles", response_model=list[RolDisponible])
@@ -58,10 +59,10 @@ def listar_usuarios(
     rol: RolUsuario | None = Query(default=None),
     estado: str | None = Query(default=None, pattern="^(active|inactive)$"),
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(require_admin),
 ) -> list[Usuario]:
     is_active = {"active": True, "inactive": False}.get(estado)
-    return UsuariosRolesService(db).listar(search=search, rol=rol, is_active=is_active)
+    return UsuariosRolesService(db).listar(search=search, rol=rol, is_active=is_active, current_user=current_user)
 
 
 @router.get("/{usuario_id}", response_model=UsuarioAdminView)
@@ -76,10 +77,10 @@ def obtener_usuario(
 
 @router.post("", response_model=UsuarioAdminView, status_code=status.HTTP_201_CREATED)
 def crear_usuario(
-    payload: UsuarioCrear, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+    payload: UsuarioCrear, db: Session = Depends(get_db), current_user: Usuario = Depends(require_admin)
 ) -> Usuario:
     try:
-        return UsuariosRolesService(db).crear(payload)
+        return UsuariosRolesService(db).crear(payload, current_user=current_user)
     except RolNoAsignableError as exc:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,

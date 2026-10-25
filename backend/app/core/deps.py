@@ -76,3 +76,21 @@ def require_roles(*roles: RolUsuario):
         return usuario
 
     return _dependency
+
+
+def require_admin_roles():
+    """Dependencia factory: exige sesión válida Y rol SUPERADMIN o ADMINISTRADOR.
+
+    Usado por endpoints administrativos que pueden ser ejecutados tanto por
+    el SUPERADMIN (alcance global) como por el ADMINISTRADOR de su empresa.
+    """
+
+    def _dependency(usuario: Usuario = Depends(get_current_usuario)) -> Usuario:
+        if usuario.rol not in (RolUsuario.SUPERADMIN, RolUsuario.ADMINISTRADOR):
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                "No tienes permisos para realizar esta acción.",
+            )
+        return usuario
+
+    return _dependency

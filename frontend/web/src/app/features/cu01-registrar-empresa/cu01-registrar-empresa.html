@@ -1,0 +1,259 @@
+<div class="register-container">
+  <!-- Header -->
+  <div class="register-header">
+    <div class="header-content">
+      <h1>FashionStore</h1>
+      <p class="tagline">Plataforma SaaS</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="register-main">
+    @if (!exito()) {
+      <!-- Formulario -->
+      <div class="form-wrapper">
+        <div class="form-header">
+          <h2>Crear una cuenta para tu empresa</h2>
+          <p>Comienza a administrar tu negocio en FashionStore</p>
+        </div>
+
+        @if (error()) {
+          <div class="error-banner">
+            <span class="error-icon">⚠</span>
+            <p>{{ error() }}</p>
+          </div>
+        }
+
+        <form [formGroup]="registroForm" (ngSubmit)="onSubmit()" class="register-form">
+          <!-- Sección: Datos de la Empresa -->
+          <fieldset class="form-section">
+            <legend>Datos de la empresa</legend>
+
+            <div class="form-group">
+              <label for="nombre" class="required">Nombre de empresa</label>
+              <input
+                type="text"
+                id="nombre"
+                formControlName="nombre"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('nombre')"
+                (change)="onNombreChange()"
+                placeholder="Ej: Fashion Boutique SA"
+              />
+              @if (isFieldInvalid('nombre')) {
+                <span class="error-message">{{ getErrorMessage('nombre') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="slug" class="required">Identificador empresarial</label>
+              <input
+                type="text"
+                id="slug"
+                formControlName="slug"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('slug')"
+                placeholder="ej-fashion-boutique"
+              />
+              @if (isFieldInvalid('slug')) {
+                <span class="error-message">{{ getErrorMessage('slug') }}</span>
+              }
+              <span class="hint">Minúsculas, números y guiones. Único en la plataforma.</span>
+            </div>
+
+            <div class="form-group">
+              <label for="razon_social" class="required">Razón social registrada</label>
+              <input
+                type="text"
+                id="razon_social"
+                formControlName="razon_social"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('razon_social')"
+                placeholder="Ej: Fashion Boutique Sociedad Anónima"
+              />
+              @if (isFieldInvalid('razon_social')) {
+                <span class="error-message">{{ getErrorMessage('razon_social') }}</span>
+              }
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="correo" class="required">Correo de contacto</label>
+                <input
+                  type="email"
+                  id="correo"
+                  formControlName="correo"
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('correo')"
+                  placeholder="contacto@empresa.com"
+                />
+                @if (isFieldInvalid('correo')) {
+                  <span class="error-message">{{ getErrorMessage('correo') }}</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="telefono" class="required">Teléfono de contacto</label>
+                <input
+                  type="tel"
+                  id="telefono"
+                  formControlName="telefono"
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('telefono')"
+                  placeholder="+591 2 1234567"
+                />
+                @if (isFieldInvalid('telefono')) {
+                  <span class="error-message">{{ getErrorMessage('telefono') }}</span>
+                }
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Sección: Cuenta Administrador -->
+          <fieldset class="form-section">
+            <legend>Cuenta de administrador</legend>
+
+            <div class="form-group">
+              <label for="nombre_admin" class="required">Nombre completo</label>
+              <input
+                type="text"
+                id="nombre_admin"
+                formControlName="nombre_admin"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('nombre_admin')"
+                placeholder="Tu nombre completo"
+              />
+              @if (isFieldInvalid('nombre_admin')) {
+                <span class="error-message">{{ getErrorMessage('nombre_admin') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="correo_admin" class="required">Correo electrónico</label>
+              <input
+                type="email"
+                id="correo_admin"
+                formControlName="correo_admin"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('correo_admin')"
+                placeholder="tu.correo@empresa.com"
+              />
+              @if (isFieldInvalid('correo_admin')) {
+                <span class="error-message">{{ getErrorMessage('correo_admin') }}</span>
+              }
+              <span class="hint">Con este correo iniciarás sesión en tu cuenta.</span>
+            </div>
+
+            <div class="form-group">
+              <label for="password" class="required">Contraseña</label>
+              <div class="password-input-wrapper">
+                <input
+                  [type]="mostrarPassword() ? 'text' : 'password'"
+                  id="password"
+                  formControlName="password"
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('password')"
+                  placeholder="Mínimo 6 caracteres"
+                />
+                <button
+                  type="button"
+                  class="password-toggle"
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-label]="mostrarPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                  [attr.aria-pressed]="mostrarPassword()"
+                >
+                  {{ mostrarPassword() ? '👁️' : '👁️‍🗨️' }}
+                </button>
+              </div>
+              @if (isFieldInvalid('password')) {
+                <span class="error-message">{{ getErrorMessage('password') }}</span>
+              }
+              <span class="hint">Usa una contraseña segura con números y caracteres especiales.</span>
+            </div>
+          </fieldset>
+
+          <!-- Términos -->
+          <div class="form-group checkbox">
+            <input
+              type="checkbox"
+              id="terminos"
+              formControlName="terminos"
+              class="checkbox-input"
+              [class.is-invalid]="isFieldInvalid('terminos')"
+            />
+            <label for="terminos" class="checkbox-label">
+              Acepto las
+              <a href="#" target="_blank" class="link">condiciones de uso</a>
+              y la
+              <a href="#" target="_blank" class="link">política de privacidad</a>
+              de FashionStore.
+            </label>
+            @if (isFieldInvalid('terminos')) {
+              <span class="error-message">Debes aceptar los términos.</span>
+            }
+          </div>
+
+          <!-- Submit -->
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!registroForm.valid || enviando()"
+          >
+            @if (enviando()) {
+              <span class="loading-spinner"></span>
+              Registrando...
+            } @else {
+              Crear cuenta empresarial
+            }
+          </button>
+        </form>
+
+        <!-- Login Link -->
+        <div class="login-link">
+          ¿Ya tienes una cuenta?
+          <a routerLink="/login" class="link">Iniciar sesión</a>
+        </div>
+      </div>
+    } @else {
+      <!-- Pantalla de Éxito -->
+      <div class="success-wrapper">
+        <div class="success-icon">✓</div>
+        <h2>Registro completado</h2>
+        <p class="success-message">Tu empresa fue registrada correctamente en FashionStore.</p>
+
+        <div class="success-details">
+          <div class="detail-item">
+            <span class="label">Empresa registrada:</span>
+            <span class="value">{{ empresaCreada()?.nombre }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Identificador:</span>
+            <span class="value">{{ empresaCreada()?.slug }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Administrador:</span>
+            <span class="value">{{ administradorCreado()?.nombre }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Email del administrador:</span>
+            <span class="value">{{ administradorCreado()?.correo }}</span>
+          </div>
+        </div>
+
+        <div class="next-steps">
+          <h3>Próximo paso</h3>
+          <p>Inicia sesión con tu cuenta de administrador para comenzar a usar FashionStore.</p>
+        </div>
+
+        <button (click)="onContinuar()" class="btn btn-primary btn-large">
+          Iniciar sesión
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Footer -->
+  <div class="register-footer">
+    <p>&copy; 2026 FashionStore. Todos los derechos reservados.</p>
+  </div>
+</div>

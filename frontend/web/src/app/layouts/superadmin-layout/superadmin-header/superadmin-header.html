@@ -1,0 +1,29 @@
+<div class="header-left">
+  <button type="button" class="menu-toggle" (click)="menuToggle.emit()" aria-label="Abrir menú">
+    <app-icon name="menu" style="width: 20px; height: 20px" />
+  </button>
+
+  <div class="header-text">
+    <h1>{{ title() }}</h1>
+    @if (subtitle()) {
+      <p>{{ subtitle() }}</p>
+    }
+  </div>
+</div>
+
+<div class="header-actions">
+  <div class="profile" (click)="toggleMenu()">
+    <div class="avatar">{{ iniciales }}</div>
+    <div class="profile-text">
+      <span class="profile-name">{{ usuario()?.nombre ?? 'SuperAdmin' }}</span>
+      <span class="profile-role">{{ usuario()?.rol ?? 'SUPERADMIN' }}</span>
+    </div>
+    <app-icon name="chevron-down" style="width: 14px; height: 14px" />
+
+    @if (menuOpen()) {
+      <div class="profile-menu" (click)="$event.stopPropagation()">
+        <span class="profile-menu__item profile-menu__item--danger" (click)="logout()">Cerrar sesión</span>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,57 @@
+<div class="empresas-container">
+  <div class="empresas-header">
+    <h1>Gestión de empresas</h1>
+    <a href="/cu01-registrar-empresa" class="btn-primary">
+      <app-icon name="plus" style="width: 16px; height: 16px" />
+      <span>Registrar empresa</span>
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Cargando empresas...</div>
+  } @else if (error()) {
+    <div class="error">
+      {{ error() }}
+      <button (click)="reintentar()">Reintentar</button>
+    </div>
+  } @else if (empresas().length === 0) {
+    <div class="empty-state">
+      <app-icon name="branches" style="width: 48px; height: 48px" />
+      <p>No hay empresas registradas</p>
+      <a href="/cu01-registrar-empresa" class="btn-secondary">Registrar empresa</a>
+    </div>
+  } @else {
+    <div class="table-wrapper">
+      <table class="empresas-table">
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Slug</th>
+            <th>Estado</th>
+            <th>Fecha de registro</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (empresa of empresas(); track empresa.id) {
+            <tr>
+              <td class="empresa-name">{{ empresa.nombre }}</td>
+              <td class="empresa-slug">{{ empresa.slug }}</td>
+              <td>
+                <span class="status-badge" [class.active]="empresa.is_active">
+                  {{ empresa.is_active ? 'Activa' : 'Inactiva' }}
+                </span>
+              </td>
+              <td class="date">{{ empresa.fecha_creacion | date: 'dd/MM/yyyy' }}</td>
+              <td class="actions">
+                <button class="action-btn" title="Ver detalle">
+                  <app-icon name="eye" style="width: 16px; height: 16px" />
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

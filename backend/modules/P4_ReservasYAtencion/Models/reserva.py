@@ -62,12 +62,13 @@ detalle sin su cabecera.
 import enum
 from datetime import date, datetime, time
 
-from sqlalchemy import CheckConstraint, Date, DateTime, Enum as SAEnum, ForeignKey, Integer, String, Time, func
+from sqlalchemy import CheckConstraint, Date, DateTime, Enum as SAEnum, ForeignKey, ForeignKeyConstraint, Integer, String, Time, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from modules.P1_SucursalesYCatalogos.Models.producto_variante import ProductoVariante
 from modules.P1_SucursalesYCatalogos.Models.sucursal import Sucursal
+from modules.P7_GestionSaaSySuscripciones.Models.empresa import Empresa
 
 
 class EstadoReserva(str, enum.Enum):
@@ -128,14 +129,24 @@ def calcular_estado_general(estados_detalle: list[EstadoReserva]) -> EstadoReser
 
 class Reserva(Base):
     """Cabecera -- una visita del Cliente a una sucursal en un bloque
-    horario, con 1 o más prendas (ver ReservaDetalle.reserva)."""
+    horario, con 1 o más prendas (ver ReservaDetalle.reserva).
+
+    Multitenant: cada reserva pertenece a una empresa a través de su sucursal."""
 
     __tablename__ = "reservas"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["empresa_id", "sucursal_id"],
+            ["sucursales.empresa_id", "sucursales.id"],
+            name="fk_reserva_sucursal_compuesto"
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    empresa_id: Mapped[int] = mapped_column(ForeignKey("empresas.id"), nullable=False)
     codigo_reserva: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     cliente_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
-    sucursal_id: Mapped[int] = mapped_column(ForeignKey("sucursales.id"), nullable=False)
+    sucursal_id: Mapped[int] = mapped_column(nullable=False)
     fecha_reserva: Mapped[date] = mapped_column(Date, nullable=False)
     hora_inicio: Mapped[time] = mapped_column(Time, nullable=False)
     estado_general: Mapped[EstadoReserva] = mapped_column(
@@ -143,6 +154,7 @@ class Reserva(Base):
     )
     fecha_creacion: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+    empresa: Mapped[Empresa] = relationship(lazy="joined")
     sucursal: Mapped[Sucursal] = relationship(lazy="joined")
     # order_by por id: los detalles se muestran siempre en el orden en que se
     # agregaron a la reserva -- relevante quede fijo aunque cambien de estado.

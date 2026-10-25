@@ -1,0 +1,18 @@
+<aside class="superadmin-layout__sidebar" [class.is-open]="sidebarOpen()">
+  <app-superadmin-sidebar />
+</aside>
+
+@if (sidebarOpen()) {
+  <div class="superadmin-layout__backdrop" (click)="closeSidebar()"></div>
+}
+
+<div class="superadmin-layout__main">
+  <app-superadmin-header
+    [title]="headerTitle()"
+    [subtitle]="headerSubtitle()"
+    (menuToggle)="toggleSidebar()"
+  />
+  <main class="superadmin-layout__content">
+    <router-outlet />
+  </main>
+</div>

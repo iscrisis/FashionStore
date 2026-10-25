@@ -1,0 +1,29 @@
+<div class="brand">
+  <span class="brand__mark">FASHION<br />STORE</span>
+  <span class="brand__tag">SaaS</span>
+</div>
+
+<nav class="nav">
+  @for (item of navItems; track item.label) {
+    <a
+      [routerLink]="item.route"
+      routerLinkActive="is-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="nav-item"
+    >
+      <app-icon [name]="item.icon" class="nav-icon" />
+      <span>{{ item.label }}</span>
+    </a>
+  }
+</nav>
+
+<div class="nav-actions">
+  @for (action of actions; track action.label) {
+    @if (action.route) {
+      <a [routerLink]="action.route" class="nav-action">
+        <app-icon [name]="action.icon" class="nav-icon" />
+        <span>{{ action.label }}</span>
+      </a>
+    }
+  }
+</div>
