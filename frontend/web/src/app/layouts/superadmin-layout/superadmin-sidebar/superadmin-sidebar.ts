@@ -17,6 +17,7 @@ interface SuperadminNavItem {
 export class SuperadminSidebar {
   protected readonly navItems: SuperadminNavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', route: '/superadmin' },
+    { label: 'Empresas', icon: 'branches', route: '/superadmin/empresas' },
   ];
 
   protected readonly actions: SuperadminNavItem[] = [

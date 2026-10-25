@@ -9,7 +9,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from .schemas import EmpresaCrear, RegistroEmpresaOut
+from app.core.deps import require_roles
+from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
+from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
+from .schemas import EmpresaCrear, RegistroEmpresaOut, EmpresaListOut
 from .service import (
     EmpresasService,
     EmpresaNombreDuplicadoError,
@@ -18,6 +21,30 @@ from .service import (
 )
 
 router = APIRouter(prefix="/empresas", tags=["CU01 - Registrar Empresa"])
+
+
+@router.get(
+    "",
+    response_model=list[EmpresaListOut],
+    summary="Listar todas las empresas",
+    description="Devuelve el listado de todas las empresas de la plataforma (solo SUPERADMIN).",
+)
+def listar_empresas(
+    usuario: Usuario = Depends(require_roles(RolUsuario.SUPERADMIN)),
+    db: Session = Depends(get_db),
+) -> list[EmpresaListOut]:
+    """Listar todas las empresas de la plataforma.
+
+    Solo accesible para SUPERADMIN (administrador de la plataforma SaaS).
+
+    ### Responses
+    - **200**: Lista de empresas.
+    - **401**: No autenticado.
+    - **403**: Usuario sin permiso (no es SUPERADMIN).
+    """
+    service = EmpresasService(db)
+    empresas = service.listar()
+    return [EmpresaListOut.from_orm(empresa) for empresa in empresas]
 
 
 @router.post(

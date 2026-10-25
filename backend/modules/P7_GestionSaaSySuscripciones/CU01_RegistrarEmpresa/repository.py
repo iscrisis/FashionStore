@@ -55,3 +55,8 @@ class EmpresasRepository:
         self.db.commit()
         self.db.refresh(usuario)
         return usuario
+
+    def listar_todas(self) -> list[Empresa]:
+        """Listar todas las empresas de la plataforma."""
+        stmt = select(Empresa).order_by(Empresa.created_at.desc())
+        return self.db.execute(stmt).scalars().all()

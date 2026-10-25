@@ -184,6 +184,20 @@ export const routes: Routes = [
           import('./features/superadmin/dashboard/dashboard').then((m) => m.SuperadminDashboard),
         title: 'Panel de administración · Fashion Store Superadmin',
       },
+      {
+        path: 'empresas',
+        loadComponent: () =>
+          import('./features/superadmin/empresas/empresas').then((m) => m.SuperadminEmpresas),
+        title: 'Gestión de empresas · Fashion Store Superadmin',
+      },
+      {
+        path: 'empresas/:id/administrador',
+        loadComponent: () =>
+          import('./features/superadmin/administrador-detalle/administrador-detalle').then(
+            (m) => m.AdministradorDetalleComponent,
+          ),
+        title: 'Gestionar administrador · Fashion Store Superadmin',
+      },
     ],
   },
   {

@@ -10,6 +10,27 @@ export interface Empresa {
   fecha_creacion: string;
 }
 
+export interface Administrador {
+  id: number;
+  nombre: string;
+  correo: string;
+  rol: string;
+  is_active: boolean;
+  empresa_id: number;
+  created_at: string;
+}
+
+export interface ConsultarAdministradorResponse {
+  empresa: Empresa;
+  administrador: Administrador;
+}
+
+export interface ActualizarAdministradorPayload {
+  nombre: string;
+  correo: string;
+  is_active: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -23,5 +44,22 @@ export class SuperadminService {
 
   getEmpresa(id: number): Observable<Empresa> {
     return this.http.get<Empresa>(`${this.apiUrl}/empresas/${id}`);
+  }
+
+  // CU02 — Gestionar administrador de empresa
+  getAdministrador(empresaId: number): Observable<ConsultarAdministradorResponse> {
+    return this.http.get<ConsultarAdministradorResponse>(
+      `${this.apiUrl}/empresas/${empresaId}/administrador`,
+    );
+  }
+
+  updateAdministrador(
+    empresaId: number,
+    payload: ActualizarAdministradorPayload,
+  ): Observable<ConsultarAdministradorResponse> {
+    return this.http.put<ConsultarAdministradorResponse>(
+      `${this.apiUrl}/empresas/${empresaId}/administrador`,
+      payload,
+    );
   }
 }

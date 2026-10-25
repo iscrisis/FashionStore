@@ -89,3 +89,11 @@ class EmpresasService:
             raise e
 
         return RegistroEmpresaOut(empresa=empresa, administrador=administrador)
+
+    def listar(self) -> list[Empresa]:
+        """Listar todas las empresas de la plataforma (solo SUPERADMIN).
+
+        Returns:
+            Lista de todas las empresas.
+        """
+        return self._repo.listar_todas()

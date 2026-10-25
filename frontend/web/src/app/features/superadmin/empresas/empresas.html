@@ -44,7 +44,7 @@
               </td>
               <td class="date">{{ empresa.fecha_creacion | date: 'dd/MM/yyyy' }}</td>
               <td class="actions">
-                <button class="action-btn" title="Ver detalle">
+                <button class="action-btn" title="Ver detalle" (click)="verDetalle(empresa)">
                   <app-icon name="eye" style="width: 16px; height: 16px" />
                 </button>
               </td>

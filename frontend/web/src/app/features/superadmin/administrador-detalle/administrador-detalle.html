@@ -1,0 +1,168 @@
+<div class="administrador-container">
+  <div class="page-header">
+    <button class="btn-back" (click)="volver()">
+      <app-icon name="arrow-right" style="width: 20px; height: 20px; transform: scaleX(-1)" />
+      Volver
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <p>Cargando información...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <app-icon name="bell" style="width: 24px; height: 24px" />
+      <p>{{ error() }}</p>
+      <button class="btn-secondary" (click)="volver()">Volver a empresas</button>
+    </div>
+  } @else if (data()) {
+    <div class="content">
+      <!-- Empresa -->
+      <div class="section">
+        <h2>Empresa</h2>
+        <div class="info-card">
+          <div class="info-row">
+            <label>Nombre</label>
+            <span>{{ data()!.empresa.nombre }}</span>
+          </div>
+          <div class="info-row">
+            <label>Identificador</label>
+            <span class="slug">{{ data()!.empresa.slug }}</span>
+          </div>
+          <div class="info-row">
+            <label>Estado</label>
+            <span class="status-badge" [class.active]="data()!.empresa.is_active">
+              {{ data()!.empresa.is_active ? 'Activa' : 'Inactiva' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Administrador -->
+      <div class="section">
+        <div class="section-header">
+          <h2>Administrador</h2>
+          <div class="section-actions">
+            @if (!editing()) {
+              <button class="btn-primary" (click)="abrirEdicion()">
+                <app-icon name="edit" style="width: 16px; height: 16px" />
+                Editar datos
+              </button>
+              <button
+                class="btn-danger"
+                (click)="toggleEstado()"
+                [disabled]="submitting()"
+              >
+                <app-icon
+                  [name]="data()!.administrador.is_active ? 'lock' : 'eye'"
+                  style="width: 16px; height: 16px"
+                />
+                {{ data()!.administrador.is_active ? 'Desactivar' : 'Activar' }}
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (!editing()) {
+          <div class="info-card">
+            <div class="info-row">
+              <label>Nombre</label>
+              <span>{{ data()!.administrador.nombre }}</span>
+            </div>
+            <div class="info-row">
+              <label>Correo</label>
+              <span class="email">{{ data()!.administrador.correo }}</span>
+            </div>
+            <div class="info-row">
+              <label>Rol</label>
+              <span class="role-badge">{{ data()!.administrador.rol }}</span>
+            </div>
+            <div class="info-row">
+              <label>Empresa asociada (ID)</label>
+              <span>{{ data()!.administrador.empresa_id }}</span>
+            </div>
+            <div class="info-row">
+              <label>Estado</label>
+              <span class="status-badge" [class.active]="data()!.administrador.is_active">
+                {{ data()!.administrador.is_active ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+          </div>
+        }
+
+        @if (editing()) {
+          <form [formGroup]="form" (ngSubmit)="guardarCambios()" class="form-edit">
+            <div class="form-group">
+              <label for="nombre">Nombre</label>
+              <input
+                id="nombre"
+                type="text"
+                formControlName="nombre"
+                class="form-input"
+                [class.error]="isFieldInvalid('nombre')"
+                [disabled]="submitting()"
+              />
+              @if (isFieldInvalid('nombre')) {
+                <span class="form-error">{{ getFieldError('nombre') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="correo">Correo Electrónico</label>
+              <input
+                id="correo"
+                type="email"
+                formControlName="correo"
+                class="form-input"
+                [class.error]="isFieldInvalid('correo')"
+                [disabled]="submitting()"
+              />
+              @if (isFieldInvalid('correo')) {
+                <span class="form-error">{{ getFieldError('correo') }}</span>
+              }
+            </div>
+
+            <div class="form-group checkbox">
+              <label>
+                <input
+                  type="checkbox"
+                  formControlName="is_active"
+                  [disabled]="submitting()"
+                />
+                <span>Administrador activo</span>
+              </label>
+              <span class="form-hint">Si está desactivado, no podrá iniciar sesión.</span>
+            </div>
+
+            <div class="form-restrictions">
+              <p><strong>No se puede cambiar:</strong></p>
+              <ul>
+                <li>Rol: ADMINISTRADOR (fijo)</li>
+                <li>Empresa asociada: {{ data()!.administrador.empresa_id }} (fijo)</li>
+              </ul>
+            </div>
+
+            <div class="form-actions">
+              <button
+                type="button"
+                class="btn-secondary"
+                (click)="cancelarEdicion()"
+                [disabled]="submitting()"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="btn-primary"
+                [disabled]="submitting() || form.invalid"
+              >
+                {{ submitting() ? 'Guardando...' : 'Guardar cambios' }}
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    </div>
+  }
+</div>

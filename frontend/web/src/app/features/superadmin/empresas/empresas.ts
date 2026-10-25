@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { SuperadminService, Empresa } from '../services/superadmin.service';
 import { Icon } from '../../../core/ui/icon/icon';
 
@@ -13,6 +13,7 @@ import { Icon } from '../../../core/ui/icon/icon';
 })
 export class SuperadminEmpresas implements OnInit {
   private readonly superadminService = inject(SuperadminService);
+  private readonly router = inject(Router);
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -35,6 +36,10 @@ export class SuperadminEmpresas implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  verDetalle(empresa: Empresa): void {
+    this.router.navigate(['/superadmin/empresas', empresa.id, 'administrador']);
   }
 
   reintentar(): void {

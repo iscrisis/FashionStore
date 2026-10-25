@@ -35,6 +35,28 @@ class UsuarioAdministradorOut(BaseModel):
     created_at: datetime
 
 
+class EmpresaListOut(BaseModel):
+    """Respuesta: Empresa para listar (con fecha_creacion en español)."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: int
+    nombre: str
+    slug: str
+    is_active: bool
+    fecha_creacion: datetime
+
+    @classmethod
+    def from_orm(cls, empresa):
+        return cls(
+            id=empresa.id,
+            nombre=empresa.nombre,
+            slug=empresa.slug,
+            is_active=empresa.is_active,
+            fecha_creacion=empresa.created_at,
+        )
+
+
 class RegistroEmpresaOut(BaseModel):
     """Respuesta: Empresa + Administrador registrados exitosamente."""
 
