@@ -18,7 +18,12 @@ from app.db.session import get_db
 from modules.P2_UsuariosYAccesos.CU01_IniciarSesion.schemas import UsuarioPublico
 
 from .schemas import RegistroClienteRequest
-from .service import CorreoYaRegistradoError, RegistroClienteService
+from .service import (
+    CorreoYaRegistradoError,
+    EmpresaNoEncontradaError,
+    EmpresaInactivaError,
+    RegistroClienteService,
+)
 
 router = APIRouter(prefix="/auth", tags=["CU02 - Registrar cliente"])
 
@@ -29,8 +34,19 @@ def registrar_cliente(
 ) -> UsuarioPublico:
     try:
         usuario = RegistroClienteService(db).registrar(payload)
+    except EmpresaNoEncontradaError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se encontró la empresa solicitada.",
+        ) from exc
+    except EmpresaInactivaError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La empresa no está disponible para registrar nuevos clientes.",
+        ) from exc
     except CorreoYaRegistradoError as exc:
         raise HTTPException(
-            status.HTTP_409_CONFLICT, "Ya existe una cuenta registrada con ese correo."
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ya existe una cuenta registrada con ese correo.",
         ) from exc
     return UsuarioPublico.model_validate(usuario)

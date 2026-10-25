@@ -33,6 +33,15 @@ export interface RegistroClienteRequest {
   telefono: string;
   password: string;
   confirmar_password: string;
+  empresa_slug: string;
+}
+
+// CU01 SaaS -- Empresa pública (para registro de clientes).
+export interface EmpresaPublica {
+  id: number;
+  nombre: string;
+  slug: string;
+  is_active: boolean;
 }
 
 // CU03 -- Recuperar contraseña.

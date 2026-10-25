@@ -4,6 +4,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   ActualizarPerfilRequest,
+  EmpresaPublica,
   ForgotPasswordRequest,
   LoginResponse,
   MensajeGenericoResponse,
@@ -79,6 +80,10 @@ export class AuthService {
     return this.http
       .put<MiPerfilResponse>(`${environment.apiUrl}/auth/me`, datos)
       .pipe(tap((usuario) => this.actualizarUsuarioEnSesion(usuario)));
+  }
+
+  obtenerEmpresa(slug: string): Observable<EmpresaPublica> {
+    return this.http.get<EmpresaPublica>(`${environment.apiUrl}/empresas/${slug}`);
   }
 
   logout(): void {

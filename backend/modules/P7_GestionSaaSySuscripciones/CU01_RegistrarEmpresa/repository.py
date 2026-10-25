@@ -42,6 +42,11 @@ class EmpresasRepository:
         """Obtener empresa por su ID."""
         return self.db.get(Empresa, empresa_id)
 
+    def obtener_por_slug(self, slug: str) -> Empresa | None:
+        """Obtener empresa por su slug."""
+        stmt = select(Empresa).where(func.lower(Empresa.slug) == slug.strip().lower())
+        return self.db.execute(stmt).scalar_one_or_none()
+
     def existe_correo_usuario(self, correo: str) -> bool:
         """Verificar si ya existe un usuario con ese correo."""
         stmt = select(func.count()).select_from(Usuario).where(

@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.core.security import hash_password
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
+from modules.P7_GestionSaaSySuscripciones.CU01_RegistrarEmpresa.repository import EmpresasRepository
 
 from .repository import RegistroClienteRepository
 from .schemas import RegistroClienteRequest
@@ -23,11 +24,28 @@ class CorreoYaRegistradoError(Exception):
     pass
 
 
+class EmpresaNoEncontradaError(Exception):
+    pass
+
+
+class EmpresaInactivaError(Exception):
+    pass
+
+
 class RegistroClienteService:
     def __init__(self, db: Session):
         self._repo = RegistroClienteRepository(db)
+        self._empresas_repo = EmpresasRepository(db)
 
     def registrar(self, datos: RegistroClienteRequest) -> Usuario:
+        # Validar empresa por slug de forma segura (no confiar en cliente).
+        empresa = self._empresas_repo.obtener_por_slug(datos.empresa_slug)
+        if empresa is None:
+            raise EmpresaNoEncontradaError
+
+        if not empresa.is_active:
+            raise EmpresaInactivaError
+
         if self._repo.existe_correo(datos.correo):
             raise CorreoYaRegistradoError
 
@@ -37,6 +55,7 @@ class RegistroClienteService:
             telefono=datos.telefono,
             password_hash=hash_password(datos.password),
             rol=RolUsuario.CLIENTE,
+            empresa_id=empresa.id,
             is_active=True,
         )
         return self._repo.crear(usuario)

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, effect } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -7,9 +7,10 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { Icon } from '../../core/ui/icon/icon';
+import { CommonModule } from '@angular/common';
 
 // Mismo patrón que CU04 (actualizar-perfil, mi-perfil.ts) -- el backend
 // exige exactamente esta forma para telefono (ver CU02_RegistrarCliente/
@@ -37,19 +38,24 @@ function passwordsCoincidenValidator(group: AbstractControl): ValidationErrors |
  */
 @Component({
   selector: 'app-registrar-cliente',
-  imports: [ReactiveFormsModule, RouterLink, Icon],
+  imports: [ReactiveFormsModule, RouterLink, Icon, CommonModule],
   templateUrl: './registrar-cliente.html',
   styleUrl: './registrar-cliente.scss',
 })
 export class RegistrarCliente {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly submitting = signal(false);
   protected readonly exito = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly showPassword = signal(false);
   protected readonly showConfirmarPassword = signal(false);
+  protected readonly empresaSlug = signal<string | null>(null);
+  protected readonly empresaNombre = signal<string | null>(null);
+  protected readonly empresaCargando = signal(false);
+  protected readonly empresaError = signal<string | null>(null);
 
   protected readonly form = this.fb.nonNullable.group(
     {
@@ -61,6 +67,32 @@ export class RegistrarCliente {
     },
     { validators: [passwordsCoincidenValidator] },
   );
+
+  constructor() {
+    effect(() => {
+      const slug = this.route.snapshot.paramMap.get('slug');
+      if (slug) {
+        this.empresaSlug.set(slug);
+        this.cargarEmpresa(slug);
+      }
+    });
+  }
+
+  private cargarEmpresa(slug: string): void {
+    this.empresaCargando.set(true);
+    this.empresaError.set(null);
+
+    this.authService.obtenerEmpresa(slug).subscribe({
+      next: (empresa) => {
+        this.empresaCargando.set(false);
+        this.empresaNombre.set(empresa.nombre);
+      },
+      error: () => {
+        this.empresaCargando.set(false);
+        this.empresaError.set('No se encontró la empresa solicitada.');
+      },
+    });
+  }
 
   togglePasswordVisibility(): void {
     this.showPassword.update((value) => !value);
@@ -91,6 +123,7 @@ export class RegistrarCliente {
         telefono,
         password,
         confirmar_password: confirmarPassword,
+        empresa_slug: this.empresaSlug() || '',
       })
       .subscribe({
         next: () => {

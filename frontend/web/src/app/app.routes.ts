@@ -11,12 +11,17 @@ export const routes: Routes = [
     title: 'Iniciar sesión · Fashion Store',
   },
   {
-    path: 'registro',
+    path: 'empresa/:slug/registro',
     loadComponent: () =>
       import('./usuarios-y-accesos/cu02-registrar-cliente/registrar-cliente').then(
         (m) => m.RegistrarCliente,
       ),
     title: 'Crear cuenta · Fashion Store',
+  },
+  {
+    path: 'registro',
+    redirectTo: 'empresa/fashionstore-empresa-principal/registro',
+    pathMatch: 'full',
   },
   {
     path: 'registrar-empresa',

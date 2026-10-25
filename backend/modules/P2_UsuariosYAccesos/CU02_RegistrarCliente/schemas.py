@@ -20,6 +20,7 @@ class RegistroClienteRequest(BaseModel):
     telefono: str
     password: str
     confirmar_password: str
+    empresa_slug: str
 
     @field_validator("nombre")
     @classmethod
@@ -56,6 +57,14 @@ class RegistroClienteRequest(BaseModel):
         if len(valor) < 8:
             raise ValueError("La contraseña debe tener al menos 8 caracteres.")
         return valor
+
+    @field_validator("empresa_slug")
+    @classmethod
+    def _validar_empresa_slug(cls, valor: str) -> str:
+        limpio = valor.strip()
+        if not limpio:
+            raise ValueError("El identificador de empresa es obligatorio.")
+        return limpio
 
     @model_validator(mode="after")
     def _validar_confirmacion(self) -> "RegistroClienteRequest":

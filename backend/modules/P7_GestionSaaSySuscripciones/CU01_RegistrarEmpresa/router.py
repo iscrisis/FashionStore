@@ -12,12 +12,13 @@ from app.db.session import get_db
 from app.core.deps import require_roles
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
-from .schemas import EmpresaCrear, RegistroEmpresaOut, EmpresaListOut
+from .schemas import EmpresaCrear, RegistroEmpresaOut, EmpresaListOut, EmpresaPublicaOut
 from .service import (
     EmpresasService,
     EmpresaNombreDuplicadoError,
     EmpresaSlugDuplicadoError,
     CorreoAdministradorDuplicadoError,
+    EmpresaNoEncontradaError,
 )
 
 router = APIRouter(prefix="/empresas", tags=["CU01 - Registrar Empresa"])
@@ -45,6 +46,36 @@ def listar_empresas(
     service = EmpresasService(db)
     empresas = service.listar()
     return [EmpresaListOut.from_orm(empresa) for empresa in empresas]
+
+
+@router.get(
+    "/{slug}",
+    response_model=EmpresaPublicaOut,
+    summary="Obtener empresa por slug",
+    description="Devuelve los datos públicos de una empresa identificada por su slug.",
+)
+def obtener_empresa_por_slug(
+    slug: str,
+    db: Session = Depends(get_db),
+) -> EmpresaPublicaOut:
+    """Obtener datos públicos de una empresa por su slug.
+
+    Utilizado por el registro de clientes para mostrar la empresa.
+    No requiere autenticación.
+
+    ### Responses
+    - **200**: Datos de la empresa.
+    - **404**: Empresa no encontrada.
+    """
+    service = EmpresasService(db)
+    try:
+        empresa = service.obtener_por_slug(slug)
+        return EmpresaPublicaOut.from_orm(empresa)
+    except EmpresaNoEncontradaError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se encontró la empresa solicitada.",
+        )
 
 
 @router.post(

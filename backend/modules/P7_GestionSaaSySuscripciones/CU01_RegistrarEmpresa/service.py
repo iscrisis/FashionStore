@@ -28,6 +28,12 @@ class CorreoAdministradorDuplicadoError(Exception):
     pass
 
 
+class EmpresaNoEncontradaError(Exception):
+    """La empresa solicitada no existe."""
+
+    pass
+
+
 class EmpresasService:
     """Lógica de negocio para gestión de empresas."""
 
@@ -97,3 +103,20 @@ class EmpresasService:
             Lista de todas las empresas.
         """
         return self._repo.listar_todas()
+
+    def obtener_por_slug(self, slug: str) -> Empresa:
+        """Obtener empresa por su slug.
+
+        Args:
+            slug: Identificador de la empresa.
+
+        Returns:
+            Empresa encontrada.
+
+        Raises:
+            EmpresaNoEncontradaError: Si la empresa no existe.
+        """
+        empresa = self._repo.obtener_por_slug(slug)
+        if empresa is None:
+            raise EmpresaNoEncontradaError
+        return empresa

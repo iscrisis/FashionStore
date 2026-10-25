@@ -57,6 +57,26 @@ class EmpresaListOut(BaseModel):
         )
 
 
+class EmpresaPublicaOut(BaseModel):
+    """Respuesta: Datos públicos de una empresa para el registro de clientes."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nombre: str
+    slug: str
+    is_active: bool
+
+    @classmethod
+    def from_orm(cls, empresa):
+        return cls(
+            id=empresa.id,
+            nombre=empresa.nombre,
+            slug=empresa.slug,
+            is_active=empresa.is_active,
+        )
+
+
 class RegistroEmpresaOut(BaseModel):
     """Respuesta: Empresa + Administrador registrados exitosamente."""
 
