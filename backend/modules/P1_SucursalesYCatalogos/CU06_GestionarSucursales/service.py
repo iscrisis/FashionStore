@@ -6,6 +6,9 @@ from sqlalchemy.orm import Session
 from modules.P1_SucursalesYCatalogos.Models.ciudad import Ciudad
 from modules.P1_SucursalesYCatalogos.Models.sucursal import Sucursal
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
+from modules.P7_GestionSaaSySuscripciones.CU03_AsociarUsuariosYSucursalesEmpresa.service import (
+    AsociacionesEmpresaService,
+)
 
 from .repository import CiudadesRepository, SucursalesRepository
 from .schemas import CiudadCrear, SucursalActualizar, SucursalCrear
@@ -76,9 +79,9 @@ class CiudadesService:
 
 class SucursalesService:
     def __init__(self, db: Session):
+        self._db = db
         self._repo = SucursalesRepository(db)
         self._ciudades = CiudadesRepository(db)
-        self._db = db
 
     def _get_ciudad_for_sucursal(self, sucursal: Sucursal) -> Ciudad | None:
         """Obtiene la Ciudad de una Sucursal por ciudad_id."""
@@ -115,13 +118,16 @@ class SucursalesService:
             raise NombreDuplicadoError
 
         sucursal = Sucursal(
-            empresa_id=usuario.empresa_id,
             nombre=datos.nombre,
             ciudad_id=datos.ciudad_id,
             direccion=datos.direccion,
             telefono=datos.telefono,
             is_active=datos.is_active,
         )
+        # CU03: Asociar sucursal a empresa del usuario autenticado
+        cu03_service = AsociacionesEmpresaService(self._db)
+        cu03_service.asignar_empresa_a_sucursal(sucursal, usuario.empresa_id)
+
         created = self._repo.crear(sucursal)
         return self._wrap_sucursal(created)
 

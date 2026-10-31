@@ -5,6 +5,11 @@ from sqlalchemy.orm import Session
 from app.core.security import hash_password
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
+from modules.P7_GestionSaaSySuscripciones.CU03_AsociarUsuariosYSucursalesEmpresa.service import (
+    AsociacionesEmpresaService,
+    UsuarioSinEmpresaError,
+    RolNoAutorizadoParaAsociacionError,
+)
 
 from .repository import UsuariosRolesRepository
 from .schemas import (
@@ -55,6 +60,7 @@ class UsuarioNoEliminableError(Exception):
 
 class UsuariosRolesService:
     def __init__(self, db: Session):
+        self._db = db
         self._repo = UsuariosRolesRepository(db)
 
     def listar(
@@ -93,12 +99,17 @@ class UsuariosRolesService:
         if self._repo.get_by_correo(datos.correo) is not None:
             raise CorreoDuplicadoError
 
+        # CU03: Asociar usuario a empresa
         # Regla de negocio: todos los roles de negocio DEBEN pertenecer a una empresa.
         # Solo SUPERADMIN puede estar sin empresa (pero SUPERADMIN no se crea desde CU05).
-        # Si hay current_user, asignar su empresa al nuevo usuario.
+        # Si hay current_user ADMINISTRADOR, asignar su empresa al nuevo usuario (CU03).
         empresa_id = None
         if current_user is not None and current_user.rol == RolUsuario.ADMINISTRADOR:
-            empresa_id = current_user.empresa_id
+            try:
+                cu03_service = AsociacionesEmpresaService(self._db)
+                empresa_id = cu03_service.obtener_empresa_id_del_actor(current_user)
+            except (RolNoAutorizadoParaAsociacionError, UsuarioSinEmpresaError):
+                empresa_id = None
 
         usuario = Usuario(
             nombre=datos.nombre.strip(),
