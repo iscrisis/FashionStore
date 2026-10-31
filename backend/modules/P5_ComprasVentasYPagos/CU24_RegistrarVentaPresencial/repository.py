@@ -80,12 +80,12 @@ class ReservaLecturaRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def obtener_por_id(self, reserva_id: int) -> Reserva | None:
+    def obtener_por_id(self, reserva_id: int, empresa_id: int) -> Reserva | None:
         """Solo lectura -- CU24 nunca bloquea (FOR UPDATE) ni muta la
         Reserva: sigue LISTA_PARA_CAJA hasta que CU25 confirme el pago."""
         stmt = (
             select(Reserva)
-            .where(Reserva.id == reserva_id)
+            .where(Reserva.id == reserva_id, Reserva.empresa_id == empresa_id)
             .options(selectinload(Reserva.detalles).selectinload(ReservaDetalle.producto_variante))
         )
         return self.db.execute(stmt).scalar_one_or_none()
@@ -117,13 +117,13 @@ class VentaRepository:
         self.db.refresh(venta)
         return venta
 
-    def obtener_pendiente_por_reserva(self, reserva_id: int) -> Venta | None:
+    def obtener_pendiente_por_reserva(self, reserva_id: int, empresa_id: int) -> Venta | None:
         """Evita duplicar una Venta PENDIENTE_PAGO para la misma reserva --
         si ya existe una, "cargar venta" la reutiliza en vez de crear otra
         (ver service.py)."""
         stmt = (
             select(Venta)
-            .where(Venta.reserva_id == reserva_id, Venta.estado == EstadoVenta.PENDIENTE_PAGO)
+            .where(Venta.reserva_id == reserva_id, Venta.empresa_id == empresa_id, Venta.estado == EstadoVenta.PENDIENTE_PAGO)
             .options(selectinload(Venta.detalles).selectinload(VentaDetalle.producto_variante))
             .order_by(Venta.id.desc())
         )

@@ -192,6 +192,7 @@ class VentaPresencialService:
             )
 
         venta = Venta(
+            empresa_id=cajero.empresa_id,
             cliente_id=None,
             cajero_id=cajero.id,
             sucursal_id=sucursal_id,
@@ -209,13 +210,13 @@ class VentaPresencialService:
     def crear_venta_desde_reserva(self, cajero: Usuario, reserva_id: int) -> VentaPresencialOut:
         sucursal_id = self._sucursal_de(cajero)
 
-        reserva = self._reservas.obtener_por_id(reserva_id)
+        reserva = self._reservas.obtener_por_id(reserva_id, cajero.empresa_id)
         if reserva is None:
             raise ReservaNoEncontradaError
         if reserva.sucursal_id != sucursal_id:
             raise ReservaOtraSucursalError
 
-        existente = self._ventas.obtener_pendiente_por_reserva(reserva_id)
+        existente = self._ventas.obtener_pendiente_por_reserva(reserva_id, cajero.empresa_id)
         if existente is not None:
             producto_ids = {d.producto_variante.producto_id for d in existente.detalles}
             productos = self._productos.get_activos_by_ids(producto_ids)
@@ -259,6 +260,7 @@ class VentaPresencialService:
             raise ReservaSinPrendasParaCajaError
 
         venta = Venta(
+            empresa_id=cajero.empresa_id,
             cliente_id=reserva.cliente_id,
             cajero_id=cajero.id,
             sucursal_id=sucursal_id,
