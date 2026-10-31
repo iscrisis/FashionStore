@@ -65,3 +65,8 @@ class EmpresasRepository:
         """Listar todas las empresas de la plataforma."""
         stmt = select(Empresa).order_by(Empresa.created_at.desc())
         return self.db.execute(stmt).scalars().all()
+
+    def listar_activas(self) -> list[Empresa]:
+        """Listar solo empresas activas disponibles para registro público."""
+        stmt = select(Empresa).where(Empresa.is_active.is_(True)).order_by(Empresa.nombre)
+        return self.db.execute(stmt).scalars().all()

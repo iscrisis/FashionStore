@@ -92,7 +92,7 @@ def listar_mis_reservas(
     variante talla/color, cantidad, estado individual) -- una tarjeta por
     reserva, no una por prenda -- ver CU18_ConsultarReserva/__init__.py.
     """
-    return CrearReservaService(db).listar_mias(actor.id)
+    return CrearReservaService(db).listar_mias(actor.id, actor.empresa_id)
 
 
 @router.get("/compatibles", response_model=list[ReservaOut])
@@ -109,7 +109,7 @@ def listar_reservas_compatibles(
     EN_ATENCION, LISTA_PARA_CAJA, ATENDIDA, CANCELADA o VENCIDA nunca
     aparece aquí. Puede devolver una lista vacía (no hay ninguna reserva
     compatible: el Cliente sigue directo al modal de fecha/hora)."""
-    return CrearReservaService(db).listar_compatibles(actor.id, sucursal_id)
+    return CrearReservaService(db).listar_compatibles(actor.id, actor.empresa_id, sucursal_id)
 
 
 @router.post("/{reserva_id}/detalles", response_model=ReservaOut, status_code=status.HTTP_201_CREATED)

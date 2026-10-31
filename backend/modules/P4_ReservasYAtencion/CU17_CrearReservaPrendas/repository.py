@@ -108,16 +108,18 @@ class ReservaRepository:
         self.db.refresh(reserva)
         return reserva
 
-    def listar_por_cliente(self, cliente_id: int) -> list[Reserva]:
+    def listar_por_cliente(self, cliente_id: int, empresa_id: int | None = None) -> list[Reserva]:
         stmt = (
             select(Reserva)
             .where(Reserva.cliente_id == cliente_id)
             .options(selectinload(Reserva.detalles).selectinload(ReservaDetalle.producto_variante))
             .order_by(Reserva.fecha_creacion.desc(), Reserva.id.desc())
         )
+        if empresa_id is not None:
+            stmt = stmt.where(Reserva.empresa_id == empresa_id)
         return list(self.db.execute(stmt).scalars().all())
 
-    def listar_por_cliente_y_sucursal(self, cliente_id: int, sucursal_id: int) -> list[Reserva]:
+    def listar_por_cliente_y_sucursal(self, cliente_id: int, empresa_id: int, sucursal_id: int) -> list[Reserva]:
         """Sin filtrar por estado_general en SQL a propósito: el service
         (listar_compatibles) primero corre expirar_vencidas sobre el
         resultado -- una reserva PENDIENTE en la base cuyo bloque horario ya
@@ -125,7 +127,7 @@ class ReservaRepository:
         quedar afuera (ni adentro) por un estado todavía sin actualizar."""
         stmt = (
             select(Reserva)
-            .where(Reserva.cliente_id == cliente_id, Reserva.sucursal_id == sucursal_id)
+            .where(Reserva.cliente_id == cliente_id, Reserva.empresa_id == empresa_id, Reserva.sucursal_id == sucursal_id)
             .options(selectinload(Reserva.detalles).selectinload(ReservaDetalle.producto_variante))
             .order_by(Reserva.fecha_creacion.desc())
         )

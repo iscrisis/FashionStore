@@ -41,9 +41,11 @@ class VentaRepository:
         return stmt
 
     def listar_por_cliente(
-        self, cliente_id: int, desde: date | None, hasta: date | None, codigo_venta: str | None
+        self, cliente_id: int, desde: date | None, hasta: date | None, codigo_venta: str | None, empresa_id: int | None = None
     ) -> list[Venta]:
         stmt = select(Venta).where(Venta.cliente_id == cliente_id, Venta.estado == EstadoVenta.PAGADA)
+        if empresa_id is not None:
+            stmt = stmt.where(Venta.empresa_id == empresa_id)
         stmt = self._filtrar_comun(stmt, desde, hasta, codigo_venta)
         stmt = stmt.order_by(Venta.fecha_creacion.desc(), Venta.id.desc())
         return list(self.db.execute(stmt).scalars().all())

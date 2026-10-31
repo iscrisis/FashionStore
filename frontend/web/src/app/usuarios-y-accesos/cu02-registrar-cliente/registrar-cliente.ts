@@ -56,6 +56,10 @@ export class RegistrarCliente {
   protected readonly empresaNombre = signal<string | null>(null);
   protected readonly empresaCargando = signal(false);
   protected readonly empresaError = signal<string | null>(null);
+  protected readonly empresas = signal<Array<{ id: number; slug: string; nombre: string }>>([]);
+  protected readonly empresasListaCargando = signal(false);
+  protected readonly empresasListaError = signal<string | null>(null);
+  protected readonly empresaSeleccionadaSlug = signal<string | null>(null);
 
   protected readonly form = this.fb.nonNullable.group(
     {
@@ -74,8 +78,32 @@ export class RegistrarCliente {
       if (slug) {
         this.empresaSlug.set(slug);
         this.cargarEmpresa(slug);
+      } else {
+        this.cargarEmpresas();
       }
     });
+  }
+
+  protected cargarEmpresas(): void {
+    this.empresasListaCargando.set(true);
+    this.empresasListaError.set(null);
+
+    this.authService.obtenerEmpresasActivas().subscribe({
+      next: (empresas) => {
+        this.empresas.set(empresas);
+        this.empresasListaCargando.set(false);
+      },
+      error: () => {
+        this.empresasListaCargando.set(false);
+        this.empresasListaError.set('No se pudieron cargar las empresas. Intenta nuevamente.');
+      },
+    });
+  }
+
+  seleccionarEmpresa(slug: string): void {
+    this.empresaSeleccionadaSlug.set(slug);
+    this.empresaSlug.set(slug);
+    this.cargarEmpresa(slug);
   }
 
   private cargarEmpresa(slug: string): void {

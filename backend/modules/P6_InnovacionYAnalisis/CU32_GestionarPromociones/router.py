@@ -44,7 +44,7 @@ _MSG_NO_EDITABLE = "Esta promoción ya finalizó o está desactivada -- no se pu
 def listar_promociones(
     db: Session = Depends(get_db), actor: Usuario = Depends(require_administrador)
 ) -> list[PromocionListadoOut]:
-    return PromocionService(db).listar()
+    return PromocionService(db).listar(actor.empresa_id)
 
 
 @router.get("/{promocion_id}", response_model=PromocionDetalleOut)
@@ -52,7 +52,7 @@ def obtener_promocion(
     promocion_id: int, db: Session = Depends(get_db), actor: Usuario = Depends(require_administrador)
 ) -> PromocionDetalleOut:
     try:
-        return PromocionService(db).obtener(promocion_id)
+        return PromocionService(db).obtener(promocion_id, actor.empresa_id)
     except PromocionNoEncontradaError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, _MSG_NO_ENCONTRADA) from exc
 
@@ -64,7 +64,7 @@ def crear_promocion(
     actor: Usuario = Depends(require_administrador),
 ) -> PromocionDetalleOut:
     try:
-        return PromocionService(db).crear(payload)
+        return PromocionService(db).crear(payload, actor.empresa_id)
     except RangoFechaInvalidoError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, _MSG_RANGO_INVALIDO) from exc
     except ProductoNoEncontradoError as exc:
@@ -81,7 +81,7 @@ def editar_promocion(
     actor: Usuario = Depends(require_administrador),
 ) -> PromocionDetalleOut:
     try:
-        return PromocionService(db).editar(promocion_id, payload)
+        return PromocionService(db).editar(promocion_id, payload, actor.empresa_id)
     except PromocionNoEncontradaError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, _MSG_NO_ENCONTRADA) from exc
     except PromocionNoEditableError as exc:
@@ -99,7 +99,7 @@ def activar_promocion(
     promocion_id: int, db: Session = Depends(get_db), actor: Usuario = Depends(require_administrador)
 ) -> PromocionDetalleOut:
     try:
-        return PromocionService(db).activar(promocion_id)
+        return PromocionService(db).activar(promocion_id, actor.empresa_id)
     except PromocionNoEncontradaError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, _MSG_NO_ENCONTRADA) from exc
 
@@ -109,7 +109,7 @@ def desactivar_promocion(
     promocion_id: int, db: Session = Depends(get_db), actor: Usuario = Depends(require_administrador)
 ) -> PromocionDetalleOut:
     try:
-        return PromocionService(db).desactivar(promocion_id)
+        return PromocionService(db).desactivar(promocion_id, actor.empresa_id)
     except PromocionNoEncontradaError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, _MSG_NO_ENCONTRADA) from exc
 
@@ -119,6 +119,6 @@ def eliminar_promocion(
     promocion_id: int, db: Session = Depends(get_db), actor: Usuario = Depends(require_administrador)
 ) -> None:
     try:
-        PromocionService(db).eliminar(promocion_id)
+        PromocionService(db).eliminar(promocion_id, actor.empresa_id)
     except PromocionNoEncontradaError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, _MSG_NO_ENCONTRADA) from exc

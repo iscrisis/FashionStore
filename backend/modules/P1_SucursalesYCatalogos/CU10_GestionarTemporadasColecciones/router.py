@@ -60,17 +60,17 @@ def listar_temporadas(
     search: str | None = Query(default=None),
     estado: str | None = Query(default=None, pattern="^(active|inactive)$"),
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(require_admin),
 ) -> list[TemporadaOut]:
-    return TemporadasService(db).listar(search=search, is_active=_estado_a_bool(estado))
+    return TemporadasService(db).listar(search=search, is_active=_estado_a_bool(estado), empresa_id=current_user.empresa_id)
 
 
 @router_temporadas.post("", response_model=TemporadaOut, status_code=status.HTTP_201_CREATED)
 def crear_temporada(
-    payload: TemporadaCrear, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+    payload: TemporadaCrear, db: Session = Depends(get_db), current_user: Usuario = Depends(require_admin)
 ) -> TemporadaOut:
     try:
-        return TemporadasService(db).crear(payload)
+        return TemporadasService(db).crear(payload, current_user.empresa_id)
     except NombreDuplicadoError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, "Ya existe una temporada con ese nombre.") from exc
 
@@ -80,10 +80,10 @@ def actualizar_temporada(
     temporada_id: int,
     payload: TemporadaActualizar,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(require_admin),
 ) -> TemporadaOut:
     try:
-        return TemporadasService(db).actualizar(temporada_id, payload)
+        return TemporadasService(db).actualizar(temporada_id, payload, current_user.empresa_id)
     except RegistroNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Temporada no encontrada.") from exc
     except NombreDuplicadoError as exc:
@@ -95,20 +95,20 @@ def cambiar_estado_temporada(
     temporada_id: int,
     payload: CambiarEstadoRequest,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(require_admin),
 ) -> TemporadaOut:
     try:
-        return TemporadasService(db).cambiar_estado(temporada_id, payload.is_active)
+        return TemporadasService(db).cambiar_estado(temporada_id, payload.is_active, current_user.empresa_id)
     except RegistroNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Temporada no encontrada.") from exc
 
 
 @router_temporadas.delete("/{temporada_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_temporada(
-    temporada_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+    temporada_id: int, db: Session = Depends(get_db), current_user: Usuario = Depends(require_admin)
 ) -> None:
     try:
-        TemporadasService(db).eliminar(temporada_id)
+        TemporadasService(db).eliminar(temporada_id, current_user.empresa_id)
     except RegistroNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Temporada no encontrada.") from exc
     except IntegrityError as exc:
@@ -130,19 +130,19 @@ def listar_colecciones(
     temporada_id: int | None = Query(default=None),
     estado: str | None = Query(default=None, pattern="^(active|inactive)$"),
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(require_admin),
 ) -> list[ColeccionOut]:
     return ColeccionesService(db).listar(
-        search=search, temporada_id=temporada_id, is_active=_estado_a_bool(estado)
+        search=search, temporada_id=temporada_id, is_active=_estado_a_bool(estado), empresa_id=current_user.empresa_id
     )
 
 
 @router_colecciones.post("", response_model=ColeccionOut, status_code=status.HTTP_201_CREATED)
 def crear_coleccion(
-    payload: ColeccionCrear, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+    payload: ColeccionCrear, db: Session = Depends(get_db), current_user: Usuario = Depends(require_admin)
 ) -> ColeccionOut:
     try:
-        return ColeccionesService(db).crear(payload)
+        return ColeccionesService(db).crear(payload, current_user.empresa_id)
     except TemporadaNoEncontradaError as exc:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT, "La temporada indicada no existe."
@@ -158,10 +158,10 @@ def actualizar_coleccion(
     coleccion_id: int,
     payload: ColeccionActualizar,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    current_user: Usuario = Depends(require_admin),
 ) -> ColeccionOut:
     try:
-        return ColeccionesService(db).actualizar(coleccion_id, payload)
+        return ColeccionesService(db).actualizar(coleccion_id, payload, current_user.empresa_id)
     except RegistroNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Colección no encontrada.") from exc
     except TemporadaNoEncontradaError as exc:

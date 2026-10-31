@@ -64,4 +64,5 @@ export interface CatalogoProductosQuery {
   coleccion_id?: number;
   talla_id?: number;
   color_id?: number;
+  empresa_id?: number | null;
 }

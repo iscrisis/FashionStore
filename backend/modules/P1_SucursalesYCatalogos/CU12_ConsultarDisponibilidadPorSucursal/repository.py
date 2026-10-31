@@ -18,12 +18,20 @@ class DisponibilidadLecturaRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_producto_activo(self, producto_id: int) -> Producto | None:
+    def get_producto_activo(
+        self, producto_id: int, empresa_id: int | None = None
+    ) -> Producto | None:
         stmt = select(Producto).where(Producto.id == producto_id, Producto.is_active.is_(True))
+        if empresa_id is not None:
+            stmt = stmt.where(Producto.empresa_id == empresa_id)
         return self.db.execute(stmt).scalar_one_or_none()
 
-    def listar_sucursales_activas(self, ciudad_id: int | None) -> list[Sucursal]:
+    def listar_sucursales_activas(
+        self, ciudad_id: int | None, empresa_id: int | None = None
+    ) -> list[Sucursal]:
         stmt = select(Sucursal).where(Sucursal.is_active.is_(True))
+        if empresa_id is not None:
+            stmt = stmt.where(Sucursal.empresa_id == empresa_id)
         if ciudad_id is not None:
             stmt = stmt.where(Sucursal.ciudad_id == ciudad_id)
         stmt = stmt.order_by(Sucursal.nombre)

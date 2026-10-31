@@ -16,8 +16,8 @@ class ProveedoresRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def listar(self, search: str | None = None, is_active: bool | None = None) -> list[Proveedor]:
-        stmt = select(Proveedor)
+    def listar(self, empresa_id: int, search: str | None = None, is_active: bool | None = None) -> list[Proveedor]:
+        stmt = select(Proveedor).where(Proveedor.empresa_id == empresa_id)
         if search:
             patron = f"%{search.strip().lower()}%"
             stmt = stmt.where(
@@ -33,8 +33,16 @@ class ProveedoresRepository:
     def get_by_id(self, proveedor_id: int) -> Proveedor | None:
         return self.db.get(Proveedor, proveedor_id)
 
-    def existe_razon_social(self, razon_social: str, excluyendo_id: int | None = None) -> bool:
+    def get_by_id_tenant(self, proveedor_id: int, empresa_id: int) -> Proveedor | None:
+        stmt = select(Proveedor).where(
+            Proveedor.id == proveedor_id,
+            Proveedor.empresa_id == empresa_id,
+        )
+        return self.db.execute(stmt).scalar_one_or_none()
+
+    def existe_razon_social(self, razon_social: str, empresa_id: int, excluyendo_id: int | None = None) -> bool:
         stmt = select(func.count()).select_from(Proveedor).where(
+            Proveedor.empresa_id == empresa_id,
             func.lower(Proveedor.razon_social) == razon_social.strip().lower()
         )
         if excluyendo_id is not None:

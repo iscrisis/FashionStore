@@ -10,6 +10,7 @@ from modules.P1_SucursalesYCatalogos.Models.producto_proveedor import (
     ProductoProveedor,
 )
 from modules.P1_SucursalesYCatalogos.Models.proveedor import Proveedor
+from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 
 from .repository import ProductosProveedorRepository, ProveedoresRepository
 from .schemas import (
@@ -34,20 +35,21 @@ class ProveedoresService:
     def __init__(self, db: Session):
         self._repo = ProveedoresRepository(db)
 
-    def listar(self, search: str | None, is_active: bool | None) -> list[Proveedor]:
-        return self._repo.listar(search=search, is_active=is_active)
+    def listar(self, usuario: Usuario, search: str | None, is_active: bool | None) -> list[Proveedor]:
+        return self._repo.listar(empresa_id=usuario.empresa_id, search=search, is_active=is_active)
 
-    def obtener(self, proveedor_id: int) -> Proveedor:
-        proveedor = self._repo.get_by_id(proveedor_id)
+    def obtener(self, usuario: Usuario, proveedor_id: int) -> Proveedor:
+        proveedor = self._repo.get_by_id_tenant(proveedor_id, usuario.empresa_id)
         if proveedor is None:
             raise ProveedorNoEncontradoError
         return proveedor
 
-    def crear(self, datos: ProveedorCrear) -> Proveedor:
-        if self._repo.existe_razon_social(datos.razon_social):
+    def crear(self, usuario: Usuario, datos: ProveedorCrear) -> Proveedor:
+        if self._repo.existe_razon_social(datos.razon_social, empresa_id=usuario.empresa_id):
             raise RazonSocialDuplicadaError
 
         proveedor = Proveedor(
+            empresa_id=usuario.empresa_id,
             razon_social=datos.razon_social,
             nombre_contacto=datos.nombre_contacto,
             correo=datos.correo,
@@ -56,10 +58,10 @@ class ProveedoresService:
         )
         return self._repo.crear(proveedor)
 
-    def actualizar(self, proveedor_id: int, datos: ProveedorActualizar) -> Proveedor:
-        proveedor = self.obtener(proveedor_id)
+    def actualizar(self, usuario: Usuario, proveedor_id: int, datos: ProveedorActualizar) -> Proveedor:
+        proveedor = self.obtener(usuario, proveedor_id)
 
-        if self._repo.existe_razon_social(datos.razon_social, excluyendo_id=proveedor.id):
+        if self._repo.existe_razon_social(datos.razon_social, empresa_id=usuario.empresa_id, excluyendo_id=proveedor.id):
             raise RazonSocialDuplicadaError
 
         proveedor.razon_social = datos.razon_social
@@ -68,13 +70,13 @@ class ProveedoresService:
         proveedor.telefono = datos.telefono
         return self._repo.guardar(proveedor)
 
-    def cambiar_estado(self, proveedor_id: int, activo: bool) -> Proveedor:
-        proveedor = self.obtener(proveedor_id)
+    def cambiar_estado(self, usuario: Usuario, proveedor_id: int, activo: bool) -> Proveedor:
+        proveedor = self.obtener(usuario, proveedor_id)
         proveedor.is_active = activo
         return self._repo.guardar(proveedor)
 
-    def eliminar(self, proveedor_id: int) -> None:
-        proveedor = self.obtener(proveedor_id)
+    def eliminar(self, usuario: Usuario, proveedor_id: int) -> None:
+        proveedor = self.obtener(usuario, proveedor_id)
         self._repo.eliminar(proveedor)
 
 

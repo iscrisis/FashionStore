@@ -11,7 +11,7 @@ export const routes: Routes = [
     title: 'Iniciar sesión · Fashion Store',
   },
   {
-    path: 'empresa/:slug/registro',
+    path: 'registro',
     loadComponent: () =>
       import('./usuarios-y-accesos/cu02-registrar-cliente/registrar-cliente').then(
         (m) => m.RegistrarCliente,
@@ -19,9 +19,12 @@ export const routes: Routes = [
     title: 'Crear cuenta · Fashion Store',
   },
   {
-    path: 'registro',
-    redirectTo: 'empresa/fashionstore-empresa-principal/registro',
-    pathMatch: 'full',
+    path: 'empresa/:slug/registro',
+    loadComponent: () =>
+      import('./usuarios-y-accesos/cu02-registrar-cliente/registrar-cliente').then(
+        (m) => m.RegistrarCliente,
+      ),
+    title: 'Crear cuenta · Fashion Store',
   },
   {
     path: 'registrar-empresa',
@@ -314,7 +317,7 @@ export const routes: Routes = [
         title: 'Usuarios y roles · Fashion Store Admin',
         data: {
           headerTitle: 'Usuarios y roles',
-          headerSubtitle: 'Administra las cuentas internas de FashionStore y sus roles de acceso.',
+          headerSubtitle: 'Administra los usuarios internos de tu empresa.',
         },
       },
     ],

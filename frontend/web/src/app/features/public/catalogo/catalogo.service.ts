@@ -17,8 +17,12 @@ export class CatalogoService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/catalogo`;
 
-  listCategorias(): Observable<CategoriaPublica[]> {
-    return this.http.get<CategoriaPublica[]>(`${this.baseUrl}/categorias`);
+  listCategorias(empresaId?: number | null): Observable<CategoriaPublica[]> {
+    let params = new HttpParams();
+    if (empresaId !== null && empresaId !== undefined) {
+      params = params.set('empresa_id', empresaId);
+    }
+    return this.http.get<CategoriaPublica[]>(`${this.baseUrl}/categorias`, { params });
   }
 
   listColecciones(temporadaId?: number): Observable<ColeccionPublica[]> {
@@ -53,6 +57,9 @@ export class CatalogoService {
     }
     if (query?.color_id) {
       params = params.set('color_id', query.color_id);
+    }
+    if (query?.empresa_id !== null && query?.empresa_id !== undefined) {
+      params = params.set('empresa_id', query.empresa_id);
     }
     return this.http.get<ProductoPublico[]>(`${this.baseUrl}/productos`, { params });
   }

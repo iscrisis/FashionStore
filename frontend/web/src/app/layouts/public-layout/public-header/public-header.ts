@@ -33,10 +33,10 @@ export class PublicHeader {
   // "Colecciones" lleva a la vitrina pública de colecciones (CU10), desde
   // donde el cliente entra al catálogo (CU11) ya filtrado por la colección.
   protected readonly navLinks: PublicNavLink[] = [
-    { label: 'Inicio', path: '/' },
-    { label: 'Catálogo', path: '/catalogo' },
-    { label: 'Categorías', path: '/', fragment: 'categorias' },
-    { label: 'Colecciones', path: '/colecciones' },
+    { label: 'Inicio', path: '/home' },
+    { label: 'Catálogo', path: '/home/catalogo' },
+    { label: 'Categorías', path: '/home', fragment: 'categorias' },
+    { label: 'Colecciones', path: '/home/colecciones' },
   ];
 
   protected readonly mobileMenuOpen = signal(false);
@@ -69,7 +69,7 @@ export class PublicHeader {
   logout(): void {
     this.authService.logout();
     this.accountMenuOpen.set(false);
-    this.router.navigateByUrl('/');
+    this.router.navigateByUrl('/login');
   }
 
   // CU21 -- ícono de carrito ya existente en el header: con sesión va
@@ -78,10 +78,10 @@ export class PublicHeader {
   // ya usa "Iniciar sesión" en este mismo header.
   irAlCarrito(): void {
     if (this.authService.isAuthenticated()) {
-      this.router.navigateByUrl('/carrito');
+      this.router.navigateByUrl('/home/carrito');
       return;
     }
-    this.router.navigate(['/login'], { queryParams: { returnUrl: '/carrito' } });
+    this.router.navigate(['/login'], { queryParams: { returnUrl: '/home/carrito' } });
   }
 
   protected get destinoCuenta(): string {
@@ -96,7 +96,7 @@ export class PublicHeader {
     // Cliente (el mismo bug ya corregido en login.ts).
     const rol = this.authService.usuario()?.rol;
     if (rol === 'CLIENTE') {
-      return '/mi-perfil';
+      return '/home/mi-perfil';
     }
     return rol ? RUTA_POR_ROL[rol] : '/';
   }

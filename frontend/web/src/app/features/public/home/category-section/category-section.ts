@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, OnInit, inject, signal, viewChild 
 import { RouterLink } from '@angular/router';
 import { CategoriaPublica } from '../../catalogo/catalogo.model';
 import { CatalogoService } from '../../catalogo/catalogo.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { CategoryCard } from '../category-card/category-card';
 
 @Component({
@@ -12,6 +13,7 @@ import { CategoryCard } from '../category-card/category-card';
 })
 export class CategorySection implements OnInit {
   private readonly catalogoService = inject(CatalogoService);
+  private readonly authService = inject(AuthService);
 
   protected readonly categories = signal<CategoriaPublica[]>([]);
   protected readonly loading = signal(true);
@@ -32,8 +34,9 @@ export class CategorySection implements OnInit {
   load(): void {
     this.loading.set(true);
     this.hasError.set(false);
-    // CU11 (catálogo público): solo categorías ACTIVAS, sin requerir sesión.
-    this.catalogoService.listCategorias().subscribe({
+    const usuario = this.authService.usuario();
+    // CU11 (catálogo público): solo categorías ACTIVAS de la empresa del usuario autenticado.
+    this.catalogoService.listCategorias(usuario?.empresa_id).subscribe({
       next: (categories) => {
         this.categories.set(categories);
         this.loading.set(false);

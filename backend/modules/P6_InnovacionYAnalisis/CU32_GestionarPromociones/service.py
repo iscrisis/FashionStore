@@ -89,23 +89,24 @@ class PromocionService:
         self._promociones = PromocionRepository(db)
         self._productos = ProductoLecturaRepository(db)
 
-    def listar(self) -> list[PromocionListadoOut]:
+    def listar(self, empresa_id: int) -> list[PromocionListadoOut]:
         hoy = date.today()
-        return [self._a_listado(p, hoy) for p in self._promociones.listar()]
+        return [self._a_listado(p, hoy) for p in self._promociones.listar(empresa_id)]
 
-    def obtener(self, promocion_id: int) -> PromocionDetalleOut:
-        promocion = self._promociones.obtener_por_id(promocion_id)
+    def obtener(self, promocion_id: int, empresa_id: int) -> PromocionDetalleOut:
+        promocion = self._promociones.obtener_por_id(promocion_id, empresa_id)
         if promocion is None:
             raise PromocionNoEncontradaError
         return self._a_detalle(promocion, date.today())
 
-    def crear(self, datos: CrearPromocionRequest) -> PromocionDetalleOut:
+    def crear(self, datos: CrearPromocionRequest, empresa_id: int) -> PromocionDetalleOut:
         self._validar_rango(datos.fecha_inicio, datos.fecha_fin)
         productos = self._resolver_productos(datos.producto_ids)
         if self._promociones.existe_solapamiento(list(productos.keys()), datos.fecha_inicio, datos.fecha_fin):
             raise SolapamientoError
 
         promocion = Promocion(
+            empresa_id=empresa_id,
             nombre=datos.nombre.strip(),
             porcentaje_descuento=Decimal(str(datos.porcentaje_descuento)),
             fecha_inicio=datos.fecha_inicio,
@@ -116,8 +117,8 @@ class PromocionService:
         self._promociones.crear(promocion)
         return self._a_detalle(promocion, date.today())
 
-    def editar(self, promocion_id: int, datos: EditarPromocionRequest) -> PromocionDetalleOut:
-        promocion = self._promociones.obtener_por_id_bloqueado(promocion_id)
+    def editar(self, promocion_id: int, datos: EditarPromocionRequest, empresa_id: int) -> PromocionDetalleOut:
+        promocion = self._promociones.obtener_por_id_bloqueado(promocion_id, empresa_id)
         if promocion is None:
             raise PromocionNoEncontradaError
 
@@ -140,24 +141,24 @@ class PromocionService:
         self._promociones.guardar()
         return self._a_detalle(promocion, hoy)
 
-    def activar(self, promocion_id: int) -> PromocionDetalleOut:
-        promocion = self._promociones.obtener_por_id_bloqueado(promocion_id)
+    def activar(self, promocion_id: int, empresa_id: int) -> PromocionDetalleOut:
+        promocion = self._promociones.obtener_por_id_bloqueado(promocion_id, empresa_id)
         if promocion is None:
             raise PromocionNoEncontradaError
         promocion.activa = True
         self._promociones.guardar()
         return self._a_detalle(promocion, date.today())
 
-    def desactivar(self, promocion_id: int) -> PromocionDetalleOut:
-        promocion = self._promociones.obtener_por_id_bloqueado(promocion_id)
+    def desactivar(self, promocion_id: int, empresa_id: int) -> PromocionDetalleOut:
+        promocion = self._promociones.obtener_por_id_bloqueado(promocion_id, empresa_id)
         if promocion is None:
             raise PromocionNoEncontradaError
         promocion.activa = False
         self._promociones.guardar()
         return self._a_detalle(promocion, date.today())
 
-    def eliminar(self, promocion_id: int) -> None:
-        promocion = self._promociones.obtener_por_id(promocion_id)
+    def eliminar(self, promocion_id: int, empresa_id: int) -> None:
+        promocion = self._promociones.obtener_por_id(promocion_id, empresa_id)
         if promocion is None:
             raise PromocionNoEncontradaError
         self._promociones.eliminar(promocion)

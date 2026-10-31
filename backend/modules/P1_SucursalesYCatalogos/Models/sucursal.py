@@ -5,9 +5,10 @@ una única ciudad (Ciudad 1 ----- N Sucursal) y a una única empresa (Empresa 1 
 
 Multitenant: cada sucursal pertenece explícitamente a una empresa. El aislamiento
 se garantiza mediante empresa_id + FK a Empresa.
+La relación a Ciudad es simple: ciudad_id → Ciudad.id
 """
 
-from sqlalchemy import Boolean, ForeignKey, ForeignKeyConstraint, String, UniqueConstraint
+from sqlalchemy import Boolean, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -20,17 +21,12 @@ class Sucursal(Base):
     __tablename__ = "sucursales"
     __table_args__ = (
         UniqueConstraint("empresa_id", "id", name="uq_sucursal_empresa_id"),
-        ForeignKeyConstraint(
-            ["empresa_id", "ciudad_id"],
-            ["ciudades.empresa_id", "ciudades.id"],
-            name="fk_sucursal_ciudad_compuesto"
-        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     empresa_id: Mapped[int] = mapped_column(ForeignKey("empresas.id"), nullable=False)
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
-    ciudad_id: Mapped[int] = mapped_column(nullable=False)
+    ciudad_id: Mapped[int] = mapped_column(ForeignKey("ciudades.id"), nullable=False)
     direccion: Mapped[str] = mapped_column(String(255), nullable=False)
     telefono: Mapped[str] = mapped_column(String(30), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)

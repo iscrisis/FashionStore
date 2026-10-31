@@ -15,7 +15,7 @@
     <app-comprobante-detalle [comprobante]="comp" />
 
     <div class="comprobante-page__acciones">
-      <a routerLink="/catalogo" class="btn btn--ghost">Seguir comprando</a>
+      <a routerLink="/home/catalogo" class="btn btn--ghost">Seguir comprando</a>
       <button type="button" class="btn btn--primary" [disabled]="descargando()" (click)="descargar()">
         {{ descargando() ? 'Descargando...' : 'Descargar' }}
       </button>

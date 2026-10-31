@@ -14,6 +14,7 @@ class UsuarioPublico(BaseModel):
     nombre: str
     correo: str
     rol: RolUsuario
+    empresa_id: int | None = None
 
 
 class LoginRequest(BaseModel):

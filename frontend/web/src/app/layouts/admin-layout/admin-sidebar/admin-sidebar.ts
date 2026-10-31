@@ -23,7 +23,6 @@ interface AdminNavItem {
 export class AdminSidebar {
   protected readonly navItems: AdminNavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', route: '/admin' },
-    { label: 'Gestionar administrador', icon: 'settings', route: '/admin/gestion-empresas/administrador' },
     { label: 'Sucursales', icon: 'branches', route: '/admin/sucursales' },
     { label: 'Categorías, tallas y colores', icon: 'catalog', route: '/admin/catalogo/atributos' },
     { label: 'Temporadas y colecciones', icon: 'seasons', route: '/admin/catalogo/temporadas' },

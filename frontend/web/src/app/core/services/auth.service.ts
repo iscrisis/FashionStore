@@ -86,6 +86,12 @@ export class AuthService {
     return this.http.get<EmpresaPublica>(`${environment.apiUrl}/empresas/${slug}`);
   }
 
+  obtenerEmpresasActivas(): Observable<Array<{ id: number; slug: string; nombre: string }>> {
+    return this.http.get<Array<{ id: number; slug: string; nombre: string }>>(
+      `${environment.apiUrl}/empresas/activas`
+    );
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('nombre', sa.String(length=120), nullable=False),
     sa.Column('correo', sa.String(length=255), nullable=False),
     sa.Column('password_hash', sa.String(length=255), nullable=False),
-    sa.Column('rol', sa.Enum('ADMINISTRADOR', 'ENCARGADO_SUCURSAL', 'CAJERO', 'CLIENTE', name='rol_usuario'), nullable=False),
+    sa.Column('rol', sa.Enum('SUPERADMIN', 'ADMINISTRADOR', 'ENCARGADO_SUCURSAL', 'CAJERO', 'PROVEEDOR', 'CLIENTE', name='rol_usuario'), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')

@@ -41,11 +41,15 @@ class CatalogoPublicoService:
         self._db = db
         self._repo = CatalogoPublicoRepository(db)
 
-    def listar_categorias(self) -> list[Categoria]:
-        return self._repo.listar_categorias_activas()
+    def listar_categorias(self, empresa_id: int | None = None) -> list[Categoria]:
+        return self._repo.listar_categorias_activas(empresa_id=empresa_id)
 
-    def listar_colecciones(self, temporada_id: int | None = None) -> list[Coleccion]:
-        return self._repo.listar_colecciones_activas(temporada_id)
+    def listar_colecciones(
+        self, temporada_id: int | None = None, empresa_id: int | None = None
+    ) -> list[Coleccion]:
+        return self._repo.listar_colecciones_activas(
+            temporada_id=temporada_id, empresa_id=empresa_id
+        )
 
     def listar_tallas(self) -> list[Talla]:
         return self._repo.listar_tallas_activas()
@@ -60,6 +64,7 @@ class CatalogoPublicoService:
         coleccion_id: int | None = None,
         talla_id: int | None = None,
         color_id: int | None = None,
+        empresa_id: int | None = None,
     ) -> list[ProductoOut]:
         productos = self._repo.listar_productos(
             search=search,
@@ -67,12 +72,13 @@ class CatalogoPublicoService:
             coleccion_id=coleccion_id,
             talla_id=talla_id,
             color_id=color_id,
+            empresa_id=empresa_id,
         )
         precios = obtener_precios_efectivos(self._db, productos)
         return [_producto_a_salida(p, precios[p.id]) for p in productos]
 
-    def obtener_producto(self, producto_id: int) -> ProductoOut:
-        producto = self._repo.obtener_producto_activo(producto_id)
+    def obtener_producto(self, producto_id: int, empresa_id: int | None = None) -> ProductoOut:
+        producto = self._repo.obtener_producto_activo(producto_id, empresa_id=empresa_id)
         if producto is None:
             raise ProductoNoEncontradoError
         precio = obtener_precio_efectivo(self._db, producto)

@@ -19,14 +19,21 @@ class CatalogoPublicoRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def listar_categorias_activas(self) -> list[Categoria]:
-        stmt = select(Categoria).where(Categoria.is_active.is_(True)).order_by(Categoria.nombre)
+    def listar_categorias_activas(self, empresa_id: int | None = None) -> list[Categoria]:
+        stmt = select(Categoria).where(Categoria.is_active.is_(True))
+        if empresa_id is not None:
+            stmt = stmt.where(Categoria.empresa_id == empresa_id)
+        stmt = stmt.order_by(Categoria.nombre)
         return list(self.db.execute(stmt).scalars().all())
 
-    def listar_colecciones_activas(self, temporada_id: int | None = None) -> list[Coleccion]:
+    def listar_colecciones_activas(
+        self, temporada_id: int | None = None, empresa_id: int | None = None
+    ) -> list[Coleccion]:
         stmt = select(Coleccion).where(Coleccion.is_active.is_(True))
         if temporada_id is not None:
             stmt = stmt.where(Coleccion.temporada_id == temporada_id)
+        if empresa_id is not None:
+            stmt = stmt.where(Coleccion.empresa_id == empresa_id)
         stmt = stmt.order_by(Coleccion.nombre)
         return list(self.db.execute(stmt).scalars().all())
 
@@ -45,11 +52,14 @@ class CatalogoPublicoRepository:
         coleccion_id: int | None = None,
         talla_id: int | None = None,
         color_id: int | None = None,
+        empresa_id: int | None = None,
     ) -> list[Producto]:
         stmt = select(Producto).where(
             Producto.is_active.is_(True),
             Producto.coleccion.has(Coleccion.is_active.is_(True))
         )
+        if empresa_id is not None:
+            stmt = stmt.where(Producto.empresa_id == empresa_id)
         if search:
             stmt = stmt.where(func.lower(Producto.nombre).like(f"%{search.strip().lower()}%"))
         if categoria_id is not None:
@@ -63,10 +73,14 @@ class CatalogoPublicoRepository:
         stmt = stmt.order_by(Producto.nombre)
         return list(self.db.execute(stmt).scalars().all())
 
-    def obtener_producto_activo(self, producto_id: int) -> Producto | None:
+    def obtener_producto_activo(
+        self, producto_id: int, empresa_id: int | None = None
+    ) -> Producto | None:
         stmt = select(Producto).where(
             Producto.id == producto_id,
             Producto.is_active.is_(True),
             Producto.coleccion.has(Coleccion.is_active.is_(True))
         )
+        if empresa_id is not None:
+            stmt = stmt.where(Producto.empresa_id == empresa_id)
         return self.db.execute(stmt).scalar_one_or_none()

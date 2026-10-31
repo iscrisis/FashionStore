@@ -9,6 +9,7 @@ export interface Usuario {
   nombre: string;
   correo: string;
   rol: RolUsuario;
+  empresa_id?: number | null;
 }
 
 export interface LoginRequest {

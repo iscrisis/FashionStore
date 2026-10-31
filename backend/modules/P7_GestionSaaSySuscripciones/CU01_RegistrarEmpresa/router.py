@@ -25,6 +25,28 @@ router = APIRouter(prefix="/empresas", tags=["CU01 - Registrar Empresa"])
 
 
 @router.get(
+    "/activas",
+    response_model=list[EmpresaPublicaOut],
+    summary="Listar empresas activas",
+    description="Devuelve el listado de empresas activas disponibles para registro público.",
+)
+def listar_empresas_activas(
+    db: Session = Depends(get_db),
+) -> list[EmpresaPublicaOut]:
+    """Listar empresas activas para registro de clientes.
+
+    No requiere autenticación. Solo devuelve empresas con is_active = True.
+    Utilizado por el formulario de registro para que el cliente seleccione su tenant.
+
+    ### Responses
+    - **200**: Lista de empresas activas.
+    """
+    service = EmpresasService(db)
+    empresas = service.listar_activas()
+    return [EmpresaPublicaOut.from_orm(empresa) for empresa in empresas]
+
+
+@router.get(
     "",
     response_model=list[EmpresaListOut],
     summary="Listar todas las empresas",

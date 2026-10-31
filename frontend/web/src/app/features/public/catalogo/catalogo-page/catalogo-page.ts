@@ -9,6 +9,7 @@ import {
   TallaPublica,
 } from '../catalogo.model';
 import { CatalogoService } from '../catalogo.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { ProductCard } from '../../home/product-card/product-card';
 
 @Component({
@@ -20,6 +21,7 @@ import { ProductCard } from '../../home/product-card/product-card';
 export class CatalogoPage {
   private readonly catalogoService = inject(CatalogoService);
   private readonly route = inject(ActivatedRoute);
+  protected readonly authService = inject(AuthService);
 
   protected readonly productos = signal<ProductoPublico[]>([]);
   protected readonly categorias = signal<CategoriaPublica[]>([]);
@@ -97,6 +99,7 @@ export class CatalogoPage {
   load(): void {
     this.loading.set(true);
     this.errorMessage.set(null);
+    const usuario = this.authService.usuario();
     this.catalogoService
       .listProductos({
         search: this.searchTerm() || undefined,
@@ -104,6 +107,7 @@ export class CatalogoPage {
         coleccion_id: this.coleccionId() ?? undefined,
         talla_id: this.tallaId() ?? undefined,
         color_id: this.colorId() ?? undefined,
+        empresa_id: usuario?.empresa_id ?? undefined,
       })
       .subscribe({
         next: (productos) => {

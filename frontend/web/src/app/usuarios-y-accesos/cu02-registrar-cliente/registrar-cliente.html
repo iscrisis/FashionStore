@@ -6,7 +6,31 @@
     @if (!exito()) {
       <p class="registro-card__subtitle">Regístrate para reservar y comprar en FashionStore.</p>
 
-      @if (empresaCargando()) {
+      @if (!empresaSlug()) {
+        <!-- Selector de empresa -->
+        @if (empresasListaCargando()) {
+          <div class="empresa-info empresa-info--loading">
+            <p>Cargando empresas disponibles…</p>
+          </div>
+        } @else if (empresasListaError()) {
+          <div class="empresa-info empresa-info--error">
+            <p>{{ empresasListaError() }}</p>
+            <button type="button" class="btn btn--sm btn--ghost" (click)="cargarEmpresas()">
+              Reintentar
+            </button>
+          </div>
+        } @else {
+          <label class="empresa-selector">
+            <span class="empresa-selector__label">Selecciona una empresa *</span>
+            <select class="empresa-selector__select" #empresaSelect (change)="seleccionarEmpresa(empresaSelect.value)">
+              <option value="">-- Selecciona una empresa --</option>
+              @for (empresa of empresas(); track empresa.slug) {
+                <option [value]="empresa.slug">{{ empresa.nombre }}</option>
+              }
+            </select>
+          </label>
+        }
+      } @else if (empresaCargando()) {
         <div class="empresa-info empresa-info--loading">
           <p>Cargando información de la empresa…</p>
         </div>
@@ -128,7 +152,7 @@
           <p class="registro-form__error" role="alert">{{ errorMessage() }}</p>
         }
 
-        <button type="submit" class="btn btn--primary registro-form__submit" [disabled]="submitting()">
+        <button type="submit" class="btn btn--primary registro-form__submit" [disabled]="submitting() || !empresaSlug()">
           {{ submitting() ? 'Creando cuenta…' : 'Crear cuenta' }}
         </button>
       </form>

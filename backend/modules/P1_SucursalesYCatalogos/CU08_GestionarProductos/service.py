@@ -183,8 +183,11 @@ class ProductosService:
         propuesta = self._validar_propuesta(datos.proveedor_id, datos.producto_proveedor_id)
         tallas = self._resolver_tallas(datos.talla_ids)
         colores = self._resolver_colores(datos.color_ids)
+        proveedor = self._catalogo.get_proveedor(datos.proveedor_id)
+        empresa_id = proveedor.empresa_id if proveedor else None
 
         producto = Producto(
+            empresa_id=empresa_id,
             nombre=datos.nombre,
             descripcion=datos.descripcion,
             proveedor_id=datos.proveedor_id,

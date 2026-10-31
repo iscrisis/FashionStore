@@ -37,7 +37,6 @@ from sqlalchemy import CheckConstraint, ForeignKey, ForeignKeyConstraint, Intege
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-from modules.P7_GestionSaaSySuscripciones.Models.empresa import Empresa
 from .producto_variante import ProductoVariante
 from .sucursal import Sucursal
 
@@ -48,16 +47,10 @@ class StockSucursal(Base):
         UniqueConstraint("sucursal_id", "producto_variante_id"),
         CheckConstraint("cantidad >= 0", name="ck_stock_sucursal_cantidad_no_negativa"),
         CheckConstraint("stock_reservado >= 0", name="ck_stock_sucursal_reservado_no_negativo"),
-        ForeignKeyConstraint(
-            ["empresa_id", "sucursal_id"],
-            ["sucursales.empresa_id", "sucursales.id"],
-            name="fk_stock_sucursal_sucursal_compuesto"
-        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    empresa_id: Mapped[int] = mapped_column(ForeignKey("empresas.id"), nullable=False)
-    sucursal_id: Mapped[int] = mapped_column(nullable=False)
+    sucursal_id: Mapped[int] = mapped_column(ForeignKey("sucursales.id"), nullable=False)
     producto_variante_id: Mapped[int] = mapped_column(
         ForeignKey("producto_variantes.id", ondelete="CASCADE"), nullable=False
     )
@@ -66,6 +59,5 @@ class StockSucursal(Base):
         Integer, nullable=False, default=0, server_default="0"
     )
 
-    empresa: Mapped[Empresa] = relationship(lazy="joined")
-    sucursal: Mapped[Sucursal] = relationship(lazy="joined")
-    producto_variante: Mapped[ProductoVariante] = relationship(lazy="joined")
+    sucursal: Mapped[Sucursal] = relationship(lazy="select")
+    producto_variante: Mapped[ProductoVariante] = relationship(lazy="select")

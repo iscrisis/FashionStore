@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductoPublico } from '../../catalogo/catalogo.model';
 import { CatalogoService } from '../../catalogo/catalogo.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { ProductCard } from '../product-card/product-card';
 
 const MAX_DESTACADOS = 8;
@@ -14,6 +15,7 @@ const MAX_DESTACADOS = 8;
 })
 export class FeaturedProducts implements OnInit {
   private readonly catalogoService = inject(CatalogoService);
+  private readonly authService = inject(AuthService);
 
   protected readonly products = signal<ProductoPublico[]>([]);
   protected readonly loading = signal(true);
@@ -26,8 +28,8 @@ export class FeaturedProducts implements OnInit {
   load(): void {
     this.loading.set(true);
     this.hasError.set(false);
-    // CU11 (catálogo público): productos ACTIVOS publicados por el Administrador (CU08).
-    this.catalogoService.listProductos().subscribe({
+    const usuario = this.authService.usuario();
+    this.catalogoService.listProductos({ empresa_id: usuario?.empresa_id }).subscribe({
       next: (productos) => {
         this.products.set(productos.slice(0, MAX_DESTACADOS));
         this.loading.set(false);

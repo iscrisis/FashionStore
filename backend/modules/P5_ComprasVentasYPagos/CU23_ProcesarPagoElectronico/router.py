@@ -73,12 +73,12 @@ def crear_checkout(
         cancel_url = f"fashionstore://pago/resultado?venta_id={payload.venta_id}&cancelado=1"
     else:
         base = settings.FRONTEND_URL.rstrip("/")
-        success_url = f"{base}/pago/resultado?venta_id={payload.venta_id}&session_id={{CHECKOUT_SESSION_ID}}"
-        cancel_url = f"{base}/pago/resultado?venta_id={payload.venta_id}&cancelado=1"
+        success_url = f"{base}/home/pago/resultado?venta_id={payload.venta_id}&session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{base}/home/pago/resultado?venta_id={payload.venta_id}&cancelado=1"
 
     try:
         checkout_url = PagoElectronicoService(db).crear_checkout(
-            actor.id, payload.venta_id, success_url, cancel_url
+            actor.id, payload.venta_id, actor.empresa_id, success_url, cancel_url
         )
         return CheckoutSessionOut(checkout_url=checkout_url)
     except VentaNoEncontradaError as exc:
@@ -98,7 +98,7 @@ def verificar_pago(
     actor: Usuario = Depends(require_cliente),
 ) -> VentaPagadaOut:
     try:
-        return PagoElectronicoService(db).verificar_pago(actor.id, payload.session_id)
+        return PagoElectronicoService(db).verificar_pago(actor.id, actor.empresa_id, payload.session_id)
     except SesionPagoNoEncontradaError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, _MSG_SESION_NO_ENCONTRADA) from exc
     except PagoNoCompletadoError as exc:

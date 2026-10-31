@@ -204,7 +204,7 @@ class CrearReservaService:
         self._validar_fecha_hora(datos.fecha_reserva, datos.hora_inicio)
 
         sucursal = self._sucursales.get_activa_by_id(datos.sucursal_id)
-        if sucursal is None:
+        if sucursal is None or sucursal.empresa_id != cliente.empresa_id:
             raise SucursalNoEncontradaError
 
         producto, variante = self._resolver_variante(datos.producto_variante_id)
@@ -223,6 +223,7 @@ class CrearReservaService:
             estado=EstadoReserva.PENDIENTE,
         )
         reserva = Reserva(
+            empresa_id=cliente.empresa_id,
             cliente_id=cliente.id,
             sucursal_id=sucursal.id,
             fecha_reserva=datos.fecha_reserva,
@@ -256,8 +257,8 @@ class CrearReservaService:
                     productos_por_variante[variante.id] = producto
         return productos_por_variante
 
-    def listar_mias(self, cliente_id: int) -> list[ReservaOut]:
-        reservas = self._reservas.listar_por_cliente(cliente_id)
+    def listar_mias(self, cliente_id: int, empresa_id: int | None = None) -> list[ReservaOut]:
+        reservas = self._reservas.listar_por_cliente(cliente_id, empresa_id)
 
         # Integración mínima con CU20 (Atender reserva de prendas): antes de
         # responder, cualquier detalle PENDIENTE/PREPARADA de ESTE cliente
@@ -281,7 +282,7 @@ class CrearReservaService:
             if any(d.producto_variante_id in productos_por_variante for d in reserva.detalles)
         ]
 
-    def listar_compatibles(self, cliente_id: int, sucursal_id: int) -> list[ReservaOut]:
+    def listar_compatibles(self, cliente_id: int, empresa_id: int, sucursal_id: int) -> list[ReservaOut]:
         """Reservas del Cliente en `sucursal_id` a las que HOY se les podría
         agregar una prenda más -- solo estado_general PENDIENTE (ver
         agregar_detalle: ninguna prenda de la reserva empezó a atenderse
@@ -289,7 +290,7 @@ class CrearReservaService:
         que listar_mias, para no ofrecer como "compatible" una reserva cuyo
         bloque horario ya venció pero el estado en la base todavía no se
         había actualizado."""
-        reservas = self._reservas.listar_por_cliente_y_sucursal(cliente_id, sucursal_id)
+        reservas = self._reservas.listar_por_cliente_y_sucursal(cliente_id, empresa_id, sucursal_id)
         expirar_vencidas(self._db, reservas)
 
         pendientes = [r for r in reservas if r.estado_general == EstadoReserva.PENDIENTE]
@@ -315,7 +316,7 @@ class CrearReservaService:
         cabecera (para leer estado_general de forma segura) y después la
         fila de StockSucursal, todo en una única transacción."""
         cabecera = self._reservas.bloquear_por_id(reserva_id)
-        if cabecera is None or cabecera.cliente_id != cliente.id:
+        if cabecera is None or cabecera.cliente_id != cliente.id or cabecera.empresa_id != cliente.empresa_id:
             raise ReservaNoEncontradaError
         if cabecera.estado_general != EstadoReserva.PENDIENTE:
             raise ReservaNoCompatibleError

@@ -55,28 +55,28 @@ def listar_proveedores(
     search: str | None = Query(default=None),
     estado: str | None = Query(default=None, pattern="^(active|inactive)$"),
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    actor: Usuario = Depends(require_admin),
 ) -> list[ProveedorOut]:
     is_active = {"active": True, "inactive": False}.get(estado)
-    return ProveedoresService(db).listar(search=search, is_active=is_active)
+    return ProveedoresService(db).listar(usuario=actor, search=search, is_active=is_active)
 
 
 @router.get("/{proveedor_id}", response_model=ProveedorOut)
 def obtener_proveedor(
-    proveedor_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+    proveedor_id: int, db: Session = Depends(get_db), actor: Usuario = Depends(require_admin)
 ) -> ProveedorOut:
     try:
-        return ProveedoresService(db).obtener(proveedor_id)
+        return ProveedoresService(db).obtener(usuario=actor, proveedor_id=proveedor_id)
     except ProveedorNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Proveedor no encontrado.") from exc
 
 
 @router.post("", response_model=ProveedorOut, status_code=status.HTTP_201_CREATED)
 def crear_proveedor(
-    payload: ProveedorCrear, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+    payload: ProveedorCrear, db: Session = Depends(get_db), actor: Usuario = Depends(require_admin)
 ) -> ProveedorOut:
     try:
-        return ProveedoresService(db).crear(payload)
+        return ProveedoresService(db).crear(usuario=actor, datos=payload)
     except RazonSocialDuplicadaError as exc:
         raise HTTPException(
             status.HTTP_409_CONFLICT, "Ya existe un proveedor con esa razón social."
@@ -88,10 +88,10 @@ def actualizar_proveedor(
     proveedor_id: int,
     payload: ProveedorActualizar,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    actor: Usuario = Depends(require_admin),
 ) -> ProveedorOut:
     try:
-        return ProveedoresService(db).actualizar(proveedor_id, payload)
+        return ProveedoresService(db).actualizar(usuario=actor, proveedor_id=proveedor_id, datos=payload)
     except ProveedorNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Proveedor no encontrado.") from exc
     except RazonSocialDuplicadaError as exc:
@@ -105,20 +105,20 @@ def cambiar_estado_proveedor(
     proveedor_id: int,
     payload: CambiarEstadoRequest,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    actor: Usuario = Depends(require_admin),
 ) -> ProveedorOut:
     try:
-        return ProveedoresService(db).cambiar_estado(proveedor_id, payload.is_active)
+        return ProveedoresService(db).cambiar_estado(usuario=actor, proveedor_id=proveedor_id, activo=payload.is_active)
     except ProveedorNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Proveedor no encontrado.") from exc
 
 
 @router.delete("/{proveedor_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_proveedor(
-    proveedor_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+    proveedor_id: int, db: Session = Depends(get_db), actor: Usuario = Depends(require_admin)
 ) -> None:
     try:
-        ProveedoresService(db).eliminar(proveedor_id)
+        ProveedoresService(db).eliminar(usuario=actor, proveedor_id=proveedor_id)
     except ProveedorNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Proveedor no encontrado.") from exc
 

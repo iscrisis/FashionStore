@@ -78,7 +78,7 @@ export class ProductoForm {
   protected readonly resolveMediaUrl = resolveMediaUrl;
 
   protected readonly form = this.fb.group({
-    propuesta_id: this.fb.control<number | null>(null),
+    producto_proveedor_id: this.fb.control<number | null>(null),
     nombre: this.fb.nonNullable.control('', [
       Validators.required,
       Validators.minLength(2),
@@ -122,7 +122,7 @@ export class ProductoForm {
           .list({ temporada_id: producto.temporada.id })
           .subscribe((valores) => this.colecciones.set(valores));
         this.form.reset({
-          propuesta_id: null,
+          producto_proveedor_id: null,
           nombre: producto.nombre,
           descripcion: producto.descripcion ?? '',
           proveedor_id: producto.proveedor.id,
@@ -140,7 +140,7 @@ export class ProductoForm {
         this.imagenesAdicionales.set([]);
         const preseleccionada = this.propuestaPreseleccionada();
         this.form.reset({
-          propuesta_id: preseleccionada?.id ?? null,
+          producto_proveedor_id: preseleccionada?.id ?? null,
           nombre: preseleccionada?.nombre ?? '',
           descripcion: preseleccionada?.descripcion ?? '',
           proveedor_id: preseleccionada?.proveedor.id ?? null,
@@ -185,7 +185,7 @@ export class ProductoForm {
 
   onPropuestaChange(value: string): void {
     const propuestaId = value ? Number(value) : null;
-    this.form.controls.propuesta_id.setValue(propuestaId);
+    this.form.controls.producto_proveedor_id.setValue(propuestaId);
     if (!propuestaId) {
       return;
     }
@@ -310,7 +310,7 @@ export class ProductoForm {
       nombre: value.nombre.trim(),
       descripcion: value.descripcion.trim() || null,
       proveedor_id: value.proveedor_id!,
-      producto_proveedor_id: producto ? producto.producto_proveedor_id : value.propuesta_id,
+      producto_proveedor_id: producto ? producto.producto_proveedor_id : value.producto_proveedor_id,
       categoria_id: value.categoria_id!,
       temporada_id: value.temporada_id!,
       coleccion_id: value.coleccion_id!,

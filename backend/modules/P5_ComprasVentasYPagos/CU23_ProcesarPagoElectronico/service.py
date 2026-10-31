@@ -84,14 +84,14 @@ class PagoElectronicoService:
             requerido[detalle.producto_variante_id] = requerido.get(detalle.producto_variante_id, 0) + detalle.cantidad
         return requerido
 
-    def _resolver_venta_propia(self, cliente_id: int, venta_id: int) -> Venta:
+    def _resolver_venta_propia(self, cliente_id: int, empresa_id: int, venta_id: int) -> Venta:
         venta = self._ventas.obtener_por_id(venta_id)
-        if venta is None or venta.cliente_id != cliente_id:
+        if venta is None or venta.cliente_id != cliente_id or venta.empresa_id != empresa_id:
             raise VentaNoEncontradaError
         return venta
 
-    def crear_checkout(self, cliente_id: int, venta_id: int, success_url: str, cancel_url: str) -> str:
-        venta = self._resolver_venta_propia(cliente_id, venta_id)
+    def crear_checkout(self, cliente_id: int, venta_id: int, empresa_id: int, success_url: str, cancel_url: str) -> str:
+        venta = self._resolver_venta_propia(cliente_id, empresa_id, venta_id)
 
         if venta.tipo != TipoVenta.DIGITAL or venta.estado != EstadoVenta.PENDIENTE_PAGO:
             raise VentaNoPagableError
@@ -123,9 +123,9 @@ class PagoElectronicoService:
 
         return sesion.url
 
-    def verificar_pago(self, cliente_id: int, session_id: str) -> VentaPagadaOut:
+    def verificar_pago(self, cliente_id: int, empresa_id: int, session_id: str) -> VentaPagadaOut:
         pago = self._pagos.obtener_por_session_id(session_id)
-        if pago is None or pago.venta.cliente_id != cliente_id:
+        if pago is None or pago.venta.cliente_id != cliente_id or pago.venta.empresa_id != empresa_id:
             raise SesionPagoNoEncontradaError
 
         # Idempotencia -- ya procesado en una verificación anterior: ni

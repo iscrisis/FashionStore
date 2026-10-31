@@ -11,7 +11,7 @@ class UsuarioRepository:
         self.db = db
 
     def get_by_correo(self, correo: str) -> Usuario | None:
-        stmt = select(Usuario).where(Usuario.correo == correo)
+        stmt = select(Usuario).where(Usuario.correo == correo.strip().lower())
         return self.db.execute(stmt).scalar_one_or_none()
 
     def get_by_id(self, usuario_id: int) -> Usuario | None:

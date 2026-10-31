@@ -42,7 +42,7 @@ def consultar_carrito(
     db: Session = Depends(get_db),
     actor: Usuario = Depends(require_cliente),
 ) -> CarritoOut:
-    return CarritoService(db).consultar(actor.id)
+    return CarritoService(db).consultar(actor.id, actor.empresa_id)
 
 
 @router.post("/items", response_model=CarritoOut, status_code=status.HTTP_201_CREATED)
@@ -52,7 +52,7 @@ def agregar_item(
     actor: Usuario = Depends(require_cliente),
 ) -> CarritoOut:
     try:
-        return CarritoService(db).agregar_item(actor.id, payload)
+        return CarritoService(db).agregar_item(actor.id, payload, actor.empresa_id)
     except VarianteNoEncontradaError as exc:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -73,7 +73,7 @@ def actualizar_seleccion(
     actor: Usuario = Depends(require_cliente),
 ) -> CarritoOut:
     try:
-        return CarritoService(db).actualizar_seleccion(actor.id, item_id, payload)
+        return CarritoService(db).actualizar_seleccion(actor.id, item_id, payload, actor.empresa_id)
     except ItemNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado en el carrito.") from exc
 
@@ -85,6 +85,6 @@ def eliminar_item(
     actor: Usuario = Depends(require_cliente),
 ) -> CarritoOut:
     try:
-        return CarritoService(db).eliminar_item(actor.id, item_id)
+        return CarritoService(db).eliminar_item(actor.id, item_id, actor.empresa_id)
     except ItemNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado en el carrito.") from exc

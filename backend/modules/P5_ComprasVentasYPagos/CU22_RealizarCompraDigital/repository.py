@@ -57,10 +57,10 @@ class SucursalLecturaRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def listar_activas_por_ciudad(self, ciudad_id: int) -> list[Sucursal]:
+    def listar_activas_por_ciudad(self, ciudad_id: int, empresa_id: int) -> list[Sucursal]:
         stmt = (
             select(Sucursal)
-            .where(Sucursal.ciudad_id == ciudad_id, Sucursal.is_active.is_(True))
+            .where(Sucursal.ciudad_id == ciudad_id, Sucursal.is_active.is_(True), Sucursal.empresa_id == empresa_id)
             .order_by(Sucursal.nombre)
         )
         return list(self.db.execute(stmt).scalars().all())

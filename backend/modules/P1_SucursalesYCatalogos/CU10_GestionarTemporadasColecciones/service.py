@@ -27,20 +27,23 @@ class TemporadasService:
     def __init__(self, db: Session):
         self._repo = TemporadasRepository(db)
 
-    def listar(self, search: str | None, is_active: bool | None) -> list[Temporada]:
-        return self._repo.listar(search=search, is_active=is_active)
+    def listar(self, search: str | None, is_active: bool | None, empresa_id: int) -> list[Temporada]:
+        return self._repo.listar(search=search, is_active=is_active, empresa_id=empresa_id)
 
-    def obtener(self, temporada_id: int) -> Temporada:
+    def obtener(self, temporada_id: int, empresa_id: int | None = None) -> Temporada:
         temporada = self._repo.get_by_id(temporada_id)
         if temporada is None:
             raise RegistroNoEncontradoError
+        if empresa_id is not None and temporada.empresa_id != empresa_id:
+            raise RegistroNoEncontradoError
         return temporada
 
-    def crear(self, datos: TemporadaCrear) -> Temporada:
-        if self._repo.existe_nombre(datos.nombre):
+    def crear(self, datos: TemporadaCrear, empresa_id: int) -> Temporada:
+        if self._repo.existe_nombre(datos.nombre, empresa_id=empresa_id):
             raise NombreDuplicadoError
         return self._repo.crear(
             Temporada(
+                empresa_id=empresa_id,
                 nombre=datos.nombre,
                 fecha_inicio=datos.fecha_inicio,
                 fecha_fin=datos.fecha_fin,
@@ -48,22 +51,22 @@ class TemporadasService:
             )
         )
 
-    def actualizar(self, temporada_id: int, datos: TemporadaActualizar) -> Temporada:
+    def actualizar(self, temporada_id: int, datos: TemporadaActualizar, empresa_id: int) -> Temporada:
         temporada = self.obtener(temporada_id)
-        if self._repo.existe_nombre(datos.nombre, excluyendo_id=temporada.id):
+        if self._repo.existe_nombre(datos.nombre, empresa_id=empresa_id, excluyendo_id=temporada.id):
             raise NombreDuplicadoError
         temporada.nombre = datos.nombre
         temporada.fecha_inicio = datos.fecha_inicio
         temporada.fecha_fin = datos.fecha_fin
         return self._repo.guardar(temporada)
 
-    def cambiar_estado(self, temporada_id: int, activo: bool) -> Temporada:
-        temporada = self.obtener(temporada_id)
+    def cambiar_estado(self, temporada_id: int, activo: bool, empresa_id: int) -> Temporada:
+        temporada = self.obtener(temporada_id, empresa_id)
         temporada.is_active = activo
         return self._repo.guardar(temporada)
 
-    def eliminar(self, temporada_id: int) -> None:
-        temporada = self.obtener(temporada_id)
+    def eliminar(self, temporada_id: int, empresa_id: int) -> None:
+        temporada = self.obtener(temporada_id, empresa_id)
         self._repo.eliminar(temporada)
 
 
@@ -73,9 +76,9 @@ class ColeccionesService:
         self._temporadas = TemporadasRepository(db)
 
     def listar(
-        self, search: str | None, temporada_id: int | None, is_active: bool | None
+        self, search: str | None, temporada_id: int | None, is_active: bool | None, empresa_id: int
     ) -> list[Coleccion]:
-        return self._repo.listar(search=search, temporada_id=temporada_id, is_active=is_active)
+        return self._repo.listar(search=search, temporada_id=temporada_id, is_active=is_active, empresa_id=empresa_id)
 
     def obtener(self, coleccion_id: int) -> Coleccion:
         coleccion = self._repo.get_by_id(coleccion_id)
@@ -83,14 +86,15 @@ class ColeccionesService:
             raise RegistroNoEncontradoError
         return coleccion
 
-    def crear(self, datos: ColeccionCrear) -> Coleccion:
+    def crear(self, datos: ColeccionCrear, empresa_id: int) -> Coleccion:
         if self._temporadas.get_by_id(datos.temporada_id) is None:
             raise TemporadaNoEncontradaError
 
-        if self._repo.existe_nombre_en_temporada(datos.nombre, datos.temporada_id):
+        if self._repo.existe_nombre_en_temporada(datos.nombre, datos.temporada_id, empresa_id):
             raise NombreDuplicadoError
 
         coleccion = Coleccion(
+            empresa_id=empresa_id,
             nombre=datos.nombre,
             temporada_id=datos.temporada_id,
             descripcion=datos.descripcion,
@@ -98,14 +102,14 @@ class ColeccionesService:
         )
         return self._repo.crear(coleccion)
 
-    def actualizar(self, coleccion_id: int, datos: ColeccionActualizar) -> Coleccion:
+    def actualizar(self, coleccion_id: int, datos: ColeccionActualizar, empresa_id: int) -> Coleccion:
         coleccion = self.obtener(coleccion_id)
 
         if self._temporadas.get_by_id(datos.temporada_id) is None:
             raise TemporadaNoEncontradaError
 
         if self._repo.existe_nombre_en_temporada(
-            datos.nombre, datos.temporada_id, excluyendo_id=coleccion.id
+            datos.nombre, datos.temporada_id, empresa_id, excluyendo_id=coleccion.id
         ):
             raise NombreDuplicadoError
 

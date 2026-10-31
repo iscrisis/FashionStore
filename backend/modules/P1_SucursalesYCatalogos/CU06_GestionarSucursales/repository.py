@@ -55,11 +55,12 @@ class SucursalesRepository:
 
     def listar(
         self,
+        empresa_id: int,
         search: str | None = None,
         ciudad_id: int | None = None,
         is_active: bool | None = None,
     ) -> list[Sucursal]:
-        stmt = select(Sucursal)
+        stmt = select(Sucursal).where(Sucursal.empresa_id == empresa_id)
         if search:
             patron = f"%{search.strip().lower()}%"
             stmt = stmt.where(func.lower(Sucursal.nombre).like(patron))
@@ -73,10 +74,18 @@ class SucursalesRepository:
     def get_by_id(self, sucursal_id: int) -> Sucursal | None:
         return self.db.get(Sucursal, sucursal_id)
 
+    def get_by_id_tenant(self, sucursal_id: int, empresa_id: int) -> Sucursal | None:
+        stmt = select(Sucursal).where(
+            Sucursal.id == sucursal_id,
+            Sucursal.empresa_id == empresa_id,
+        )
+        return self.db.execute(stmt).scalar_one_or_none()
+
     def existe_nombre_en_ciudad(
-        self, nombre: str, ciudad_id: int, excluyendo_id: int | None = None
+        self, nombre: str, ciudad_id: int, empresa_id: int, excluyendo_id: int | None = None
     ) -> bool:
         stmt = select(func.count()).select_from(Sucursal).where(
+            Sucursal.empresa_id == empresa_id,
             Sucursal.ciudad_id == ciudad_id,
             func.lower(Sucursal.nombre) == nombre.strip().lower(),
         )

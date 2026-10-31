@@ -12,6 +12,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.core.deps import get_current_usuario_opcional
+from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 
 from .schemas import ProductoDisponibilidadOut
 from .service import DisponibilidadService, ProductoNoEncontradoError
@@ -23,9 +25,13 @@ router = APIRouter(prefix="/disponibilidad", tags=["CU12 - Consultar disponibili
 def consultar_disponibilidad(
     producto_id: int = Query(...),
     ciudad_id: int | None = Query(default=None),
+    usuario: Usuario | None = Depends(get_current_usuario_opcional),
     db: Session = Depends(get_db),
 ) -> ProductoDisponibilidadOut:
     try:
-        return DisponibilidadService(db).consultar_por_producto(producto_id, ciudad_id)
+        empresa_id = usuario.empresa_id if usuario else None
+        return DisponibilidadService(db).consultar_por_producto(
+            producto_id, ciudad_id, empresa_id=empresa_id
+        )
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc

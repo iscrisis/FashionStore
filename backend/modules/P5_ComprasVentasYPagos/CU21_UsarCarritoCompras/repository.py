@@ -68,9 +68,11 @@ class ProductoLecturaRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_producto_activo(self, producto_id: int) -> Producto | None:
+    def get_producto_activo(self, producto_id: int, empresa_id: int | None = None) -> Producto | None:
         producto = self.db.get(Producto, producto_id)
         if producto is None or not producto.is_active:
+            return None
+        if empresa_id is not None and producto.empresa_id != empresa_id:
             return None
         return producto
 

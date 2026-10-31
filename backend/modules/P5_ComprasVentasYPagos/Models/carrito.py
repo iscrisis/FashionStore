@@ -46,29 +46,21 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from modules.P1_SucursalesYCatalogos.Models.producto_variante import ProductoVariante
-from modules.P7_GestionSaaSySuscripciones.Models.empresa import Empresa
 
 
 class Carrito(Base):
     __tablename__ = "carritos"
     __table_args__ = (
         UniqueConstraint("cliente_id", name="uq_carritos_cliente_id"),
-        ForeignKeyConstraint(
-            ["empresa_id", "cliente_id"],
-            ["usuarios.empresa_id", "usuarios.id"],
-            name="fk_carrito_usuario_compuesto"
-        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    empresa_id: Mapped[int] = mapped_column(ForeignKey("empresas.id"), nullable=False)
     cliente_id: Mapped[int] = mapped_column(nullable=False)
     fecha_creacion: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     fecha_actualizacion: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    empresa: Mapped[Empresa] = relationship(lazy="joined")
     items: Mapped[list["CarritoItem"]] = relationship(
         back_populates="carrito", cascade="all, delete-orphan", order_by="CarritoItem.id"
     )

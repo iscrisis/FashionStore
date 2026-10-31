@@ -49,10 +49,10 @@
                 {{ etiquetaCuenta }}
               </a>
               @if (authService.hasRole('CLIENTE')) {
-                <a routerLink="/mis-reservas" class="account-menu__item" (click)="accountMenuOpen.set(false)">
+                <a routerLink="/home/mis-reservas" class="account-menu__item" (click)="accountMenuOpen.set(false)">
                   Mis reservas
                 </a>
-                <a routerLink="/mis-compras" class="account-menu__item" (click)="accountMenuOpen.set(false)">
+                <a routerLink="/home/mis-compras" class="account-menu__item" (click)="accountMenuOpen.set(false)">
                   Mis compras
                 </a>
               }

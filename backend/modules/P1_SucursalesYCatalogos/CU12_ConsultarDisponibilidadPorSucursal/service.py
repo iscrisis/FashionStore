@@ -24,9 +24,9 @@ class DisponibilidadService:
         self._repo = DisponibilidadLecturaRepository(db)
 
     def consultar_por_producto(
-        self, producto_id: int, ciudad_id: int | None
+        self, producto_id: int, ciudad_id: int | None, empresa_id: int | None = None
     ) -> ProductoDisponibilidadOut:
-        producto = self._repo.get_producto_activo(producto_id)
+        producto = self._repo.get_producto_activo(producto_id, empresa_id=empresa_id)
         if producto is None:
             raise ProductoNoEncontradoError
 
@@ -34,7 +34,7 @@ class DisponibilidadService:
             (v for v in producto.variantes if v.is_active),
             key=lambda v: (v.color.nombre, v.talla.nombre),
         )
-        sucursales = self._repo.listar_sucursales_activas(ciudad_id)
+        sucursales = self._repo.listar_sucursales_activas(ciudad_id, empresa_id=empresa_id)
         cantidades = self._repo.cantidades_por_variantes([v.id for v in variantes])
 
         disponibilidad = [

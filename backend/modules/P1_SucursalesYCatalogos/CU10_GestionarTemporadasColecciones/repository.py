@@ -15,8 +15,10 @@ class TemporadasRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def listar(self, search: str | None = None, is_active: bool | None = None) -> list[Temporada]:
+    def listar(self, search: str | None = None, is_active: bool | None = None, empresa_id: int | None = None) -> list[Temporada]:
         stmt = select(Temporada)
+        if empresa_id is not None:
+            stmt = stmt.where(Temporada.empresa_id == empresa_id)
         if search:
             stmt = stmt.where(func.lower(Temporada.nombre).like(f"%{search.strip().lower()}%"))
         if is_active is not None:
@@ -27,10 +29,12 @@ class TemporadasRepository:
     def get_by_id(self, temporada_id: int) -> Temporada | None:
         return self.db.get(Temporada, temporada_id)
 
-    def existe_nombre(self, nombre: str, excluyendo_id: int | None = None) -> bool:
+    def existe_nombre(self, nombre: str, empresa_id: int | None = None, excluyendo_id: int | None = None) -> bool:
         stmt = select(func.count()).select_from(Temporada).where(
             func.lower(Temporada.nombre) == nombre.strip().lower()
         )
+        if empresa_id is not None:
+            stmt = stmt.where(Temporada.empresa_id == empresa_id)
         if excluyendo_id is not None:
             stmt = stmt.where(Temporada.id != excluyendo_id)
         return self.db.execute(stmt).scalar_one() > 0
@@ -60,8 +64,11 @@ class ColeccionesRepository:
         search: str | None = None,
         temporada_id: int | None = None,
         is_active: bool | None = None,
+        empresa_id: int | None = None,
     ) -> list[Coleccion]:
         stmt = select(Coleccion)
+        if empresa_id is not None:
+            stmt = stmt.where(Coleccion.empresa_id == empresa_id)
         if search:
             stmt = stmt.where(func.lower(Coleccion.nombre).like(f"%{search.strip().lower()}%"))
         if temporada_id is not None:
@@ -75,9 +82,10 @@ class ColeccionesRepository:
         return self.db.get(Coleccion, coleccion_id)
 
     def existe_nombre_en_temporada(
-        self, nombre: str, temporada_id: int, excluyendo_id: int | None = None
+        self, nombre: str, temporada_id: int, empresa_id: int, excluyendo_id: int | None = None
     ) -> bool:
         stmt = select(func.count()).select_from(Coleccion).where(
+            Coleccion.empresa_id == empresa_id,
             Coleccion.temporada_id == temporada_id,
             func.lower(Coleccion.nombre) == nombre.strip().lower(),
         )

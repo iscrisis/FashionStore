@@ -79,12 +79,12 @@ class CarritoService:
         self._productos = ProductoLecturaRepository(db)
         self._stock = StockSucursalRepository(db)
 
-    def consultar(self, cliente_id: int) -> CarritoOut:
+    def consultar(self, cliente_id: int, empresa_id: int) -> CarritoOut:
         carrito = self._obtener_o_crear(cliente_id)
         return self._a_salida(carrito)
 
-    def agregar_item(self, cliente_id: int, datos: AgregarItemRequest) -> CarritoOut:
-        producto, variante_id = self._resolver_variante(datos.producto_variante_id)
+    def agregar_item(self, cliente_id: int, datos: AgregarItemRequest, empresa_id: int) -> CarritoOut:
+        producto, variante_id = self._resolver_variante(datos.producto_variante_id, empresa_id)
 
         carrito = self._obtener_o_crear_bloqueado(cliente_id)
         unidades_existentes = sum(1 for i in carrito.items if i.producto_variante_id == variante_id)
@@ -100,7 +100,7 @@ class CarritoService:
         return self._a_salida(carrito)
 
     def actualizar_seleccion(
-        self, cliente_id: int, item_id: int, datos: ActualizarSeleccionRequest
+        self, cliente_id: int, item_id: int, datos: ActualizarSeleccionRequest, empresa_id: int
     ) -> CarritoOut:
         # Bloquea el CARRITO primero (nunca el item por separado) -- mismo
         # orden que agregar_item, a propósito: si cada operación lockeara en
@@ -119,7 +119,7 @@ class CarritoService:
         self._carritos.refrescar(carrito)
         return self._a_salida(carrito)
 
-    def eliminar_item(self, cliente_id: int, item_id: int) -> CarritoOut:
+    def eliminar_item(self, cliente_id: int, item_id: int, empresa_id: int) -> CarritoOut:
         carrito = self._obtener_o_crear_bloqueado(cliente_id)
         item = next((i for i in carrito.items if i.id == item_id), None)
         if item is None:
@@ -131,11 +131,11 @@ class CarritoService:
         self._carritos.refrescar(carrito)
         return self._a_salida(carrito)
 
-    def _resolver_variante(self, variante_id: int) -> tuple[Producto, int]:
+    def _resolver_variante(self, variante_id: int, empresa_id: int) -> tuple[Producto, int]:
         variante = self._variantes.get_variante_activa_by_id(variante_id)
         if variante is None:
             raise VarianteNoEncontradaError
-        producto = self._productos.get_producto_activo(variante.producto_id)
+        producto = self._productos.get_producto_activo(variante.producto_id, empresa_id=empresa_id)
         if producto is None:
             raise VarianteNoEncontradaError
         return producto, variante.id

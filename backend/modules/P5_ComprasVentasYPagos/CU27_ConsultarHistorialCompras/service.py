@@ -73,7 +73,7 @@ class HistorialComprasService:
         self, cliente: Usuario, desde: date | None, hasta: date | None, codigo_venta: str | None
     ) -> list[VentaHistorialOut]:
         self._validar_rango(desde, hasta)
-        ventas = self._ventas.listar_por_cliente(cliente.id, desde, hasta, codigo_venta)
+        ventas = self._ventas.listar_por_cliente(cliente.id, desde, hasta, codigo_venta, cliente.empresa_id)
         return self._a_salida(ventas)
 
     def listar_sucursal(

@@ -120,3 +120,13 @@ class EmpresasService:
         if empresa is None:
             raise EmpresaNoEncontradaError
         return empresa
+
+    def listar_activas(self) -> list[Empresa]:
+        """Listar empresas activas para registro público de clientes.
+
+        Solo devuelve empresas con is_active = True.
+
+        Returns:
+            Lista de empresas activas.
+        """
+        return self._repo.listar_activas()

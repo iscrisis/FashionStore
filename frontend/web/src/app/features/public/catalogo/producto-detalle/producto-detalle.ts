@@ -105,9 +105,9 @@ export class ProductoDetalle {
     const ciudadId = this.ciudadId();
     const sucursalId = this.sucursalSeleccionadaId();
     if (!producto) {
-      return '/';
+      return '/home';
     }
-    let url = `/producto/${producto.id}?tallaId=${tallaId}&colorId=${colorId}`;
+    let url = `/home/producto/${producto.id}?tallaId=${tallaId}&colorId=${colorId}`;
     if (ciudadId !== null) {
       url += `&ciudadId=${ciudadId}`;
     }
@@ -126,9 +126,9 @@ export class ProductoDetalle {
     const tallaId = this.tallaSeleccionadaId();
     const colorId = this.colorSeleccionadoId();
     if (!producto) {
-      return '/';
+      return '/home';
     }
-    return `/producto/${producto.id}?tallaId=${tallaId}&colorId=${colorId}`;
+    return `/home/producto/${producto.id}?tallaId=${tallaId}&colorId=${colorId}`;
   });
 
   // Se restaura como máximo una vez al volver del login -- si el Cliente

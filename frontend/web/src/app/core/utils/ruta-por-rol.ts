@@ -23,5 +23,5 @@ export const RUTA_POR_ROL: Record<RolUsuario, string> = {
   // Cliente). Todavía no es un panel completo -- CU24 (Registrar venta) y
   // CU25 (Procesar pago) son quienes lo necesitarían, fuera de alcance.
   CAJERO: '/cajero',
-  CLIENTE: '/',
+  CLIENTE: '/home',
 };

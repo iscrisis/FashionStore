@@ -159,7 +159,7 @@ export class FinalizarCompra implements OnInit {
         // Cobrar es responsabilidad de CU23 -- se navega a su punto de
         // entrada sin importar nada de esa carpeta, mismo criterio que
         // mi-carrito.html al enlazar hacia /finalizar-compra.
-        this.router.navigate(['/pago/iniciar'], { queryParams: { venta_id: venta.id } });
+        this.router.navigate(['/home/pago/iniciar'], { queryParams: { venta_id: venta.id } });
       },
       error: (err) => {
         this.confirmando.set(false);

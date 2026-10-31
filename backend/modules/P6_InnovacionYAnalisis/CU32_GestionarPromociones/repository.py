@@ -19,23 +19,26 @@ class PromocionRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def listar(self) -> list[Promocion]:
+    def listar(self, empresa_id: int) -> list[Promocion]:
         stmt = (
             select(Promocion)
+            .where(Promocion.empresa_id == empresa_id)
             .options(selectinload(Promocion.productos))
             .order_by(Promocion.fecha_creacion.desc(), Promocion.id.desc())
         )
         return list(self.db.execute(stmt).scalars().all())
 
-    def obtener_por_id(self, promocion_id: int) -> Promocion | None:
+    def obtener_por_id(self, promocion_id: int, empresa_id: int | None = None) -> Promocion | None:
         stmt = (
             select(Promocion)
             .where(Promocion.id == promocion_id)
             .options(selectinload(Promocion.productos))
         )
+        if empresa_id is not None:
+            stmt = stmt.where(Promocion.empresa_id == empresa_id)
         return self.db.execute(stmt).scalar_one_or_none()
 
-    def obtener_por_id_bloqueado(self, promocion_id: int) -> Promocion | None:
+    def obtener_por_id_bloqueado(self, promocion_id: int, empresa_id: int | None = None) -> Promocion | None:
         """SELECT ... FOR UPDATE -- editar()/desactivar() bloquean la fila
         antes de mutarla, mismo criterio ya usado en el resto del proyecto
         (ej. CU19/CU20/CU25/CU26), para que dos ediciones/desactivaciones
@@ -46,6 +49,8 @@ class PromocionRepository:
             .options(selectinload(Promocion.productos))
             .with_for_update(of=Promocion)
         )
+        if empresa_id is not None:
+            stmt = stmt.where(Promocion.empresa_id == empresa_id)
         return self.db.execute(stmt).scalar_one_or_none()
 
     def crear(self, promocion: Promocion) -> Promocion:

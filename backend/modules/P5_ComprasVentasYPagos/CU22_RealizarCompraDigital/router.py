@@ -53,7 +53,7 @@ def listar_sucursales_disponibles(
     actor: Usuario = Depends(require_cliente),
 ) -> list[SucursalCompraOut]:
     try:
-        return CompraDigitalService(db).sucursales_disponibles(actor.id, ciudad_id)
+        return CompraDigitalService(db).sucursales_disponibles(actor.id, actor.empresa_id, ciudad_id)
     except SinItemsSeleccionadosError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, _MSG_SIN_SELECCION) from exc
 
@@ -65,7 +65,7 @@ def confirmar_compra(
     actor: Usuario = Depends(require_cliente),
 ) -> VentaOut:
     try:
-        return CompraDigitalService(db).confirmar(actor.id, payload.sucursal_id)
+        return CompraDigitalService(db).confirmar(actor.id, actor.empresa_id, payload.sucursal_id)
     except SinItemsSeleccionadosError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, _MSG_SIN_SELECCION) from exc
     except SucursalNoEncontradaError as exc:

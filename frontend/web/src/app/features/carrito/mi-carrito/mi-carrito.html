@@ -21,7 +21,7 @@
       <div class="carrito-vacio">
         <app-icon name="bag" style="width: 34px; height: 34px" />
         <span class="carrito-vacio__titulo">Tu carrito está vacío.</span>
-        <a routerLink="/catalogo" class="btn btn--primary">Seguir comprando</a>
+        <a routerLink="/home/catalogo" class="btn btn--primary">Seguir comprando</a>
       </div>
     } @else {
       <div class="item-lista">
@@ -79,7 +79,7 @@
           <span class="carrito-resumen__valor">
             Subtotal seleccionado: Bs {{ formatearMonto(carrito()!.subtotal_seleccionado) }}
           </span>
-          <a routerLink="/finalizar-compra" class="btn btn--primary carrito-resumen__continuar">
+          <a routerLink="/home/finalizar-compra" class="btn btn--primary carrito-resumen__continuar">
             CONTINUAR COMPRA
           </a>
         } @else {

@@ -15,6 +15,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.core.deps import get_current_usuario_opcional
+from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 
 from .schemas import CategoriaOut, ColeccionOut, ColorOut, ProductoOut, TallaOut
 from .service import CatalogoPublicoService, ProductoNoEncontradoError
@@ -23,15 +25,21 @@ router = APIRouter(prefix="/catalogo", tags=["CU11 - Consultar catálogo de pren
 
 
 @router.get("/categorias", response_model=list[CategoriaOut])
-def listar_categorias(db: Session = Depends(get_db)) -> list[CategoriaOut]:
-    return CatalogoPublicoService(db).listar_categorias()
+def listar_categorias(
+    empresa_id: int | None = Query(default=None), db: Session = Depends(get_db)
+) -> list[CategoriaOut]:
+    return CatalogoPublicoService(db).listar_categorias(empresa_id=empresa_id)
 
 
 @router.get("/colecciones", response_model=list[ColeccionOut])
 def listar_colecciones(
-    temporada_id: int | None = Query(default=None), db: Session = Depends(get_db)
+    temporada_id: int | None = Query(default=None),
+    empresa_id: int | None = Query(default=None),
+    db: Session = Depends(get_db),
 ) -> list[ColeccionOut]:
-    return CatalogoPublicoService(db).listar_colecciones(temporada_id=temporada_id)
+    return CatalogoPublicoService(db).listar_colecciones(
+        temporada_id=temporada_id, empresa_id=empresa_id
+    )
 
 
 @router.get("/tallas", response_model=list[TallaOut])
@@ -51,6 +59,7 @@ def listar_productos(
     coleccion_id: int | None = Query(default=None),
     talla_id: int | None = Query(default=None),
     color_id: int | None = Query(default=None),
+    empresa_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> list[ProductoOut]:
     return CatalogoPublicoService(db).listar_productos(
@@ -59,12 +68,18 @@ def listar_productos(
         coleccion_id=coleccion_id,
         talla_id=talla_id,
         color_id=color_id,
+        empresa_id=empresa_id,
     )
 
 
 @router.get("/productos/{producto_id}", response_model=ProductoOut)
-def obtener_producto(producto_id: int, db: Session = Depends(get_db)) -> ProductoOut:
+def obtener_producto(
+    producto_id: int,
+    usuario: Usuario | None = Depends(get_current_usuario_opcional),
+    db: Session = Depends(get_db),
+) -> ProductoOut:
     try:
-        return CatalogoPublicoService(db).obtener_producto(producto_id)
+        empresa_id = usuario.empresa_id if usuario else None
+        return CatalogoPublicoService(db).obtener_producto(producto_id, empresa_id=empresa_id)
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc

@@ -3,7 +3,7 @@
     <h1>NUEVA COLECCIÓN</h1>
     @if (coleccionDestacada(); as coleccion) {
       <a
-        routerLink="/catalogo"
+        routerLink="/home/catalogo"
         [queryParams]="{ coleccion_id: coleccion.id }"
         class="hero__cta"
       >Explorar colección</a>

@@ -151,13 +151,13 @@ class CompraDigitalService:
             )
         return ResumenCompraOut(items=lineas, total=total)
 
-    def sucursales_disponibles(self, cliente_id: int, ciudad_id: int) -> list[SucursalCompraOut]:
+    def sucursales_disponibles(self, cliente_id: int, empresa_id: int, ciudad_id: int) -> list[SucursalCompraOut]:
         items = self._items_seleccionados(cliente_id)
         if not items:
             raise SinItemsSeleccionadosError
 
         requerido = self._requerido_por_variante(items)
-        sucursales = self._sucursales.listar_activas_por_ciudad(ciudad_id)
+        sucursales = self._sucursales.listar_activas_por_ciudad(ciudad_id, empresa_id)
         mapa = self._stock.disponible_por_sucursales([s.id for s in sucursales], list(requerido.keys()))
 
         salida: list[SucursalCompraOut] = []
@@ -174,7 +174,7 @@ class CompraDigitalService:
             )
         return salida
 
-    def confirmar(self, cliente_id: int, sucursal_id: int) -> VentaOut:
+    def confirmar(self, cliente_id: int, empresa_id: int, sucursal_id: int) -> VentaOut:
         # Se vuelve a leer TODO desde cero -- carrito, sucursal, stock y
         # precios -- nunca se confía en lo que el Cliente vio en pantallas
         # anteriores (pudieron pasar minutos/horas entre "elegir sucursal" y
@@ -184,7 +184,7 @@ class CompraDigitalService:
             raise SinItemsSeleccionadosError
 
         sucursal = self._sucursales.get_activa_by_id(sucursal_id)
-        if sucursal is None:
+        if sucursal is None or sucursal.empresa_id != empresa_id:
             raise SucursalNoEncontradaError
 
         requerido = self._requerido_por_variante(items)
@@ -225,6 +225,7 @@ class CompraDigitalService:
             )
 
         venta = Venta(
+            empresa_id=empresa_id,
             cliente_id=cliente_id,
             sucursal_id=sucursal.id,
             tipo=TipoVenta.DIGITAL,
