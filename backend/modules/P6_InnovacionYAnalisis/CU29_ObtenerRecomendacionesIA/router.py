@@ -17,7 +17,7 @@ amigable -- nunca un 500 con detalle interno ni un stack trace.
 
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_usuario_opcional
@@ -26,6 +26,10 @@ from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 
 from .schemas import MensajeAsistenteRequest, MensajeAsistenteResponse
 from .service import AsistenteIAService
+from modules.P7_GestionSaaSySuscripciones.CU05_GestionarSuscripcionEmpresa.service import (
+    CapacidadesEmpresa,
+    FuncionalidadNoHabilitadaError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +50,19 @@ def enviar_mensaje(
     actor: Usuario | None = Depends(get_current_usuario_opcional),
 ) -> MensajeAsistenteResponse:
     try:
+        # CU05: Validar que la empresa del usuario tenga acceso a reportes generativos con IA.
+        # El asistente IA es una funcionalidad de reportes generativos.
+        if actor and actor.empresa_id:
+            capacidades = CapacidadesEmpresa(db, actor.empresa_id)
+            capacidades.validar_acceso_a("reportes_generativos_ia")
+
         resultado = AsistenteIAService(db).responder(payload, actor)
+    except FuncionalidadNoHabilitadaError as exc:
+        # Si la funcionalidad no está habilitada, rechazar con 403.
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "La funcionalidad de asistente IA no está disponible en tu plan."
+        ) from exc
     except Exception:
         logger.exception("CU29 -- fallo inesperado al responder el mensaje del asistente.")
         resultado = _RESPUESTA_FALLBACK
