@@ -133,7 +133,7 @@ class Venta(Base):
     estado: Mapped[EstadoVenta] = mapped_column(
         SAEnum(EstadoVenta, name="estado_venta"), nullable=False, default=EstadoVenta.PENDIENTE_PAGO
     )
-    total: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    total: Mapped[Decimal] = mapped_column("monto_total", Numeric(10, 2), nullable=False)
     fecha_creacion: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     # CU24 -- Registrar venta presencial (Cajero). NULL para DIGITAL.
     cajero_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"), nullable=True)

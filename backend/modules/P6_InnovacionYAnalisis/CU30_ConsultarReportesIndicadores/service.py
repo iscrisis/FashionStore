@@ -90,26 +90,26 @@ class ReportesService:
         self._reservas = ReservasReporteRepository(db)
         self._devoluciones = DevolucionesReporteRepository(db)
 
-    def _validar(self, desde: date | None, hasta: date | None, sucursal_id: int | None) -> None:
+    def _validar(self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int) -> None:
         if desde is not None and hasta is not None and desde > hasta:
             raise RangoFechaInvalidoError
-        if sucursal_id is not None and self._sucursales.get_activa(sucursal_id) is None:
+        if sucursal_id is not None and self._sucursales.get_activa(sucursal_id, empresa_id) is None:
             raise SucursalInvalidaError
 
-    def resumen(self, desde: date | None, hasta: date | None, sucursal_id: int | None) -> ResumenReporteOut:
-        self._validar(desde, hasta, sucursal_id)
+    def resumen(self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int) -> ResumenReporteOut:
+        self._validar(desde, hasta, sucursal_id, empresa_id)
 
-        ingresos, ventas_realizadas = self._ventas.totales(desde, hasta, sucursal_id)
-        productos_vendidos = self._ventas.productos_vendidos(desde, hasta, sucursal_id)
+        ingresos, ventas_realizadas = self._ventas.totales(desde, hasta, sucursal_id, empresa_id)
+        productos_vendidos = self._ventas.productos_vendidos(desde, hasta, sucursal_id, empresa_id)
 
-        reservas = self._reservas.conteos_por_estado(desde, hasta, sucursal_id)
+        reservas = self._reservas.conteos_por_estado(desde, hasta, sucursal_id, empresa_id)
         atendidas = reservas.get(EstadoReserva.ATENDIDA.value, 0)
 
-        devoluciones_por_tipo = self._devoluciones.conteos_por_tipo(desde, hasta, sucursal_id)
+        devoluciones_por_tipo = self._devoluciones.conteos_por_tipo(desde, hasta, sucursal_id, empresa_id)
         devoluciones = devoluciones_por_tipo.get(TipoOperacionDevolucion.DEVOLUCION.value, 0)
         cambios = devoluciones_por_tipo.get(TipoOperacionDevolucion.CAMBIO.value, 0)
 
-        stock_bajo = self._inventario.contar_stock_bajo(sucursal_id, UMBRAL_STOCK_BAJO)
+        stock_bajo = self._inventario.contar_stock_bajo(sucursal_id, UMBRAL_STOCK_BAJO, empresa_id)
 
         return ResumenReporteOut(
             ingresos=float(ingresos),
@@ -122,30 +122,30 @@ class ReportesService:
             stock_bajo=stock_bajo,
         )
 
-    def ventas(self, desde: date | None, hasta: date | None, sucursal_id: int | None) -> VentasReporteOut:
-        self._validar(desde, hasta, sucursal_id)
+    def ventas(self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int) -> VentasReporteOut:
+        self._validar(desde, hasta, sucursal_id, empresa_id)
 
-        ingresos_totales, ventas_totales = self._ventas.totales(desde, hasta, sucursal_id)
+        ingresos_totales, ventas_totales = self._ventas.totales(desde, hasta, sucursal_id, empresa_id)
         granularidad = self._granularidad(desde, hasta)
 
         por_periodo = [
             VentaPeriodoOut(periodo=periodo, ingresos=float(ingresos), ventas=ventas)
-            for periodo, ingresos, ventas in self._ventas.por_periodo(desde, hasta, sucursal_id, granularidad)
+            for periodo, ingresos, ventas in self._ventas.por_periodo(desde, hasta, sucursal_id, granularidad, empresa_id)
         ]
         por_tipo = [
             VentaPorTipoOut(tipo=tipo, ventas=ventas, ingresos=float(ingresos))
-            for tipo, ventas, ingresos in self._ventas.por_tipo(desde, hasta, sucursal_id)
+            for tipo, ventas, ingresos in self._ventas.por_tipo(desde, hasta, sucursal_id, empresa_id)
         ]
         por_metodo_pago = [
             VentaPorMetodoPagoOut(metodo=metodo, ventas=ventas, ingresos=float(ingresos))
-            for metodo, ventas, ingresos in self._ventas.por_metodo_pago(desde, hasta, sucursal_id)
+            for metodo, ventas, ingresos in self._ventas.por_metodo_pago(desde, hasta, sucursal_id, empresa_id)
         ]
         # Comparar sucursales contra sí misma no aporta nada -- solo se arma
         # cuando el filtro es "Todas" (ver docstring del módulo).
         por_sucursal = (
             [
                 VentaPorSucursalOut(sucursal_id=sid, sucursal=nombre, ventas=ventas, ingresos=float(ingresos))
-                for sid, nombre, ventas, ingresos in self._ventas.por_sucursal(desde, hasta)
+                for sid, nombre, ventas, ingresos in self._ventas.por_sucursal(desde, hasta, empresa_id)
             ]
             if sucursal_id is None
             else []
@@ -168,14 +168,14 @@ class ReportesService:
                 return "mes"
         return "dia"
 
-    def inventario(self, sucursal_id: int | None) -> InventarioReporteOut:
-        if sucursal_id is not None and self._sucursales.get_activa(sucursal_id) is None:
+    def inventario(self, sucursal_id: int | None, empresa_id: int) -> InventarioReporteOut:
+        if sucursal_id is not None and self._sucursales.get_activa(sucursal_id, empresa_id) is None:
             raise SucursalInvalidaError
 
-        fisico, reservado = self._inventario.totales(sucursal_id)
+        fisico, reservado = self._inventario.totales(sucursal_id, empresa_id)
         disponible = max(0, fisico - reservado)
 
-        filas = self._inventario.stock_bajo(sucursal_id, UMBRAL_STOCK_BAJO, _LIMITE_STOCK_BAJO)
+        filas = self._inventario.stock_bajo(sucursal_id, UMBRAL_STOCK_BAJO, _LIMITE_STOCK_BAJO, empresa_id)
         stock_bajo = [
             StockBajoItemOut(
                 producto_variante_id=variante_id,
@@ -196,10 +196,10 @@ class ReportesService:
             stock_bajo=stock_bajo,
         )
 
-    def reservas(self, desde: date | None, hasta: date | None, sucursal_id: int | None) -> ReservasReporteOut:
-        self._validar(desde, hasta, sucursal_id)
+    def reservas(self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int) -> ReservasReporteOut:
+        self._validar(desde, hasta, sucursal_id, empresa_id)
 
-        conteos = self._reservas.conteos_por_estado(desde, hasta, sucursal_id)
+        conteos = self._reservas.conteos_por_estado(desde, hasta, sucursal_id, empresa_id)
         return ReservasReporteOut(
             creadas=sum(conteos.values()),
             atendidas=conteos.get(EstadoReserva.ATENDIDA.value, 0),
@@ -208,11 +208,11 @@ class ReportesService:
         )
 
     def productos_mas_vendidos(
-        self, desde: date | None, hasta: date | None, sucursal_id: int | None
+        self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int
     ) -> ProductosMasVendidosReporteOut:
-        self._validar(desde, hasta, sucursal_id)
+        self._validar(desde, hasta, sucursal_id, empresa_id)
 
-        filas = self._ventas.top_productos(desde, hasta, sucursal_id, _LIMITE_TOP_PRODUCTOS)
+        filas = self._ventas.top_productos(desde, hasta, sucursal_id, _LIMITE_TOP_PRODUCTOS, empresa_id)
         return ProductosMasVendidosReporteOut(
             productos=[
                 ProductoMasVendidoOut(producto_id=pid, nombre=nombre, unidades=unidades, ingresos=float(ingresos))

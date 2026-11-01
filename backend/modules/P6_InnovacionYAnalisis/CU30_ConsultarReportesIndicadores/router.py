@@ -76,7 +76,7 @@ def obtener_resumen(
     actor: Usuario = Depends(require_administrador),
 ) -> ResumenReporteOut:
     try:
-        return ReportesService(db).resumen(fecha_desde, fecha_hasta, sucursal_id)
+        return ReportesService(db).resumen(fecha_desde, fecha_hasta, sucursal_id, actor.empresa_id)
     except RangoFechaInvalidoError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, _MSG_RANGO_INVALIDO) from exc
     except SucursalInvalidaError as exc:
@@ -92,7 +92,7 @@ def obtener_ventas(
     actor: Usuario = Depends(require_administrador),
 ) -> VentasReporteOut:
     try:
-        return ReportesService(db).ventas(fecha_desde, fecha_hasta, sucursal_id)
+        return ReportesService(db).ventas(fecha_desde, fecha_hasta, sucursal_id, actor.empresa_id)
     except RangoFechaInvalidoError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, _MSG_RANGO_INVALIDO) from exc
     except SucursalInvalidaError as exc:
@@ -106,7 +106,7 @@ def obtener_inventario(
     actor: Usuario = Depends(require_administrador),
 ) -> InventarioReporteOut:
     try:
-        return ReportesService(db).inventario(sucursal_id)
+        return ReportesService(db).inventario(sucursal_id, actor.empresa_id)
     except SucursalInvalidaError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, _MSG_SUCURSAL_INVALIDA) from exc
 
@@ -120,7 +120,7 @@ def obtener_reservas(
     actor: Usuario = Depends(require_administrador),
 ) -> ReservasReporteOut:
     try:
-        return ReportesService(db).reservas(fecha_desde, fecha_hasta, sucursal_id)
+        return ReportesService(db).reservas(fecha_desde, fecha_hasta, sucursal_id, actor.empresa_id)
     except RangoFechaInvalidoError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, _MSG_RANGO_INVALIDO) from exc
     except SucursalInvalidaError as exc:
@@ -136,7 +136,7 @@ def obtener_productos_mas_vendidos(
     actor: Usuario = Depends(require_administrador),
 ) -> ProductosMasVendidosReporteOut:
     try:
-        return ReportesService(db).productos_mas_vendidos(fecha_desde, fecha_hasta, sucursal_id)
+        return ReportesService(db).productos_mas_vendidos(fecha_desde, fecha_hasta, sucursal_id, actor.empresa_id)
     except RangoFechaInvalidoError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, _MSG_RANGO_INVALIDO) from exc
     except SucursalInvalidaError as exc:
