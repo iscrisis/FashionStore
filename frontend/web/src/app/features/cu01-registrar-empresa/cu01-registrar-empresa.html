@@ -193,6 +193,84 @@
             }
           </div>
 
+          <!-- Sección: Selecciona tu plan -->
+          <fieldset class="form-section planes-section">
+            <legend>Selecciona tu plan</legend>
+
+            @if (errorPlanes()) {
+              <div class="error-banner">
+                <span class="error-icon">⚠</span>
+                <p>{{ errorPlanes() }}</p>
+                <button type="button" class="btn btn-secondary btn-small" (click)="reintentar()">
+                  Reintentar
+                </button>
+              </div>
+            } @else if (cargandoPlanes()) {
+              <div class="loading-planes">
+                <span class="loading-spinner"></span>
+                Cargando planes...
+              </div>
+            } @else if (planes().length === 0) {
+              <p class="no-planes">No hay planes disponibles para el registro.</p>
+            } @else {
+              <div class="planes-grid">
+                @for (plan of planes(); track plan.id) {
+                  <div
+                    class="plan-card"
+                    [class.selected]="planSeleccionado()?.id === plan.id"
+                    (click)="seleccionarPlan(plan)"
+                  >
+                    <div class="plan-header">
+                      <h3 class="plan-nombre">{{ plan.nombre }}</h3>
+                      <p class="plan-precio">{{ plan.precio | currency: 'Bs.': 'symbol': '0.0-2' }} / mes</p>
+                    </div>
+
+                    <div class="plan-details">
+                      <p class="plan-limite">Hasta {{ plan.limite_sucursales }} sucursal(es)</p>
+                    </div>
+
+                    <div class="plan-funcionalidades">
+                      <h4>Funcionalidades:</h4>
+                      <ul>
+                        <li [class.disabled]="!plan.gestion_productos">
+                          {{ plan.gestion_productos ? '✓' : '✕' }} Gestión de productos
+                        </li>
+                        <li [class.disabled]="!plan.gestion_ventas">
+                          {{ plan.gestion_ventas ? '✓' : '✕' }} Gestión de ventas
+                        </li>
+                        <li [class.disabled]="!plan.reservas">
+                          {{ plan.reservas ? '✓' : '✕' }} Reservas
+                        </li>
+                        <li [class.disabled]="!plan.operacion_offline">
+                          {{ plan.operacion_offline ? '✓' : '✕' }} Operación offline
+                        </li>
+                        <li [class.disabled]="!plan.reportes_convencionales">
+                          {{ plan.reportes_convencionales ? '✓' : '✕' }} Reportes convencionales
+                        </li>
+                        <li [class.disabled]="!plan.reportes_generativos_ia">
+                          {{ plan.reportes_generativos_ia ? '✓' : '✕' }} Reportes generativos con IA
+                        </li>
+                      </ul>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn-select"
+                      [class.selected]="planSeleccionado()?.id === plan.id"
+                      (click)="seleccionarPlan(plan)"
+                    >
+                      {{ planSeleccionado()?.id === plan.id ? 'Seleccionado' : 'Seleccionar' }}
+                    </button>
+                  </div>
+                }
+              </div>
+
+              @if (isFieldInvalid('plan_id')) {
+                <span class="error-message">Debes seleccionar un plan.</span>
+              }
+            }
+          </fieldset>
+
           <!-- Submit -->
           <button
             type="submit"

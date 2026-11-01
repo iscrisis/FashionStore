@@ -5,9 +5,10 @@ import { Observable } from 'rxjs';
 export interface Empresa {
   id: number;
   nombre: string;
-  slug: string;
-  is_active: boolean;
-  fecha_creacion: string;
+  slug?: string;
+  razon_social?: string;
+  is_active?: boolean;
+  fecha_creacion?: string;
 }
 
 export interface Administrador {
@@ -84,12 +85,6 @@ export interface CambiarEstadoPlan {
   is_active: boolean;
 }
 
-export interface Empresa {
-  id: number;
-  nombre: string;
-  razon_social: string;
-}
-
 @Injectable({
   providedIn: 'root',
 })
@@ -145,5 +140,26 @@ export class SuperadminService {
 
   deletePlan(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/planes/${id}`);
+  }
+
+  // CU05 — Gestionar Suscripción de Empresa
+  getSuscripcionEmpresa(empresaId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/suscripciones/${empresaId}`);
+  }
+
+  asignarSuscripcion(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/suscripciones`, payload);
+  }
+
+  cambiarSuscripcion(empresaId: number, payload: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/suscripciones/${empresaId}`, payload);
+  }
+
+  renovarSuscripcion(empresaId: number, payload: any): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/suscripciones/${empresaId}/renovar`, payload);
+  }
+
+  cambiarEstadoSuscripcion(empresaId: number, payload: any): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/suscripciones/${empresaId}/estado`, payload);
   }
 }

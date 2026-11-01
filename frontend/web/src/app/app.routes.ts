@@ -212,6 +212,12 @@ export const routes: Routes = [
           import('./features/superadmin/planes/planes').then((m) => m.SuperadminPlanes),
         title: 'Gestión de Planes SaaS · Fashion Store Superadmin',
       },
+      {
+        path: 'suscripciones',
+        loadComponent: () =>
+          import('./features/superadmin/suscripciones/suscripciones').then((m) => m.SuperadminSuscripciones),
+        title: 'Gestión de Suscripciones · Fashion Store Superadmin',
+      },
     ],
   },
   {

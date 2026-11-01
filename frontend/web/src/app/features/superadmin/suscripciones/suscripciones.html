@@ -1,0 +1,257 @@
+<div class="suscripciones-container">
+  <div class="header">
+    <h1>Gestión de Suscripciones</h1>
+    <p class="subtitle">Administra los planes y suscripciones de tus empresas</p>
+  </div>
+
+  @if (error()) {
+    <div class="error-banner">
+      <span>{{ error() }}</span>
+      <button class="btn-close" (click)="error.set(null)">✕</button>
+    </div>
+  }
+
+  <!-- Tabla de Empresas -->
+  <div class="empresas-section">
+    @if (loading()) {
+      <div class="loading">
+        <div class="spinner"></div>
+        <span>Cargando empresas...</span>
+      </div>
+    } @else if (empresas().length === 0) {
+      <div class="empty-state">
+        <p>No hay empresas registradas.</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="empresas-table">
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th>Plan Actual</th>
+              <th>Estado Suscripción</th>
+              <th>Inicio</th>
+              <th>Vencimiento</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (empresa of empresas(); track empresa.id) {
+              @let detalle = obtenerDetalles(empresa.id);
+              <tr>
+                <td class="empresa-name"><strong>{{ empresa.nombre }}</strong></td>
+                <td>
+                  {{ detalle?.plan?.nombre || 'Sin plan' }}
+                </td>
+                <td>
+                  @if (detalle?.suscripcion) {
+                    <span class="badge" [class]="'badge-' + (detalle.suscripcion.activa ? 'active' : 'inactive')">
+                      {{ detalle.suscripcion.activa ? 'Activa' : 'Inactiva' }}
+                    </span>
+                  } @else {
+                    <span class="badge badge-empty">SIN SUSCRIPCIÓN</span>
+                  }
+                </td>
+                <td>
+                  {{ detalle?.suscripcion?.fecha_inicio ? (detalle.suscripcion.fecha_inicio | date: 'short') : '--' }}
+                </td>
+                <td>
+                  {{ detalle?.suscripcion?.fecha_vencimiento ? (detalle.suscripcion.fecha_vencimiento | date: 'short') : '--' }}
+                </td>
+                <td class="action-cell">
+                  <button class="btn-gestionar" (click)="seleccionarEmpresa(empresa)">
+                    Gestionar
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- Modal/Panel de Gestión -->
+  @if (selectedEmpresa() && detalleEmpresa()) {
+    <div class="modal-overlay" (click)="selectedEmpresa.set(null)">
+      <div class="modal modal-large" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2>Gestionar Suscripción</h2>
+            <p class="empresa-info">{{ selectedEmpresa()!.nombre }} • {{ selectedEmpresa()!.razon_social }}</p>
+          </div>
+          <button class="close-btn" (click)="selectedEmpresa.set(null)">✕</button>
+        </div>
+        <div class="modal-body">
+          <!-- Si tiene suscripción -->
+          @if (detalleEmpresa()!.suscripcion) {
+            <div class="section">
+              <h3>Información de Suscripción</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>Plan</label>
+                  <strong>{{ detalleEmpresa()!.plan?.nombre }}</strong>
+                </div>
+                <div class="info-item">
+                  <label>Estado</label>
+                  <span class="badge" [class]="'badge-' + (estaActiva() ? 'active' : 'inactive')">
+                    {{ estaActiva() ? 'Activa' : 'Inactiva' }}
+                  </span>
+                </div>
+                <div class="info-item">
+                  <label>Fecha de Inicio</label>
+                  <strong>{{ detalleEmpresa()!.suscripcion!.fecha_inicio | date: 'short' }}</strong>
+                </div>
+                <div class="info-item">
+                  <label>Fecha de Vencimiento</label>
+                  <strong>{{ detalleEmpresa()!.suscripcion!.fecha_vencimiento | date: 'short' }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Funcionalidades -->
+            <div class="section">
+              <h3>Funcionalidades Habilitadas</h3>
+              <div class="funcionalidades-grid">
+                @for (
+                  item of (detalleEmpresa()!.funcionalidades_habilitadas | keyvalue);
+                  track item.key
+                ) {
+                  <div class="funcionalidad-item" [class.disabled]="!item.value">
+                    <span class="icon">{{ item.value ? '✓' : '✕' }}</span>
+                    <span class="label">{{ formatLabel(item.key) }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Límites -->
+            @if (detalleEmpresa()!.plan) {
+              <div class="section">
+                <h3>Límites del Plan</h3>
+                <div class="limits-grid">
+                  <div class="limit-item">
+                    <label>Sucursales</label>
+                    <div class="limit-value">{{ detalleEmpresa()!.plan!.limite_sucursales }}</div>
+                  </div>
+                  <div class="limit-item">
+                    <label>Usuarios</label>
+                    <div class="limit-value">{{ detalleEmpresa()!.plan!.limite_usuarios }}</div>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Acciones -->
+            <div class="section actions-section">
+              <button class="btn-primary" (click)="abrirModalCambiar()" [disabled]="submitLoading()">
+                Cambiar Plan
+              </button>
+              <button class="btn-secondary" (click)="renovarSuscripcion()" [disabled]="submitLoading()">
+                Renovar Suscripción
+              </button>
+              <button
+                [class]="'btn-' + (estaActiva() ? 'danger' : 'success')"
+                (click)="cambiarEstado(!estaActiva())"
+                [disabled]="submitLoading()"
+              >
+                {{ estaActiva() ? 'Desactivar Suscripción' : 'Activar Suscripción' }}
+              </button>
+            </div>
+          } @else {
+            <!-- Si NO tiene suscripción -->
+            <div class="empty-suscripcion">
+              <div class="empty-icon">📋</div>
+              <h3>Sin plan asignado</h3>
+              <p>Esta empresa no tiene un plan de suscripción asignado.</p>
+              <button class="btn-primary btn-large" (click)="abrirModalAsignar()">
+                Asignar Plan
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Asignar Plan -->
+  @if (showModalAsignar()) {
+    <div class="modal-overlay" (click)="cerrarModalAsignar()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Asignar Plan</h2>
+          <button class="close-btn" (click)="cerrarModalAsignar()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-subtitle">Selecciona el plan para {{ selectedEmpresa()?.nombre }}</p>
+          <div class="planes-grid">
+            @for (plan of planes(); track plan.id) {
+              @if (plan.is_active) {
+                <div class="plan-card" (click)="selectedPlanId.set(plan.id)" [class.selected]="selectedPlanId() === plan.id">
+                  <div class="plan-header">
+                    <h4>{{ plan.nombre }}</h4>
+                    <span class="plan-price">${{ plan.precio | number: '1.2-2' }}</span>
+                  </div>
+                  <div class="plan-limits">
+                    <span>{{ plan.limite_sucursales }} sucursal(es)</span>
+                    <span>{{ plan.limite_usuarios }} usuario(s)</span>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="cerrarModalAsignar()" [disabled]="submitLoading()">
+            Cancelar
+          </button>
+          <button class="btn-primary" (click)="asignarPlan()" [disabled]="submitLoading() || !selectedPlanId()">
+            {{ submitLoading() ? 'Asignando...' : 'Asignar Plan' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Cambiar Plan -->
+  @if (showModalCambiar()) {
+    <div class="modal-overlay" (click)="cerrarModalCambiar()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2>Cambiar Plan</h2>
+            <p class="modal-subtitle">Plan actual: <strong>{{ detalleEmpresa()!.plan?.nombre }}</strong></p>
+          </div>
+          <button class="close-btn" (click)="cerrarModalCambiar()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-subtitle">Selecciona el nuevo plan para {{ selectedEmpresa()?.nombre }}</p>
+          <div class="planes-grid">
+            @for (plan of planes(); track plan.id) {
+              @if (plan.is_active && plan.id !== detalleEmpresa()!.plan?.id) {
+                <div class="plan-card" (click)="selectedPlanId.set(plan.id)" [class.selected]="selectedPlanId() === plan.id">
+                  <div class="plan-header">
+                    <h4>{{ plan.nombre }}</h4>
+                    <span class="plan-price">${{ plan.precio | number: '1.2-2' }}</span>
+                  </div>
+                  <div class="plan-limits">
+                    <span>{{ plan.limite_sucursales }} sucursal(es)</span>
+                    <span>{{ plan.limite_usuarios }} usuario(s)</span>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="cerrarModalCambiar()" [disabled]="submitLoading()">
+            Cancelar
+          </button>
+          <button class="btn-primary" (click)="cambiarPlan()" [disabled]="submitLoading() || !selectedPlanId()">
+            {{ submitLoading() ? 'Cambiando...' : 'Cambiar Plan' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

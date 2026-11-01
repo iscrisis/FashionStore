@@ -95,6 +95,7 @@ class EmpresaCrear(BaseModel):
     nombre_admin: str
     correo_admin: EmailStr
     password: str
+    plan_id: int | None = None  # Plan SaaS inicial (opcional para backward-compatibility)
 
     @field_validator("nombre")
     @classmethod

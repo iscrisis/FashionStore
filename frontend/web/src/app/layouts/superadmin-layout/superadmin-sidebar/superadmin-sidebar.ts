@@ -19,6 +19,7 @@ export class SuperadminSidebar {
     { label: 'Dashboard', icon: 'dashboard', route: '/superadmin' },
     { label: 'Empresas', icon: 'branches', route: '/superadmin/empresas' },
     { label: 'Planes SaaS', icon: 'products', route: '/superadmin/planes' },
+    { label: 'Suscripciones', icon: 'inventory', route: '/superadmin/suscripciones' },
   ];
 
   protected readonly actions: SuperadminNavItem[] = [

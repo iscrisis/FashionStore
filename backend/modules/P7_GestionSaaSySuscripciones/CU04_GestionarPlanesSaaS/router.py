@@ -40,6 +40,39 @@ router = APIRouter(prefix="/planes", tags=["CU04 - Gestionar planes SaaS"])
 require_superadmin = require_roles(RolUsuario.SUPERADMIN)
 
 
+@router.get("/activos", response_model=list[PlanListResponse])
+def listar_planes_activos(
+    db: Session = Depends(get_db),
+) -> list[PlanListResponse]:
+    """Listar planes activos disponibles para registro.
+
+    Endpoint público (sin autenticación).
+    Solo devuelve planes con is_active = True.
+    Utilizado durante el registro de nueva empresa para seleccionar plan inicial.
+    """
+    service = PlanesService(db)
+    planes = service.listar(is_active=True)
+    return [
+        PlanListResponse(
+            id=p.id,
+            nombre=p.nombre,
+            slug=p.slug,
+            descripcion=p.descripcion,
+            precio=p.precio,
+            limite_sucursales=p.limite_sucursales,
+            limite_usuarios=p.limite_usuarios,
+            gestion_productos=p.gestion_productos,
+            gestion_ventas=p.gestion_ventas,
+            reservas=p.reservas,
+            operacion_offline=p.operacion_offline,
+            reportes_convencionales=p.reportes_convencionales,
+            reportes_generativos_ia=p.reportes_generativos_ia,
+            es_activo=p.is_active,
+        )
+        for p in planes
+    ]
+
+
 @router.get("", response_model=list[PlanListResponse])
 def listar_planes(
     estado: str | None = None,

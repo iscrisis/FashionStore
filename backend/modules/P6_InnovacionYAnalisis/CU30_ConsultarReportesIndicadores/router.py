@@ -44,6 +44,10 @@ from .schemas import (
     VentasReporteOut,
 )
 from .service import RangoFechaInvalidoError, ReportesService, SucursalInvalidaError
+from modules.P7_GestionSaaSySuscripciones.CU05_GestionarSuscripcionEmpresa.service import (
+    CapacidadesEmpresa,
+    FuncionalidadNoHabilitadaError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +150,19 @@ def consulta_inteligente(
     actor: Usuario = Depends(require_administrador),
 ) -> ConsultaInteligenteResponse:
     try:
+        # CU05: Validar que la empresa del usuario tenga acceso a reportes generativos con IA.
+        # Esta validación es obligatoria en backend para proteger la funcionalidad.
+        if actor.empresa_id:
+            capacidades = CapacidadesEmpresa(db, actor.empresa_id)
+            capacidades.validar_acceso_a("reportes_generativos_ia")
+
         return ConsultaInteligenteService(db).consultar(payload)
+    except FuncionalidadNoHabilitadaError as exc:
+        # Si la funcionalidad no está habilitada, rechazar con 403.
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "La funcionalidad de reportes generativos con IA no está disponible en tu plan."
+        ) from exc
     except Exception:
         # Última red de seguridad (ver docstring del módulo) -- ni una
         # excepción inesperada aquí debe tumbar el dashboard base.

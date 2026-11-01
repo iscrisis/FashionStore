@@ -1,13 +1,23 @@
 """Reglas de negocio de CU01 — Registrar empresa contratante."""
 
+from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
 from modules.P7_GestionSaaSySuscripciones.Models.empresa import Empresa
+from modules.P7_GestionSaaSySuscripciones.Models.suscripcion import Suscripcion
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from .repository import EmpresasRepository
 from .schemas import EmpresaCrear, RegistroEmpresaOut
+from modules.P7_GestionSaaSySuscripciones.CU05_GestionarSuscripcionEmpresa.service import (
+    SuscripcionesService,
+    PlanNoEncontradoError,
+    PlanInactivoError,
+)
+from modules.P7_GestionSaaSySuscripciones.CU05_GestionarSuscripcionEmpresa.repository import (
+    SuscripcionesRepository,
+)
 
 
 class EmpresaNombreDuplicadoError(Exception):
@@ -42,13 +52,13 @@ class EmpresasService:
         self._db = db
 
     def crear(self, datos: EmpresaCrear) -> RegistroEmpresaOut:
-        """Crear una nueva empresa contratante con su administrador.
+        """Crear una nueva empresa contratante con su administrador y suscripción inicial.
 
         Valida que nombre, slug y correo sean únicos. La creación es atómica:
-        si falla la creación del administrador, se hace rollback de la empresa.
+        si falla la creación del administrador o suscripción, se hace rollback de la empresa.
 
         Args:
-            datos: Datos de la empresa y administrador a crear.
+            datos: Datos de la empresa, administrador y plan inicial a crear.
 
         Returns:
             RegistroEmpresaOut con datos de empresa y administrador creados.
@@ -57,6 +67,8 @@ class EmpresasService:
             EmpresaNombreDuplicadoError: Si el nombre ya existe.
             EmpresaSlugDuplicadoError: Si el slug ya existe.
             CorreoAdministradorDuplicadoError: Si el correo ya existe.
+            PlanNoEncontradoError: Si el plan_id no existe.
+            PlanInactivoError: Si el plan está inactivo.
         """
         if self._repo.existe_nombre(datos.nombre):
             raise EmpresaNombreDuplicadoError
@@ -89,8 +101,25 @@ class EmpresasService:
                 is_active=True,
             )
             administrador = self._repo.crear_usuario(administrador)
+
+            # Crear suscripción inicial si se proporciona plan_id
+            if datos.plan_id:
+                suscripciones_service = SuscripcionesService(self._db)
+                fecha_inicio = datetime.utcnow()
+                fecha_vencimiento = fecha_inicio + timedelta(days=365)
+
+                try:
+                    suscripciones_service.asignar_plan_registro(
+                        empresa_id=empresa.id,
+                        plan_id=datos.plan_id,
+                        fecha_inicio=fecha_inicio,
+                        fecha_vencimiento=fecha_vencimiento,
+                    )
+                except (PlanNoEncontradoError, PlanInactivoError) as e:
+                    self._db.rollback()
+                    raise e
         except Exception as e:
-            # Rollback si falla creación del administrador
+            # Rollback si falla creación del administrador o suscripción
             self._db.rollback()
             raise e
 

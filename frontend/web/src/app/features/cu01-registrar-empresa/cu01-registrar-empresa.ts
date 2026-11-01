@@ -1,8 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { RegistrarEmpresaService, EmpresaRegistro } from './cu01-registrar-empresa.service';
+import { RegistrarEmpresaService, EmpresaRegistro, Plan } from './cu01-registrar-empresa.service';
 
 @Component({
   selector: 'app-cu01-registrar-empresa',
@@ -11,7 +11,7 @@ import { RegistrarEmpresaService, EmpresaRegistro } from './cu01-registrar-empre
   styleUrl: './cu01-registrar-empresa.scss',
   standalone: true,
 })
-export class RegistrarEmpresaComponent {
+export class RegistrarEmpresaComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly service = inject(RegistrarEmpresaService);
   private readonly router = inject(Router);
@@ -28,6 +28,8 @@ export class RegistrarEmpresaComponent {
     correo_admin: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     terminos: [false, Validators.requiredTrue],
+    // Plan SaaS inicial
+    plan_id: [null as number | null, Validators.required],
   });
 
   protected readonly enviando = signal(false);
@@ -36,6 +38,40 @@ export class RegistrarEmpresaComponent {
   protected readonly empresaCreada = signal<any>(null);
   protected readonly administradorCreado = signal<any>(null);
   protected readonly mostrarPassword = signal(false);
+
+  // Planes
+  protected readonly planes = signal<Plan[]>([]);
+  protected readonly cargandoPlanes = signal(false);
+  protected readonly errorPlanes = signal<string | null>(null);
+  protected readonly planSeleccionado = signal<Plan | null>(null);
+
+  ngOnInit(): void {
+    this.cargarPlanes();
+  }
+
+  private cargarPlanes(): void {
+    this.cargandoPlanes.set(true);
+    this.errorPlanes.set(null);
+    this.service.obtenerPlanesActivos().subscribe({
+      next: (planes) => {
+        this.planes.set(planes);
+        this.cargandoPlanes.set(false);
+      },
+      error: () => {
+        this.errorPlanes.set('No se pudieron cargar los planes disponibles. Inténtalo nuevamente.');
+        this.cargandoPlanes.set(false);
+      },
+    });
+  }
+
+  seleccionarPlan(plan: Plan): void {
+    this.planSeleccionado.set(plan);
+    this.registroForm.get('plan_id')?.setValue(plan.id);
+  }
+
+  reintentar(): void {
+    this.cargarPlanes();
+  }
 
   get slugSugerido(): string {
     const nombre = this.registroForm.get('nombre')?.value || '';
@@ -65,6 +101,7 @@ export class RegistrarEmpresaComponent {
     this.enviando.set(true);
     this.error.set(null);
 
+    const planIdValue = this.registroForm.get('plan_id')?.value;
     const datos: EmpresaRegistro = {
       nombre: this.registroForm.get('nombre')?.value || '',
       slug: this.registroForm.get('slug')?.value || '',
@@ -74,6 +111,7 @@ export class RegistrarEmpresaComponent {
       nombre_admin: this.registroForm.get('nombre_admin')?.value || '',
       correo_admin: this.registroForm.get('correo_admin')?.value || '',
       password: this.registroForm.get('password')?.value || '',
+      plan_id: planIdValue ? planIdValue : undefined,
     };
 
     this.service.registrarEmpresa(datos).subscribe({

@@ -7,8 +7,10 @@
   <!-- CU30, segunda parte -- consulta inteligente (texto/voz + Gemini).
        Sigue siendo el mismo dashboard: al generarse, aplica los filtros ya
        existentes y refresca KPIs/gráficos/listas (ver reportes.ts,
-       generarConsultaInteligente()) -- nunca abre una vista aparte. -->
-  <section class="admin-card consulta-ia-card">
+       generarConsultaInteligente()) -- nunca abre una vista aparte.
+       Solo visible si la empresa tiene habilitada la funcionalidad de IA. -->
+  @if (tieneFuncionialidadIA()) {
+    <section class="admin-card consulta-ia-card">
     <span class="consulta-ia-card__titulo">Consulta inteligente</span>
 
     <form class="consulta-ia-form" (submit)="onSubmitConsultaIA($event)">
@@ -75,7 +77,8 @@
         </div>
       </div>
     }
-  </section>
+    </section>
+  }
 
   <section class="admin-card filtros-card">
     <div class="filtros-grid">

@@ -1,6 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
+import { AuthService } from '../../../core/services/auth.service';
+import { SuperadminService } from '../../superadmin/services/superadmin.service';
 import { SucursalAdmin } from '../../../sucursales-catalogo/cu06-gestionar-sucursales/sucursal-admin.model';
 import { SucursalAdminService } from '../../../sucursales-catalogo/cu06-gestionar-sucursales/sucursal-admin.service';
 import { BarraItem, GraficoBarras } from './grafico-barras/grafico-barras';
@@ -91,9 +93,12 @@ export class Reportes implements OnInit {
   private readonly service = inject(ReportesService);
   private readonly sucursalService = inject(SucursalAdminService);
   private readonly voz = inject(ReconocimientoVozService);
+  private readonly authService = inject(AuthService);
+  private readonly superadminService = inject(SuperadminService);
 
   protected readonly ejemplosConsulta = EJEMPLOS_CONSULTA;
   protected readonly vozDisponible = this.voz.disponible;
+  protected readonly tieneFuncionialidadIA = signal(false);
 
   protected readonly sucursales = signal<SucursalAdmin[]>([]);
 
@@ -129,6 +134,18 @@ export class Reportes implements OnInit {
       next: (sucursales) => this.sucursales.set(sucursales),
       error: () => this.sucursales.set([]),
     });
+
+    const usuario = this.authService.usuario();
+    if (usuario?.empresa_id) {
+      this.superadminService.getSuscripcionEmpresa(usuario.empresa_id).subscribe({
+        next: (data: any) => {
+          const tieneFuncionialidad = data.plan?.reportes_generativos_ia ?? false;
+          this.tieneFuncionialidadIA.set(tieneFuncionialidad);
+        },
+        error: () => this.tieneFuncionialidadIA.set(false),
+      });
+    }
+
     this.cargarDatos();
   }
 
