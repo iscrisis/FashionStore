@@ -61,9 +61,10 @@ def listar_productos(
     proveedor_id: int | None = Query(default=None),
     estado: str | None = Query(default=None, pattern="^(active|inactive)$"),
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    usuario: Usuario = Depends(require_admin),
 ) -> list[ProductoOut]:
     return ProductosService(db).listar(
+        usuario=usuario,
         search=search,
         categoria_id=categoria_id,
         temporada_id=temporada_id,
@@ -78,22 +79,22 @@ def listar_propuestas_disponibles(
     estado: str = Query(default="PENDIENTE", pattern="^(PENDIENTE|APROBADO|RECHAZADO)$"),
     proveedor_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    usuario: Usuario = Depends(require_admin),
 ) -> list[PropuestaProveedorOut]:
     """Propuestas de proveedor (ProductoProveedor) filtradas por estado --
     PENDIENTE por defecto -- para que el Administrador las revise, las
     convierta en un producto o las rechace."""
     return ProductosService(db).listar_propuestas(
-        estado=EstadoProductoProveedor(estado), proveedor_id=proveedor_id
+        usuario=usuario, estado=EstadoProductoProveedor(estado), proveedor_id=proveedor_id
     )
 
 
 @router.patch("/propuestas/{propuesta_id}/rechazar", response_model=PropuestaProveedorOut)
 def rechazar_propuesta(
-    propuesta_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+    propuesta_id: int, db: Session = Depends(get_db), usuario: Usuario = Depends(require_admin)
 ) -> PropuestaProveedorOut:
     try:
-        return ProductosService(db).rechazar_propuesta(propuesta_id)
+        return ProductosService(db).rechazar_propuesta(usuario, propuesta_id)
     except PropuestaNoEncontradaError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Propuesta no encontrada.") from exc
     except PropuestaNoDisponibleError as exc:
@@ -104,20 +105,20 @@ def rechazar_propuesta(
 
 @router.get("/{producto_id}", response_model=ProductoOut)
 def obtener_producto(
-    producto_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+    producto_id: int, db: Session = Depends(get_db), usuario: Usuario = Depends(require_admin)
 ) -> ProductoOut:
     try:
-        return ProductosService(db).obtener(producto_id)
+        return ProductosService(db).obtener(usuario, producto_id)
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
 
 
 @router.post("", response_model=ProductoOut, status_code=status.HTTP_201_CREATED)
 def crear_producto(
-    payload: ProductoCrear, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+    payload: ProductoCrear, db: Session = Depends(get_db), usuario: Usuario = Depends(require_admin)
 ) -> ProductoOut:
     try:
-        return ProductosService(db).crear(payload)
+        return ProductosService(db).crear(usuario, payload)
     except ProveedorNoEncontradoError as exc:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT, "El proveedor indicado no existe."
@@ -165,10 +166,10 @@ def actualizar_producto(
     producto_id: int,
     payload: ProductoActualizar,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    usuario: Usuario = Depends(require_admin),
 ) -> ProductoOut:
     try:
-        return ProductosService(db).actualizar(producto_id, payload)
+        return ProductosService(db).actualizar(usuario, producto_id, payload)
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
     except ProveedorNoEncontradoError as exc:
@@ -218,20 +219,20 @@ def cambiar_estado_producto(
     producto_id: int,
     payload: CambiarEstadoRequest,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    usuario: Usuario = Depends(require_admin),
 ) -> ProductoOut:
     try:
-        return ProductosService(db).cambiar_estado(producto_id, payload.is_active)
+        return ProductosService(db).cambiar_estado(usuario, producto_id, payload.is_active)
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
 
 
 @router.delete("/{producto_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_producto(
-    producto_id: int, db: Session = Depends(get_db), _: Usuario = Depends(require_admin)
+    producto_id: int, db: Session = Depends(get_db), usuario: Usuario = Depends(require_admin)
 ) -> None:
     try:
-        ProductosService(db).eliminar(producto_id)
+        ProductosService(db).eliminar(usuario, producto_id)
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
     except IntegrityError as exc:
@@ -255,11 +256,11 @@ async def establecer_imagen_principal(
     producto_id: int,
     archivo: UploadFile = File(...),
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    usuario: Usuario = Depends(require_admin),
 ) -> ProductoOut:
     contenido = await archivo.read()
     try:
-        return ProductosService(db).establecer_imagen_principal(producto_id, archivo, contenido)
+        return ProductosService(db).establecer_imagen_principal(usuario, producto_id, archivo, contenido)
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
     except ImagenInvalidaError as exc:
@@ -279,11 +280,11 @@ async def agregar_imagen_producto(
     producto_id: int,
     archivo: UploadFile = File(...),
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    usuario: Usuario = Depends(require_admin),
 ) -> ProductoOut:
     contenido = await archivo.read()
     try:
-        return ProductosService(db).agregar_imagen(producto_id, archivo, contenido)
+        return ProductosService(db).agregar_imagen(usuario, producto_id, archivo, contenido)
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
     except ImagenInvalidaError as exc:
@@ -303,10 +304,10 @@ def eliminar_imagen_producto(
     producto_id: int,
     imagen_id: int,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_admin),
+    usuario: Usuario = Depends(require_admin),
 ) -> ProductoOut:
     try:
-        return ProductosService(db).eliminar_imagen(producto_id, imagen_id)
+        return ProductosService(db).eliminar_imagen(usuario, producto_id, imagen_id)
     except ProductoNoEncontradoError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado.") from exc
     except ImagenNoEncontradaError as exc:

@@ -94,6 +94,7 @@ class ProductosService:
 
     def listar(
         self,
+        usuario,
         search: str | None = None,
         categoria_id: int | None = None,
         temporada_id: int | None = None,
@@ -102,6 +103,7 @@ class ProductosService:
         is_active: bool | None = None,
     ) -> list[Producto]:
         return self._repo.listar(
+            empresa_id=usuario.empresa_id,
             search=search,
             categoria_id=categoria_id,
             temporada_id=temporada_id,
@@ -110,21 +112,24 @@ class ProductosService:
             is_active=is_active,
         )
 
-    def obtener(self, producto_id: int) -> Producto:
-        producto = self._repo.get_by_id(producto_id)
+    def obtener(self, usuario, producto_id: int) -> Producto:
+        producto = self._repo.get_by_id(producto_id, empresa_id=usuario.empresa_id)
         if producto is None:
             raise ProductoNoEncontradoError
         return producto
 
-    def _validar_referencias(self, datos: ProductoCrear | ProductoActualizar) -> None:
-        if self._catalogo.get_proveedor(datos.proveedor_id) is None:
+    def _validar_referencias(self, datos: ProductoCrear | ProductoActualizar, empresa_id: int) -> None:
+        proveedor = self._catalogo.get_proveedor(datos.proveedor_id)
+        if proveedor is None or proveedor.empresa_id != empresa_id:
             raise ProveedorNoEncontradoError
-        if self._catalogo.get_categoria(datos.categoria_id) is None:
+        categoria = self._catalogo.get_categoria(datos.categoria_id)
+        if categoria is None or categoria.empresa_id != empresa_id:
             raise CategoriaNoEncontradaError
-        if self._catalogo.get_temporada(datos.temporada_id) is None:
+        temporada = self._catalogo.get_temporada(datos.temporada_id)
+        if temporada is None or temporada.empresa_id != empresa_id:
             raise TemporadaNoEncontradaError
         coleccion = self._catalogo.get_coleccion(datos.coleccion_id)
-        if coleccion is None:
+        if coleccion is None or coleccion.empresa_id != empresa_id:
             raise ColeccionNoEncontradaError
         if coleccion.temporada_id != datos.temporada_id:
             raise ColeccionNoPerteneceATemporadaError
@@ -178,13 +183,13 @@ class ProductosService:
                     ProductoVariante(talla_id=talla_id, color_id=color_id, is_active=True)
                 )
 
-    def crear(self, datos: ProductoCrear) -> Producto:
-        self._validar_referencias(datos)
+    def crear(self, usuario, datos: ProductoCrear) -> Producto:
+        self._validar_referencias(datos, usuario.empresa_id)
         propuesta = self._validar_propuesta(datos.proveedor_id, datos.producto_proveedor_id)
         tallas = self._resolver_tallas(datos.talla_ids)
         colores = self._resolver_colores(datos.color_ids)
         proveedor = self._catalogo.get_proveedor(datos.proveedor_id)
-        empresa_id = proveedor.empresa_id if proveedor else None
+        empresa_id = usuario.empresa_id
 
         producto = Producto(
             empresa_id=empresa_id,
@@ -209,9 +214,9 @@ class ProductosService:
             propuesta.estado = EstadoProductoProveedor.APROBADO
         return self._repo.crear(producto)
 
-    def actualizar(self, producto_id: int, datos: ProductoActualizar) -> Producto:
-        producto = self.obtener(producto_id)
-        self._validar_referencias(datos)
+    def actualizar(self, usuario, producto_id: int, datos: ProductoActualizar) -> Producto:
+        producto = self.obtener(usuario, producto_id)
+        self._validar_referencias(datos, usuario.empresa_id)
         propuesta = self._validar_propuesta(
             datos.proveedor_id, datos.producto_proveedor_id, excluyendo_producto_id=producto.id
         )
@@ -234,32 +239,32 @@ class ProductosService:
             propuesta.estado = EstadoProductoProveedor.APROBADO
         return self._repo.guardar(producto)
 
-    def cambiar_estado(self, producto_id: int, activo: bool) -> Producto:
-        producto = self.obtener(producto_id)
+    def cambiar_estado(self, usuario, producto_id: int, activo: bool) -> Producto:
+        producto = self.obtener(usuario, producto_id)
         producto.is_active = activo
         return self._repo.guardar(producto)
 
-    def eliminar(self, producto_id: int) -> None:
-        producto = self.obtener(producto_id)
+    def eliminar(self, usuario, producto_id: int) -> None:
+        producto = self.obtener(usuario, producto_id)
         self._repo.eliminar(producto)
 
-    def establecer_imagen_principal(self, producto_id: int, archivo: UploadFile, contenido: bytes) -> Producto:
-        producto = self.obtener(producto_id)
+    def establecer_imagen_principal(self, usuario, producto_id: int, archivo: UploadFile, contenido: bytes) -> Producto:
+        producto = self.obtener(usuario, producto_id)
         url_anterior = producto.imagen_principal_url
         producto.imagen_principal_url = guardar_archivo_imagen("productos", archivo, contenido)
         producto = self._repo.guardar(producto)
         eliminar_archivo_imagen(url_anterior)
         return producto
 
-    def agregar_imagen(self, producto_id: int, archivo: UploadFile, contenido: bytes) -> Producto:
-        producto = self.obtener(producto_id)
+    def agregar_imagen(self, usuario, producto_id: int, archivo: UploadFile, contenido: bytes) -> Producto:
+        producto = self.obtener(usuario, producto_id)
         url = guardar_archivo_imagen("productos", archivo, contenido)
         siguiente_orden = len(producto.imagenes)
         producto.imagenes.append(ProductoImagen(url=url, orden=siguiente_orden))
         return self._repo.guardar(producto)
 
-    def eliminar_imagen(self, producto_id: int, imagen_id: int) -> Producto:
-        producto = self.obtener(producto_id)
+    def eliminar_imagen(self, usuario, producto_id: int, imagen_id: int) -> Producto:
+        producto = self.obtener(usuario, producto_id)
         imagen = next((item for item in producto.imagenes if item.id == imagen_id), None)
         if imagen is None:
             raise ImagenNoEncontradaError
@@ -271,10 +276,11 @@ class ProductosService:
 
     def listar_propuestas(
         self,
+        usuario,
         estado: EstadoProductoProveedor = EstadoProductoProveedor.PENDIENTE,
         proveedor_id: int | None = None,
     ) -> list[PropuestaProveedorOut]:
-        filas = self._propuestas.listar_por_estado(estado, proveedor_id)
+        filas = self._propuestas.listar_por_estado(estado, proveedor_id, empresa_id=usuario.empresa_id)
         return [self._propuesta_a_salida(propuesta, proveedor) for propuesta, proveedor in filas]
 
     @staticmethod
@@ -289,13 +295,15 @@ class ProductosService:
             proveedor=ProveedorResumen(id=proveedor.id, razon_social=proveedor.razon_social),
         )
 
-    def rechazar_propuesta(self, propuesta_id: int) -> PropuestaProveedorOut:
+    def rechazar_propuesta(self, usuario, propuesta_id: int) -> PropuestaProveedorOut:
         propuesta = self._propuestas.get_by_id(propuesta_id)
         if propuesta is None:
+            raise PropuestaNoEncontradaError
+        proveedor = self._catalogo.get_proveedor(propuesta.proveedor_id)
+        if proveedor is None or proveedor.empresa_id != usuario.empresa_id:
             raise PropuestaNoEncontradaError
         if propuesta.estado != EstadoProductoProveedor.PENDIENTE:
             raise PropuestaNoDisponibleError
         propuesta.estado = EstadoProductoProveedor.RECHAZADO
         propuesta = self._propuestas.guardar(propuesta)
-        proveedor = self._catalogo.get_proveedor(propuesta.proveedor_id)
         return self._propuesta_a_salida(propuesta, proveedor)

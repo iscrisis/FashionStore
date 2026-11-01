@@ -29,6 +29,7 @@ class ProductosRepository:
 
     def listar(
         self,
+        empresa_id: int,
         search: str | None = None,
         categoria_id: int | None = None,
         temporada_id: int | None = None,
@@ -36,7 +37,7 @@ class ProductosRepository:
         proveedor_id: int | None = None,
         is_active: bool | None = None,
     ) -> list[Producto]:
-        stmt = select(Producto)
+        stmt = select(Producto).where(Producto.empresa_id == empresa_id)
         if search:
             stmt = stmt.where(func.lower(Producto.nombre).like(f"%{search.strip().lower()}%"))
         if categoria_id is not None:
@@ -52,8 +53,13 @@ class ProductosRepository:
         stmt = stmt.order_by(Producto.nombre)
         return list(self.db.execute(stmt).scalars().all())
 
-    def get_by_id(self, producto_id: int) -> Producto | None:
-        return self.db.get(Producto, producto_id)
+    def get_by_id(self, producto_id: int, empresa_id: int | None = None) -> Producto | None:
+        producto = self.db.get(Producto, producto_id)
+        if producto is None:
+            return None
+        if empresa_id is not None and producto.empresa_id != empresa_id:
+            return None
+        return producto
 
     def existe_producto_proveedor_vinculado(
         self, producto_proveedor_id: int, excluyendo_id: int | None = None
@@ -124,7 +130,7 @@ class PropuestasProveedorRepository:
         self.db = db
 
     def listar_por_estado(
-        self, estado: EstadoProductoProveedor, proveedor_id: int | None = None
+        self, estado: EstadoProductoProveedor, proveedor_id: int | None = None, empresa_id: int | None = None
     ) -> list[tuple[ProductoProveedor, Proveedor]]:
         stmt = (
             select(ProductoProveedor, Proveedor)
@@ -134,6 +140,8 @@ class PropuestasProveedorRepository:
                 ProductoProveedor.estado == estado,
             )
         )
+        if empresa_id is not None:
+            stmt = stmt.where(Proveedor.empresa_id == empresa_id)
         if proveedor_id is not None:
             stmt = stmt.where(ProductoProveedor.proveedor_id == proveedor_id)
         stmt = stmt.order_by(ProductoProveedor.nombre)
