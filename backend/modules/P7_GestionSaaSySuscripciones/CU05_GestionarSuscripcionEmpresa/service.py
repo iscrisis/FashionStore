@@ -144,18 +144,27 @@ class SuscripcionesService:
         return resultado
 
     def obtener_suscripcion_empresa(self, empresa_id: int) -> dict:
-        """Obtiene la suscripción completa de una empresa con plan y funcionalidades."""
+        """Obtiene la suscripción completa de una empresa con plan y funcionalidades.
+
+        Si no hay suscripción asignada, devuelve el plan Básico por defecto
+        para garantizar que funcionalidades básicas (chatbot, reportes convencionales)
+        siempre estén disponibles.
+        """
         empresa = self._db.get(Empresa, empresa_id)
         if not empresa:
             raise EmpresaNoEncontradaError
 
         suscripcion = self._suscripciones_repo.get_by_empresa(empresa_id)
+
+        # Si no hay suscripción, devolver plan Básico por defecto
         if not suscripcion:
+            plan_basico = self._planes_repo.get_by_slug("basico")
+            funcionalidades = self._extraer_funcionalidades_plan(plan_basico) if plan_basico else {}
             return {
                 "empresa": empresa,
                 "suscripcion": None,
-                "plan": None,
-                "funcionalidades_habilitadas": {},
+                "plan": plan_basico,
+                "funcionalidades_habilitadas": funcionalidades,
             }
 
         plan = self._planes_repo.get_by_id(suscripcion.plan_id)

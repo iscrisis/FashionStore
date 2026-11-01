@@ -14,7 +14,7 @@ Operaciones:
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.deps import require_roles
+from app.core.deps import require_roles, require_admin_roles, get_current_usuario
 from app.db.session import get_db
 from modules.P2_UsuariosYAccesos.Models.rol import RolUsuario
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
@@ -72,7 +72,7 @@ def listar_suscripciones(
 def obtener_suscripcion_empresa(
     empresa_id: int,
     db: Session = Depends(get_db),
-    _: Usuario = Depends(require_superadmin),
+    actor: Usuario = Depends(get_current_usuario),
 ) -> SuscripcionConDetalleResponse:
     """Obtener suscripción de una empresa.
 
@@ -82,9 +82,22 @@ def obtener_suscripcion_empresa(
     Responses:
     - **200**: Detalles de la suscripción con plan y funcionalidades.
     - **401**: No autenticado.
-    - **403**: No es SUPERADMIN.
+    - **403**: No tienes permiso para consultar esta empresa.
     - **404**: Empresa no encontrada.
     """
+    if actor.rol == RolUsuario.SUPERADMIN:
+        # SUPERADMIN puede consultar cualquier empresa
+        pass
+    elif actor.empresa_id == empresa_id:
+        # ADMINISTRADOR o CLIENTE puede consultar su propia empresa
+        pass
+    else:
+        # Cualquier otro caso es 403
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "No tienes permiso para consultar esta empresa."
+        )
+
     try:
         service = SuscripcionesService(db)
         resultado = service.obtener_suscripcion_empresa(empresa_id)
