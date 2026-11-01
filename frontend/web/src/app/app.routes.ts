@@ -206,6 +206,12 @@ export const routes: Routes = [
           ),
         title: 'Gestionar administrador · Fashion Store Superadmin',
       },
+      {
+        path: 'planes',
+        loadComponent: () =>
+          import('./features/superadmin/planes/planes').then((m) => m.SuperadminPlanes),
+        title: 'Gestión de Planes SaaS · Fashion Store Superadmin',
+      },
     ],
   },
   {

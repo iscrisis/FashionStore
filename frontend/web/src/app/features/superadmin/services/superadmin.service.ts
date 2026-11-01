@@ -31,6 +31,65 @@ export interface ActualizarAdministradorPayload {
   is_active: boolean;
 }
 
+export interface Plan {
+  id: number;
+  nombre: string;
+  slug: string;
+  descripcion: string;
+  precio: number;
+  limite_sucursales: number;
+  limite_usuarios: number;
+  gestion_productos: boolean;
+  gestion_ventas: boolean;
+  reservas: boolean;
+  operacion_offline: boolean;
+  reportes_convencionales: boolean;
+  reportes_generativos_ia: boolean;
+  is_active?: boolean;
+  es_activo?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface PlanCrear {
+  nombre: string;
+  slug: string;
+  descripcion: string;
+  precio: number;
+  limite_sucursales: number;
+  limite_usuarios: number;
+  gestion_productos: boolean;
+  gestion_ventas: boolean;
+  reservas: boolean;
+  operacion_offline: boolean;
+  reportes_convencionales: boolean;
+  reportes_generativos_ia: boolean;
+}
+
+export interface PlanActualizar {
+  nombre?: string;
+  descripcion?: string;
+  precio?: number;
+  limite_sucursales?: number;
+  limite_usuarios?: number;
+  gestion_productos?: boolean;
+  gestion_ventas?: boolean;
+  reservas?: boolean;
+  operacion_offline?: boolean;
+  reportes_convencionales?: boolean;
+  reportes_generativos_ia?: boolean;
+}
+
+export interface CambiarEstadoPlan {
+  is_active: boolean;
+}
+
+export interface Empresa {
+  id: number;
+  nombre: string;
+  razon_social: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -61,5 +120,30 @@ export class SuperadminService {
       `${this.apiUrl}/empresas/${empresaId}/administrador`,
       payload,
     );
+  }
+
+  // CU04 — Gestionar Planes SaaS
+  getPlanes(): Observable<Plan[]> {
+    return this.http.get<Plan[]>(`${this.apiUrl}/planes`);
+  }
+
+  getPlan(id: number): Observable<Plan> {
+    return this.http.get<Plan>(`${this.apiUrl}/planes/${id}`);
+  }
+
+  createPlan(payload: PlanCrear): Observable<Plan> {
+    return this.http.post<Plan>(`${this.apiUrl}/planes`, payload);
+  }
+
+  updatePlan(id: number, payload: PlanActualizar): Observable<Plan> {
+    return this.http.put<Plan>(`${this.apiUrl}/planes/${id}`, payload);
+  }
+
+  cambiarEstadoPlan(id: number, payload: CambiarEstadoPlan): Observable<Plan> {
+    return this.http.patch<Plan>(`${this.apiUrl}/planes/${id}/estado`, payload);
+  }
+
+  deletePlan(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/planes/${id}`);
   }
 }

@@ -1,0 +1,268 @@
+﻿          table_name           |        column_name         |        data_type         | is_nullable |                      column_default                       
+-------------------------------+----------------------------+--------------------------+-------------+-----------------------------------------------------------
+ alembic_version               | version_num                | character varying        | NO          | 
+ carrito_items                 | id                         | integer                  | NO          | nextval('carrito_items_id_seq'::regclass)
+ carrito_items                 | carrito_id                 | integer                  | NO          | 
+ carrito_items                 | producto_variante_id       | integer                  | NO          | 
+ carrito_items                 | cantidad                   | integer                  | NO          | 
+ carrito_items                 | precio_unitario            | numeric                  | YES         | 
+ carrito_items                 | seleccionado               | boolean                  | YES         | true
+ carrito_items                 | fecha_agregado             | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ carritos                      | id                         | integer                  | NO          | nextval('carritos_id_seq'::regclass)
+ carritos                      | cliente_id                 | integer                  | NO          | 
+ carritos                      | fecha_creacion             | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ carritos                      | fecha_actualizacion        | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ categorias                    | id                         | integer                  | NO          | nextval('categorias_id_seq'::regclass)
+ categorias                    | empresa_id                 | integer                  | NO          | 
+ categorias                    | nombre                     | character varying        | NO          | 
+ categorias                    | imagen_url                 | character varying        | YES         | 
+ categorias                    | is_active                  | boolean                  | NO          | true
+ ciudades                      | id                         | integer                  | NO          | nextval('ciudades_id_seq'::regclass)
+ ciudades                      | nombre                     | character varying        | NO          | 
+ ciudades                      | is_active                  | boolean                  | NO          | 
+ ciudades                      | departamento               | character varying        | NO          | 
+ ciudades                      | empresa_id                 | integer                  | YES         | 
+ colecciones                   | id                         | integer                  | NO          | nextval('colecciones_id_seq'::regclass)
+ colecciones                   | empresa_id                 | integer                  | NO          | 
+ colecciones                   | temporada_id               | integer                  | NO          | 
+ colecciones                   | nombre                     | character varying        | NO          | 
+ colecciones                   | descripcion                | text                     | YES         | 
+ colecciones                   | is_active                  | boolean                  | NO          | true
+ colores                       | id                         | integer                  | NO          | nextval('colores_id_seq'::regclass)
+ colores                       | empresa_id                 | integer                  | NO          | 
+ colores                       | nombre                     | character varying        | NO          | 
+ colores                       | codigo_hex                 | character varying        | YES         | 
+ colores                       | is_active                  | boolean                  | NO          | true
+ detalles_recepcion_mercaderia | id                         | integer                  | NO          | nextval('detalles_recepcion_mercaderia_id_seq'::regclass)
+ detalles_recepcion_mercaderia | recepcion_id               | integer                  | NO          | 
+ detalles_recepcion_mercaderia | producto_variante_id       | integer                  | NO          | 
+ detalles_recepcion_mercaderia | cantidad_recibida          | integer                  | NO          | 
+ detalles_recepcion_mercaderia | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ devoluciones_cambios          | id                         | integer                  | NO          | nextval('devoluciones_cambios_id_seq'::regclass)
+ devoluciones_cambios          | venta_id                   | integer                  | NO          | 
+ devoluciones_cambios          | venta_detalle_id           | integer                  | NO          | 
+ devoluciones_cambios          | variante_original_id       | integer                  | NO          | 
+ devoluciones_cambios          | variante_nueva_id          | integer                  | YES         | 
+ devoluciones_cambios          | cajero_id                  | integer                  | NO          | 
+ devoluciones_cambios          | sucursal_id                | integer                  | NO          | 
+ devoluciones_cambios          | tipo                       | character varying        | NO          | 
+ devoluciones_cambios          | motivo                     | character varying        | NO          | 
+ devoluciones_cambios          | cantidad                   | integer                  | NO          | 
+ devoluciones_cambios          | monto_reembolso            | numeric                  | YES         | 
+ devoluciones_cambios          | metodo_reembolso           | character varying        | YES         | 
+ devoluciones_cambios          | estado_reembolso           | character varying        | YES         | 'REGISTRADO'::character varying
+ devoluciones_cambios          | observaciones              | text                     | YES         | 
+ devoluciones_cambios          | fecha_creacion             | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ devoluciones_cambios          | updated_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ empresas                      | id                         | integer                  | NO          | nextval('empresas_id_seq'::regclass)
+ empresas                      | nombre                     | character varying        | NO          | 
+ empresas                      | slug                       | character varying        | NO          | 
+ empresas                      | razon_social               | character varying        | NO          | 
+ empresas                      | correo                     | character varying        | NO          | 
+ empresas                      | telefono                   | character varying        | NO          | 
+ empresas                      | is_active                  | boolean                  | NO          | true
+ empresas                      | created_at                 | timestamp with time zone | NO          | CURRENT_TIMESTAMP
+ empresas                      | updated_at                 | timestamp with time zone | NO          | CURRENT_TIMESTAMP
+ movimientos_inventario        | id                         | integer                  | NO          | nextval('movimientos_inventario_id_seq'::regclass)
+ movimientos_inventario        | sucursal_id                | integer                  | NO          | 
+ movimientos_inventario        | producto_variante_id       | integer                  | NO          | 
+ movimientos_inventario        | usuario_id                 | integer                  | NO          | 
+ movimientos_inventario        | tipo                       | character varying        | NO          | 
+ movimientos_inventario        | cantidad                   | integer                  | NO          | 
+ movimientos_inventario        | stock_anterior             | integer                  | NO          | 
+ movimientos_inventario        | stock_resultante           | integer                  | NO          | 
+ movimientos_inventario        | motivo                     | text                     | YES         | 
+ movimientos_inventario        | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ pagos                         | id                         | integer                  | NO          | nextval('pagos_id_seq'::regclass)
+ pagos                         | venta_id                   | integer                  | NO          | 
+ pagos                         | cajero_id                  | integer                  | YES         | 
+ pagos                         | proveedor                  | character varying        | NO          | 
+ pagos                         | estado                     | character varying        | NO          | 'PENDIENTE'::character varying
+ pagos                         | tipo_tarjeta               | character varying        | YES         | 
+ pagos                         | monto                      | numeric                  | NO          | 
+ pagos                         | stripe_checkout_session_id | character varying        | YES         | 
+ pagos                         | referencia_externa         | character varying        | YES         | 
+ pagos                         | fecha_creacion             | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ pagos                         | updated_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ password_reset_tokens         | id                         | integer                  | NO          | nextval('password_reset_tokens_id_seq'::regclass)
+ password_reset_tokens         | usuario_id                 | integer                  | NO          | 
+ password_reset_tokens         | token_hash                 | character varying        | NO          | 
+ password_reset_tokens         | expires_at                 | timestamp with time zone | NO          | 
+ password_reset_tokens         | used_at                    | timestamp with time zone | YES         | 
+ password_reset_tokens         | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ planes                        | id                         | integer                  | NO          | nextval('planes_id_seq'::regclass)
+ planes                        | nombre                     | character varying        | NO          | 
+ planes                        | slug                       | character varying        | NO          | 
+ planes                        | descripcion                | text                     | NO          | 
+ planes                        | precio                     | numeric                  | NO          | 0
+ planes                        | duracion_dias              | integer                  | NO          | 30
+ planes                        | limite_sucursales          | integer                  | NO          | 1
+ planes                        | limite_usuarios            | integer                  | NO          | 5
+ planes                        | permite_prueba_gratuita    | boolean                  | NO          | false
+ planes                        | duracion_prueba_dias       | integer                  | YES         | 
+ planes                        | is_active                  | boolean                  | NO          | true
+ planes                        | created_at                 | timestamp with time zone | NO          | CURRENT_TIMESTAMP
+ planes                        | updated_at                 | timestamp with time zone | NO          | CURRENT_TIMESTAMP
+ planes                        | gestion_productos          | boolean                  | NO          | true
+ planes                        | gestion_ventas             | boolean                  | NO          | true
+ planes                        | reservas                   | boolean                  | NO          | true
+ planes                        | operacion_offline          | boolean                  | NO          | true
+ planes                        | reportes_convencionales    | boolean                  | NO          | true
+ planes                        | reportes_generativos_ia    | boolean                  | NO          | false
+ producto_colores              | producto_id                | integer                  | NO          | 
+ producto_colores              | empresa_id                 | integer                  | NO          | 
+ producto_colores              | color_id                   | integer                  | NO          | 
+ producto_imagenes             | id                         | integer                  | NO          | nextval('producto_imagenes_id_seq'::regclass)
+ producto_imagenes             | producto_id                | integer                  | NO          | 
+ producto_imagenes             | imagen_url                 | character varying        | NO          | 
+ producto_imagenes             | orden                      | smallint                 | YES         | 0
+ producto_imagenes             | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ producto_tallas               | producto_id                | integer                  | NO          | 
+ producto_tallas               | empresa_id                 | integer                  | NO          | 
+ producto_tallas               | talla_id                   | integer                  | NO          | 
+ producto_variantes            | id                         | integer                  | NO          | nextval('producto_variantes_id_seq'::regclass)
+ producto_variantes            | producto_id                | integer                  | NO          | 
+ producto_variantes            | talla_id                   | integer                  | NO          | 
+ producto_variantes            | color_id                   | integer                  | NO          | 
+ producto_variantes            | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ producto_variantes            | is_active                  | boolean                  | NO          | true
+ productos                     | id                         | integer                  | NO          | nextval('productos_id_seq'::regclass)
+ productos                     | empresa_id                 | integer                  | NO          | 
+ productos                     | nombre                     | character varying        | NO          | 
+ productos                     | descripcion                | character varying        | YES         | 
+ productos                     | proveedor_id               | integer                  | NO          | 
+ productos                     | producto_proveedor_id      | integer                  | YES         | 
+ productos                     | categoria_id               | integer                  | NO          | 
+ productos                     | temporada_id               | integer                  | NO          | 
+ productos                     | coleccion_id               | integer                  | NO          | 
+ productos                     | precio_venta               | numeric                  | NO          | 
+ productos                     | imagen_principal_url       | character varying        | YES         | 
+ productos                     | is_active                  | boolean                  | NO          | true
+ productos                     | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ productos                     | updated_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ productos_proveedor           | id                         | integer                  | NO          | nextval('productos_proveedor_id_seq'::regclass)
+ productos_proveedor           | proveedor_id               | integer                  | NO          | 
+ productos_proveedor           | razon_social               | character varying        | YES         | 
+ productos_proveedor           | sku_proveedor              | character varying        | YES         | 
+ productos_proveedor           | descripcion                | text                     | YES         | 
+ productos_proveedor           | precio_sugerido            | numeric                  | YES         | 
+ productos_proveedor           | estado                     | character varying        | NO          | 'PENDIENTE'::character varying
+ productos_proveedor           | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ productos_proveedor           | updated_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ promocion_productos           | promocion_id               | integer                  | NO          | 
+ promocion_productos           | empresa_id                 | integer                  | NO          | 
+ promocion_productos           | producto_id                | integer                  | NO          | 
+ promociones                   | id                         | integer                  | NO          | nextval('promociones_id_seq'::regclass)
+ promociones                   | empresa_id                 | integer                  | NO          | 
+ promociones                   | nombre                     | character varying        | NO          | 
+ promociones                   | descripcion                | text                     | YES         | 
+ promociones                   | porcentaje_descuento       | numeric                  | NO          | 
+ promociones                   | fecha_inicio               | date                     | NO          | 
+ promociones                   | fecha_fin                  | date                     | NO          | 
+ promociones                   | estado                     | character varying        | YES         | 
+ promociones                   | is_active                  | boolean                  | NO          | true
+ promociones                   | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ promociones                   | updated_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ proveedores                   | id                         | integer                  | NO          | nextval('proveedores_id_seq'::regclass)
+ proveedores                   | empresa_id                 | integer                  | NO          | 
+ proveedores                   | razon_social               | character varying        | NO          | 
+ proveedores                   | nombre_contacto            | character varying        | NO          | 
+ proveedores                   | correo                     | character varying        | NO          | 
+ proveedores                   | telefono                   | character varying        | NO          | 
+ proveedores                   | is_active                  | boolean                  | NO          | true
+ recepciones_mercaderia        | id                         | integer                  | NO          | nextval('recepciones_mercaderia_id_seq'::regclass)
+ recepciones_mercaderia        | proveedor_id               | integer                  | NO          | 
+ recepciones_mercaderia        | sucursal_id                | integer                  | NO          | 
+ recepciones_mercaderia        | usuario_id                 | integer                  | NO          | 
+ recepciones_mercaderia        | numero_remision            | character varying        | NO          | 
+ recepciones_mercaderia        | fecha_recepcion            | date                     | NO          | CURRENT_DATE
+ recepciones_mercaderia        | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ recepciones_mercaderia        | updated_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ reserva_detalles              | id                         | integer                  | NO          | nextval('reserva_detalles_id_seq'::regclass)
+ reserva_detalles              | reserva_id                 | integer                  | NO          | 
+ reserva_detalles              | producto_variante_id       | integer                  | NO          | 
+ reserva_detalles              | cantidad                   | integer                  | NO          | 
+ reserva_detalles              | estado                     | character varying        | NO          | 'PENDIENTE'::character varying
+ reserva_detalles              | precio_unitario            | numeric                  | YES         | 
+ reserva_detalles              | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ reservas                      | id                         | integer                  | NO          | nextval('reservas_id_seq'::regclass)
+ reservas                      | empresa_id                 | integer                  | NO          | 
+ reservas                      | cliente_id                 | integer                  | NO          | 
+ reservas                      | codigo_reserva             | character varying        | NO          | 
+ reservas                      | sucursal_id                | integer                  | NO          | 
+ reservas                      | estado_general             | character varying        | NO          | 'PENDIENTE'::character varying
+ reservas                      | fecha_reserva              | date                     | NO          | CURRENT_DATE
+ reservas                      | hora_inicio                | time without time zone   | YES         | 
+ reservas                      | fecha_creacion             | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ reservas                      | updated_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ stock_sucursal                | id                         | integer                  | NO          | nextval('stock_sucursal_id_seq'::regclass)
+ stock_sucursal                | sucursal_id                | integer                  | NO          | 
+ stock_sucursal                | producto_variante_id       | integer                  | NO          | 
+ stock_sucursal                | cantidad                   | integer                  | NO          | 
+ stock_sucursal                | stock_reservado            | integer                  | NO          | 0
+ stock_sucursal                | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ stock_sucursal                | updated_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ sucursales                    | id                         | integer                  | NO          | nextval('sucursales_id_seq'::regclass)
+ sucursales                    | nombre                     | character varying        | NO          | 
+ sucursales                    | ciudad_id                  | integer                  | NO          | 
+ sucursales                    | direccion                  | character varying        | NO          | 
+ sucursales                    | telefono                   | character varying        | NO          | 
+ sucursales                    | is_active                  | boolean                  | NO          | 
+ sucursales                    | empresa_id                 | integer                  | YES         | 
+ suscripciones                 | id                         | integer                  | NO          | nextval('suscripciones_id_seq'::regclass)
+ suscripciones                 | empresa_id                 | integer                  | NO          | 
+ suscripciones                 | plan_id                    | integer                  | NO          | 
+ suscripciones                 | fecha_inicio               | timestamp with time zone | NO          | 
+ suscripciones                 | fecha_vencimiento          | timestamp with time zone | NO          | 
+ suscripciones                 | en_prueba                  | boolean                  | NO          | false
+ suscripciones                 | fecha_fin_prueba           | timestamp with time zone | YES         | 
+ suscripciones                 | activa                     | boolean                  | NO          | true
+ suscripciones                 | created_at                 | timestamp with time zone | NO          | CURRENT_TIMESTAMP
+ suscripciones                 | updated_at                 | timestamp with time zone | NO          | CURRENT_TIMESTAMP
+ tallas                        | id                         | integer                  | NO          | nextval('tallas_id_seq'::regclass)
+ tallas                        | empresa_id                 | integer                  | NO          | 
+ tallas                        | nombre                     | character varying        | NO          | 
+ tallas                        | is_active                  | boolean                  | NO          | true
+ temporadas                    | id                         | integer                  | NO          | nextval('temporadas_id_seq'::regclass)
+ temporadas                    | empresa_id                 | integer                  | NO          | 
+ temporadas                    | nombre                     | character varying        | NO          | 
+ temporadas                    | fecha_inicio               | date                     | NO          | 
+ temporadas                    | fecha_fin                  | date                     | NO          | 
+ temporadas                    | is_active                  | boolean                  | NO          | true
+ usuarios                      | id                         | integer                  | NO          | nextval('usuarios_id_seq'::regclass)
+ usuarios                      | empresa_id                 | integer                  | YES         | 
+ usuarios                      | nombre                     | character varying        | NO          | 
+ usuarios                      | correo                     | character varying        | NO          | 
+ usuarios                      | password_hash              | character varying        | NO          | 
+ usuarios                      | rol                        | character varying        | NO          | 
+ usuarios                      | is_active                  | boolean                  | NO          | true
+ usuarios                      | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ usuarios                      | sucursal_id                | integer                  | YES         | 
+ usuarios                      | proveedor_id               | integer                  | YES         | 
+ usuarios                      | telefono                   | character varying        | YES         | 
+ venta_detalles                | id                         | integer                  | NO          | nextval('venta_detalles_id_seq'::regclass)
+ venta_detalles                | venta_id                   | integer                  | NO          | 
+ venta_detalles                | producto_variante_id       | integer                  | NO          | 
+ venta_detalles                | carrito_item_id            | integer                  | YES         | 
+ venta_detalles                | cantidad                   | integer                  | NO          | 
+ venta_detalles                | precio_unitario            | numeric                  | NO          | 
+ venta_detalles                | subtotal                   | numeric                  | NO          | 
+ venta_detalles                | created_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ ventas                        | id                         | integer                  | NO          | nextval('ventas_id_seq'::regclass)
+ ventas                        | empresa_id                 | integer                  | NO          | 
+ ventas                        | cliente_id                 | integer                  | YES         | 
+ ventas                        | cajero_id                  | integer                  | YES         | 
+ ventas                        | reserva_id                 | integer                  | YES         | 
+ ventas                        | codigo_venta               | character varying        | NO          | 
+ ventas                        | sucursal_id                | integer                  | NO          | 
+ ventas                        | tipo                       | character varying        | NO          | 'PRESENCIAL'::character varying
+ ventas                        | estado                     | character varying        | NO          | 'PENDIENTE_PAGO'::character varying
+ ventas                        | origen                     | character varying        | NO          | 'DIRECTA'::character varying
+ ventas                        | monto_total                | numeric                  | NO          | 
+ ventas                        | monto_pagado               | numeric                  | YES         | 0
+ ventas                        | descuento_total            | numeric                  | YES         | 0
+ ventas                        | observaciones              | text                     | YES         | 
+ ventas                        | fecha_creacion             | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+ ventas                        | updated_at                 | timestamp with time zone | YES         | CURRENT_TIMESTAMP
+(264 rows)
+

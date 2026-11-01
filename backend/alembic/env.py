@@ -46,6 +46,9 @@ from modules.P5_ComprasVentasYPagos.Models.venta import Venta, VentaDetalle  # n
 from modules.P5_ComprasVentasYPagos.Models.pago import Pago  # noqa: E402,F401
 from modules.P5_ComprasVentasYPagos.Models.devolucion import DevolucionCambio  # noqa: E402,F401
 from modules.P6_InnovacionYAnalisis.Models.promocion import Promocion  # noqa: E402,F401
+from modules.P7_GestionSaaSySuscripciones.Models.empresa import Empresa  # noqa: E402,F401
+from modules.P7_GestionSaaSySuscripciones.Models.plan import Plan  # noqa: E402,F401
+from modules.P7_GestionSaaSySuscripciones.Models.suscripcion import Suscripcion  # noqa: E402,F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

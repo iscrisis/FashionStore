@@ -60,6 +60,9 @@ from modules.P7_GestionSaaSySuscripciones.CU01_RegistrarEmpresa.router import (
 from modules.P7_GestionSaaSySuscripciones.CU02_GestionarAdministradorEmpresa.router import (
     router as cu02_gestionar_admin_router,
 )
+from modules.P7_GestionSaaSySuscripciones.CU04_GestionarPlanesSaaS.router import (
+    router as cu04_planes_router,
+)
 from modules.P4_ReservasYAtencion.CU17_CrearReservaPrendas.router import (
     router as cu17_crear_reserva_router,
 )
@@ -128,6 +131,7 @@ app.include_router(cu04_actualizar_perfil_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu05_usuarios_roles_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu01_registrar_empresa_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu02_gestionar_admin_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu04_planes_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu06_ciudades_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu06_sucursales_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu07_sucursales_publico_router, prefix=settings.API_V1_PREFIX)

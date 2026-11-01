@@ -1,0 +1,249 @@
+<div class="planes-container">
+  <div class="planes-header">
+    <h1>Gestión de Planes SaaS</h1>
+    <button class="btn-primary" (click)="abrirModalCrear()" [disabled]="loading()">
+      <app-icon name="plus" style="width: 16px; height: 16px" />
+      <span>Crear Plan</span>
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="error-banner">
+      {{ error() }}
+      <button class="btn-secondary" (click)="error.set(null)">Cerrar</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading">Cargando planes...</div>
+  } @else if (planes().length === 0) {
+    <div class="empty-state">
+      <app-icon name="products" style="width: 48px; height: 48px" />
+      <p>No hay planes creados</p>
+      <button class="btn-primary" (click)="abrirModalCrear()">
+        <app-icon name="plus" style="width: 16px; height: 16px" />
+        <span>Crear primer plan</span>
+      </button>
+    </div>
+  } @else {
+    <div class="table-wrapper">
+      <table class="planes-table">
+        <thead>
+          <tr>
+            <th>Plan</th>
+            <th>Precio</th>
+            <th>Límites</th>
+            <th>Estado</th>
+            <th class="actions-header">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (plan of planes(); track plan.id) {
+            <tr>
+              <td>
+                <div class="plan-cell">
+                  <div class="plan-name">{{ plan.nombre }}</div>
+                  <div class="plan-description">{{ plan.descripcion }}</div>
+                </div>
+              </td>
+              <td class="plan-price">${{ plan.precio.toFixed(2) }}</td>
+              <td class="plan-limits">
+                <span class="limit-badge">{{ plan.limite_sucursales }} sucursal(es)</span>
+                <span class="limit-badge">{{ plan.limite_usuarios }} usuario(s)</span>
+              </td>
+              <td class="plan-status">
+                <span class="status-badge" [class.active]="isActivo(plan)">
+                  {{ isActivo(plan) ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="actions">
+                <button
+                  class="action-btn"
+                  title="Editar"
+                  (click)="abrirModalEditar(plan)"
+                >
+                  <app-icon name="edit" style="width: 14px; height: 14px" />
+                </button>
+                <button
+                  class="action-btn"
+                  [title]="isActivo(plan) ? 'Desactivar' : 'Activar'"
+                  (click)="toggleEstado(plan)"
+                >
+                  <app-icon [name]="isActivo(plan) ? 'power' : 'settings'" style="width: 14px; height: 14px" />
+                </button>
+                <button
+                  class="action-btn danger"
+                  title="Eliminar"
+                  (click)="eliminarPlan(plan)"
+                >
+                  <app-icon name="close" style="width: 14px; height: 14px" />
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Modal -->
+  @if (showModal()) {
+    <div class="modal-overlay" (click)="cerrarModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ editingPlan() ? 'Editar Plan' : 'Crear Plan' }}</h2>
+          <button class="close-btn" (click)="cerrarModal()">
+            <app-icon name="close" style="width: 20px; height: 20px" />
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <form (ngSubmit)="guardarPlan()" #form="ngForm">
+            <div class="form-group">
+              <label for="nombre">Nombre *</label>
+              <input
+                type="text"
+                id="nombre"
+                [(ngModel)]="formData().nombre"
+                name="nombre"
+                placeholder="Ej: Plan Profesional"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="descripcion">Descripción *</label>
+              <textarea
+                id="descripcion"
+                [(ngModel)]="formData().descripcion"
+                name="descripcion"
+                placeholder="Descripción del plan"
+                rows="3"
+                required
+              ></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="precio">Precio ($)</label>
+                <input
+                  type="number"
+                  id="precio"
+                  [(ngModel)]="formData().precio"
+                  name="precio"
+                  step="0.01"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="sucursales">Límite de sucursales</label>
+                <input
+                  type="number"
+                  id="sucursales"
+                  [(ngModel)]="formData().limite_sucursales"
+                  name="limite_sucursales"
+                  min="1"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="usuarios">Límite de usuarios</label>
+                <input
+                  type="number"
+                  id="usuarios"
+                  [(ngModel)]="formData().limite_usuarios"
+                  name="limite_usuarios"
+                  min="1"
+                />
+              </div>
+            </div>
+
+            <div class="form-divider">
+              <h3>Funcionalidades</h3>
+            </div>
+
+            <div class="funcionalidades-grid">
+              <div class="form-group checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="formData().gestion_productos"
+                    name="gestion_productos"
+                  />
+                  <span>Gestión de productos</span>
+                </label>
+              </div>
+
+              <div class="form-group checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="formData().gestion_ventas"
+                    name="gestion_ventas"
+                  />
+                  <span>Gestión de ventas</span>
+                </label>
+              </div>
+
+              <div class="form-group checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="formData().reservas"
+                    name="reservas"
+                  />
+                  <span>Reservas</span>
+                </label>
+              </div>
+
+              <div class="form-group checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="formData().operacion_offline"
+                    name="operacion_offline"
+                  />
+                  <span>Operación offline</span>
+                </label>
+              </div>
+
+              <div class="form-group checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="formData().reportes_convencionales"
+                    name="reportes_convencionales"
+                  />
+                  <span>Reportes convencionales</span>
+                </label>
+              </div>
+
+              <div class="form-group checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="formData().reportes_generativos_ia"
+                    name="reportes_generativos_ia"
+                  />
+                  <span>Reportes generativos IA</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn-secondary" (click)="cerrarModal()" [disabled]="submitLoading()">
+                Cancelar
+              </button>
+              <button type="submit" class="btn-primary" [disabled]="submitLoading() || !form.valid">
+                {{ submitLoading() ? 'Guardando...' : editingPlan() ? 'Actualizar' : 'Crear' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+</div>
