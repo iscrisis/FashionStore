@@ -60,7 +60,7 @@
 
             <div class="reserva-card__sucursal">
               <app-icon name="branches" style="width: 13px; height: 13px" />
-              <span>{{ reserva.sucursal.nombre }} · {{ reserva.sucursal.ciudad.nombre }}</span>
+              <span>{{ reserva.sucursal?.nombre || 'Sucursal desconocida' }} · {{ reserva.sucursal?.ciudad?.nombre || 'Ciudad desconocida' }}</span>
             </div>
 
             <div class="reserva-card__horario">
@@ -73,10 +73,10 @@
             @for (detalle of reserva.detalles; track detalle.id) {
               <li class="detalle-prenda">
                 <div class="detalle-prenda__imagen">
-                  @if (detalle.producto.imagen_principal_url) {
+                  @if (detalle.producto?.imagen_principal_url) {
                     <img
                       [src]="resolveMediaUrl(detalle.producto.imagen_principal_url)"
-                      [alt]="detalle.producto.nombre"
+                      [alt]="detalle.producto?.nombre || 'Producto'"
                     />
                   } @else {
                     <div class="detalle-prenda__placeholder">
@@ -86,18 +86,18 @@
                 </div>
 
                 <div class="detalle-prenda__info">
-                  <span class="detalle-prenda__nombre">{{ detalle.producto.nombre }}</span>
+                  <span class="detalle-prenda__nombre">{{ detalle.producto?.nombre || 'Producto desconocido' }}</span>
                   <span class="detalle-prenda__variante">
-                    {{ detalle.variante.color.nombre }} · Talla {{ detalle.variante.talla.nombre }}
-                    @if (detalle.cantidad > 1) {
+                    {{ detalle.variante?.color?.nombre || 'Sin color' }} · Talla {{ detalle.variante?.talla?.nombre || 'S/T' }}
+                    @if (detalle.cantidad && detalle.cantidad > 1) {
                       · x{{ detalle.cantidad }}
                     }
                   </span>
                   <span
                     class="detalle-prenda__estado"
-                    [class]="'detalle-prenda__estado--' + detalle.estado.toLowerCase()"
+                    [class]="'detalle-prenda__estado--' + (detalle.estado || 'pendiente').toLowerCase()"
                   >
-                    {{ etiquetaEstadoReserva(detalle.estado) }}
+                    {{ etiquetaEstadoReserva(detalle.estado || 'PENDIENTE') }}
                   </span>
                 </div>
 

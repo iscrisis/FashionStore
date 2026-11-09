@@ -1,6 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Icon } from '../../../core/ui/icon/icon';
+import { ConnectivityService } from '../../../core/services/connectivity.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { FiltroHistorial } from '../../historial-compras/filtro-historial/filtro-historial';
 import {
   FiltroHistorial as FiltroHistorialQuery,
@@ -29,15 +31,35 @@ import { HistorialComprasService } from '../../historial-compras/historial-compr
   templateUrl: './historial-compras.html',
   styleUrl: './historial-compras.scss',
 })
-export class HistorialComprasCliente implements OnInit {
+export class HistorialComprasCliente implements OnInit, OnDestroy {
   private readonly service = inject(HistorialComprasService);
+  private readonly connectivity = inject(ConnectivityService);
+  private readonly auth = inject(AuthService);
+  private connectivitySubscription: any;
 
   protected readonly cargando = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly compras = signal<VentaHistorialOut[]>([]);
+  protected readonly estaOffline = signal(false);
 
   ngOnInit(): void {
     this.cargar({});
+
+    // Suscribirse a cambios de conectividad para recargar automáticamente
+    this.connectivitySubscription = this.connectivity.isOnline$.subscribe((isOnline: boolean) => {
+      this.estaOffline.set(!isOnline);
+      // Al recuperar conexión, recargar historial
+      if (isOnline) {
+        console.log('[CU27] Conectividad recuperada — recargar historial');
+        this.cargar({});
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.connectivitySubscription) {
+      this.connectivitySubscription.unsubscribe();
+    }
   }
 
   cargar(filtro: FiltroHistorialQuery): void {

@@ -92,7 +92,7 @@ export class OfflineStorageService {
 
   private initializeDB(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 5);
+      const request = indexedDB.open(this.dbName, 8);
 
       request.onerror = () => {
         const error = new Error('Error al abrir IndexedDB');
@@ -149,6 +149,36 @@ export class OfflineStorageService {
           const pagoStore = db.createObjectStore('offline_pago_efectivo', { keyPath: 'venta_uuid' });
           pagoStore.createIndex('empresa_id', 'empresa_id');
           console.log('Object Store offline_pago_efectivo creado');
+        }
+
+        // CU27 — Historial de compras confirmadas descargadas (Cliente y Cajero)
+        if (!db.objectStoreNames.contains('historial_ventas_confirmadas')) {
+          const historialStore = db.createObjectStore('historial_ventas_confirmadas', { keyPath: 'venta_id' });
+          historialStore.createIndex('cliente_id', 'cliente_id');
+          historialStore.createIndex('empresa_id', 'empresa_id');
+          historialStore.createIndex('empresa_cliente', ['empresa_id', 'cliente_id'], { unique: false });
+          historialStore.createIndex('empresa_sucursal', ['empresa_id', 'sucursal_id'], { unique: false });
+          console.log('Object Store historial_ventas_confirmadas creado');
+        } else if ((event as any).oldVersion < 7) {
+          // V7: Agregar índice empresa_sucursal para búsquedas del CAJERO sin recrear tabla
+          try {
+            const store = (event.target as IDBOpenDBRequest).transaction?.objectStore('historial_ventas_confirmadas');
+            if (store && !Array.from(store.indexNames).includes('empresa_sucursal')) {
+              store.createIndex('empresa_sucursal', ['empresa_id', 'sucursal_id'], { unique: false });
+              console.log('Índice empresa_sucursal agregado a historial_ventas_confirmadas');
+            }
+          } catch (e) {
+            console.log('Índice empresa_sucursal ya existe o error al crear');
+          }
+        }
+
+        // V8: CU18 — Historial de reservas confirmadas descargadas (Cliente)
+        if (!db.objectStoreNames.contains('historial_reservas_confirmadas')) {
+          const historialReservasStore = db.createObjectStore('historial_reservas_confirmadas', { keyPath: 'reserva_id' });
+          historialReservasStore.createIndex('cliente_id', 'cliente_id');
+          historialReservasStore.createIndex('empresa_id', 'empresa_id');
+          historialReservasStore.createIndex('empresa_cliente', ['empresa_id', 'cliente_id'], { unique: false });
+          console.log('Object Store historial_reservas_confirmadas creado');
         }
       };
 
@@ -1025,6 +1055,66 @@ export class OfflineStorageService {
     });
   }
 
+  // CU13 REINTENTOS — Obtener ventas rechazadas o con conflicto
+  async obtenerVentasOfflineRechazadas(empresaId: number): Promise<any[]> {
+    await this.dbReady;
+    const db = this.db;
+
+    if (!db) {
+      throw new Error('IndexedDB no está disponible');
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['offline_ventas'], 'readonly');
+      const store = transaction.objectStore('offline_ventas');
+      const index = store.index('empresa_id');
+
+      const request = index.getAll(empresaId);
+
+      request.onsuccess = () => {
+        const ventas = request.result.filter(
+          (v: any) => v.estado_sync === 'RECHAZADA' || v.estado_sync === 'CONFLICTO'
+        );
+        console.log(`[CU13 VENTAS RECHAZADAS] total: ${ventas.length}`);
+        resolve(ventas);
+      };
+
+      request.onerror = () => {
+        reject(new Error(`Error al obtener ventas rechazadas: ${request.error?.message}`));
+      };
+    });
+  }
+
+  // CU13 REINTENTOS — Obtener reservas rechazadas o con conflicto
+  async getReservasOfflineRechazadas(empresaId: number): Promise<any[]> {
+    await this.dbReady;
+    const db = this.db;
+
+    if (!db) {
+      throw new Error('IndexedDB no está disponible');
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['offline_reservas'], 'readonly');
+      const store = transaction.objectStore('offline_reservas');
+      const index = store.index('empresa_id');
+
+      const request = index.getAll(empresaId);
+
+      request.onsuccess = () => {
+        const reservas = request.result.filter(
+          (r: any) => r.estado_sync === 'RECHAZADA' || r.estado_sync === 'CONFLICTO'
+        );
+        console.log(`[CU13 RESERVAS RECHAZADAS] total: ${reservas.length}`);
+        resolve(reservas);
+      };
+
+      request.onerror = () => {
+        reject(new Error(`Error al obtener reservas rechazadas: ${request.error?.message}`));
+      };
+    });
+  }
+
   // CU9 STOCK CONTROL — Calcular stock disponible considerando ventas offline locales
   async obtenerStockDisponibleLocal(
     empresaId: number,
@@ -1140,7 +1230,7 @@ export class OfflineStorageService {
   }
 
   // CU9 — Obtener pago de una venta
-  private async obtenerPagoVenta(ventaUuid: string): Promise<any | null> {
+  async obtenerPagoVenta(ventaUuid: string): Promise<any | null> {
     await this.dbReady;
     const db = this.db;
 
@@ -1160,6 +1250,337 @@ export class OfflineStorageService {
 
       request.onerror = () => {
         reject(new Error(`Error al obtener pago: ${request.error?.message}`));
+      };
+    });
+  }
+
+  // CU11 — Actualizar estado de sincronización de venta
+  async actualizarEstadoVentaOffline(
+    ventaUuid: string,
+    nuevoEstado: 'SINCRONIZADA' | 'RECHAZADA' | 'CONFLICTO',
+    motivo?: string | null,
+    resultadoServer?: { venta_id?: number | null; codigo_venta?: string | null; fecha_sincronizacion?: string }
+  ): Promise<void> {
+    await this.dbReady;
+    const db = this.db;
+
+    if (!db) {
+      throw new Error('IndexedDB no está disponible');
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['offline_ventas'], 'readwrite');
+      const store = transaction.objectStore('offline_ventas');
+
+      const getRequest = store.get(ventaUuid);
+
+      getRequest.onsuccess = () => {
+        const venta = getRequest.result;
+        if (!venta) {
+          reject(new Error(`Venta no encontrada: ${ventaUuid}`));
+          return;
+        }
+
+        // Actualizar estado y metadatos de sincronización
+        venta.estado_sync = nuevoEstado;
+        venta.motivo_rechazo = motivo || null;
+        venta.fecha_sincronizacion = new Date().toISOString();
+        venta.venta_id_servidor = resultadoServer?.venta_id || null;
+        venta.codigo_venta_servidor = resultadoServer?.codigo_venta || null;
+
+        const putRequest = store.put(venta);
+
+        putRequest.onsuccess = () => {
+          console.log(`[CU11] Estado venta actualizado: ${ventaUuid} -> ${nuevoEstado}`);
+          resolve();
+        };
+
+        putRequest.onerror = () => {
+          reject(new Error(`Error al actualizar venta: ${putRequest.error?.message}`));
+        };
+      };
+
+      getRequest.onerror = () => {
+        reject(new Error(`Error al obtener venta: ${getRequest.error?.message}`));
+      };
+    });
+  }
+
+  // CU11 — Actualizar estado de sincronización de reserva
+  async actualizarEstadoReservaOffline(
+    reservaUuid: string,
+    nuevoEstado: 'SINCRONIZADA' | 'RECHAZADA' | 'CONFLICTO',
+    motivo?: string | null,
+    resultadoServer?: { reserva_id?: number | null; codigo_reserva?: string | null; fecha_sincronizacion?: string }
+  ): Promise<void> {
+    await this.dbReady;
+    const db = this.db;
+
+    if (!db) {
+      throw new Error('IndexedDB no está disponible');
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['offline_reservas'], 'readwrite');
+      const store = transaction.objectStore('offline_reservas');
+
+      const getRequest = store.get(reservaUuid);
+
+      getRequest.onsuccess = () => {
+        const reserva = getRequest.result;
+        if (!reserva) {
+          reject(new Error(`Reserva no encontrada: ${reservaUuid}`));
+          return;
+        }
+
+        // Actualizar estado y metadatos de sincronización
+        reserva.estado_sync = nuevoEstado;
+        reserva.motivo_rechazo = motivo || null;
+        reserva.fecha_sincronizacion = new Date().toISOString();
+        reserva.reserva_id_servidor = resultadoServer?.reserva_id || null;
+        reserva.codigo_reserva_servidor = resultadoServer?.codigo_reserva || null;
+
+        const putRequest = store.put(reserva);
+
+        putRequest.onsuccess = () => {
+          console.log(`[CU11] Estado reserva actualizado: ${reservaUuid} -> ${nuevoEstado}`);
+          resolve();
+        };
+
+        putRequest.onerror = () => {
+          reject(new Error(`Error al actualizar reserva: ${putRequest.error?.message}`));
+        };
+      };
+
+      getRequest.onerror = () => {
+        reject(new Error(`Error al obtener reserva: ${getRequest.error?.message}`));
+      };
+    });
+  }
+
+  // CU27 — Guardar historial de compras confirmadas desde backend (CLIENTE y CAJERO)
+  async guardarHistorialConfirmado(
+    ventasConfirmadas: any[],
+    empresaId: number,
+    clienteId?: number,
+    sucursalId?: number
+  ): Promise<void> {
+    await this.dbReady;
+    const db = this.db;
+
+    if (!db) {
+      throw new Error('IndexedDB no está disponible');
+    }
+
+    const transaction = db.transaction(['historial_ventas_confirmadas'], 'readwrite');
+    const store = transaction.objectStore('historial_ventas_confirmadas');
+
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => {
+        console.log(`[CU27 HISTORIAL] ${ventasConfirmadas.length} compras confirmadas guardadas`, {
+          empresa: empresaId,
+          cliente: clienteId || 'N/A',
+          sucursal: sucursalId || 'N/A',
+        });
+        resolve();
+      };
+
+      transaction.onerror = () => {
+        reject(new Error(`Error en transacción de historial: ${transaction.error?.message}`));
+      };
+
+      ventasConfirmadas.forEach((venta: any) => {
+        const ventaConfirmada = {
+          venta_id: venta.venta_id,
+          codigo_venta: venta.codigo_venta,
+          cliente_id: clienteId !== undefined ? clienteId : null,
+          empresa_id: empresaId,
+          sucursal_id: sucursalId !== undefined ? sucursalId : (venta.sucursal?.id || venta.sucursal_id || 0),
+          fecha: venta.fecha,
+          tipo: venta.tipo,
+          metodo_pago: venta.metodo_pago,
+          total: venta.total,
+          tiene_postventa: venta.tiene_postventa,
+          leyenda_postventa: venta.leyenda_postventa,
+          estado_sync: 'CONFIRMADA',
+          fecha_descarga: new Date().toISOString(),
+        };
+        store.put(ventaConfirmada);
+      });
+    });
+  }
+
+  // CU27 — Obtener historial de compras confirmadas del cliente
+  async obtenerHistorialConfirmado(empresaId: number, clienteId: number): Promise<any[]> {
+    await this.dbReady;
+    const db = this.db;
+
+    if (!db) {
+      throw new Error('IndexedDB no está disponible');
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['historial_ventas_confirmadas'], 'readonly');
+      const store = transaction.objectStore('historial_ventas_confirmadas');
+      const index = store.index('empresa_cliente');
+      const range = IDBKeyRange.only([empresaId, clienteId]);
+      const request = index.getAll(range);
+
+      request.onsuccess = () => {
+        resolve(request.result || []);
+      };
+
+      request.onerror = () => {
+        reject(new Error(`Error al obtener historial confirmado: ${request.error?.message}`));
+      };
+    });
+  }
+
+  // CU27 — Obtener historial de compras confirmadas de una sucursal (para Cajero)
+  async obtenerHistorialConfirmadoPorSucursal(empresaId: number, sucursalId: number): Promise<any[]> {
+    await this.dbReady;
+    const db = this.db;
+
+    if (!db) {
+      throw new Error('IndexedDB no está disponible');
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['historial_ventas_confirmadas'], 'readonly');
+      const store = transaction.objectStore('historial_ventas_confirmadas');
+
+      try {
+        const index = store.index('empresa_sucursal');
+        const range = IDBKeyRange.only([empresaId, sucursalId]);
+        const request = index.getAll(range);
+
+        request.onsuccess = () => {
+          resolve(request.result || []);
+        };
+
+        request.onerror = () => {
+          reject(new Error(`Error al obtener historial por sucursal: ${request.error?.message}`));
+        };
+      } catch (e) {
+        // Si índice no existe aún (fallback a búsqueda manual)
+        console.log('[CU27] Índice empresa_sucursal no disponible, búsqueda manual');
+        const request = store.getAll();
+        request.onsuccess = () => {
+          const resultados = (request.result || []).filter(
+            (v: any) => v.empresa_id === empresaId && v.sucursal_id === sucursalId
+          );
+          resolve(resultados);
+        };
+        request.onerror = () => reject(e);
+      }
+    });
+  }
+
+  // CU18 — Guardar historial de reservas confirmadas descargadas
+  async guardarHistorialReservasConfirmado(
+    reservasConfirmadas: any[],
+    empresaId: number,
+    clienteId?: number
+  ): Promise<void> {
+    await this.dbReady;
+    const db = this.db;
+
+    if (!db) {
+      throw new Error('IndexedDB no está disponible');
+    }
+
+    const transaction = db.transaction(['historial_reservas_confirmadas'], 'readwrite');
+    const store = transaction.objectStore('historial_reservas_confirmadas');
+
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => {
+        console.log(`[CU18 HISTORIAL] ${reservasConfirmadas.length} reservas confirmadas guardadas`, {
+          empresa: empresaId,
+          cliente: clienteId || 'N/A',
+        });
+        resolve();
+      };
+
+      transaction.onerror = () => {
+        reject(new Error(`Error en transacción de historial de reservas: ${transaction.error?.message}`));
+      };
+
+      reservasConfirmadas.forEach((reserva: any) => {
+        const reservaConfirmada = {
+          // Identificadores para IndexedDB
+          reserva_id: reserva.id,
+          cliente_id: clienteId !== undefined ? clienteId : null,
+          empresa_id: empresaId,
+          // Datos de la cabecera (necesarios para renderizar tarjeta)
+          codigo_reserva: reserva.codigo_reserva,
+          sucursal: {
+            id: reserva.sucursal?.id || 0,
+            nombre: reserva.sucursal?.nombre || 'Sucursal desconocida',
+            ciudad: {
+              id: reserva.sucursal?.ciudad?.id || 0,
+              nombre: reserva.sucursal?.ciudad?.nombre || 'Ciudad desconocida'
+            }
+          },
+          estado_general: reserva.estado_general,
+          fecha_reserva: reserva.fecha_reserva,
+          hora_inicio: reserva.hora_inicio,
+          hora_fin: reserva.hora_fin,
+          fecha_creacion: reserva.fecha_creacion,
+          // Detalles (necesarios para renderizar prendas)
+          detalles: (reserva.detalles || []).map((d: any) => ({
+            id: d.id,
+            producto: {
+              id: d.producto?.id || 0,
+              nombre: d.producto?.nombre || 'Producto desconocido',
+              imagen_principal_url: d.producto?.imagen_principal_url || null
+            },
+            variante: {
+              id: d.variante?.id || 0,
+              talla: {
+                id: d.variante?.talla?.id || 0,
+                nombre: d.variante?.talla?.nombre || 'S/T'
+              },
+              color: {
+                id: d.variante?.color?.id || 0,
+                nombre: d.variante?.color?.nombre || 'Sin color'
+              }
+            },
+            cantidad: d.cantidad || 1,
+            estado: d.estado || 'PENDIENTE',
+          })),
+          // Metadata
+          estado_sync: 'CONFIRMADA',
+          fecha_descarga: new Date().toISOString(),
+          _origen: 'CONFIRMADA',
+        };
+        store.put(reservaConfirmada);
+      });
+    });
+  }
+
+  // CU18 — Obtener historial de reservas confirmadas del cliente
+  async obtenerHistorialReservasConfirmado(empresaId: number, clienteId: number): Promise<any[]> {
+    await this.dbReady;
+    const db = this.db;
+
+    if (!db) {
+      throw new Error('IndexedDB no está disponible');
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['historial_reservas_confirmadas'], 'readonly');
+      const store = transaction.objectStore('historial_reservas_confirmadas');
+      const index = store.index('empresa_cliente');
+      const range = IDBKeyRange.only([empresaId, clienteId]);
+
+      const request = index.getAll(range);
+
+      request.onsuccess = () => {
+        resolve(request.result || []);
+      };
+
+      request.onerror = () => {
+        reject(new Error(`Error al obtener historial de reservas: ${request.error?.message}`));
       };
     });
   }

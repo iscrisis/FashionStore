@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  postgres_test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: fashionstore_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password_secure
+      POSTGRES_INITDB_ARGS: "-c max_connections=20"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d fashionstore_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test_network
+
+volumes:
+  postgres_test_data:
+
+networks:
+  test_network:
+    driver: bridge

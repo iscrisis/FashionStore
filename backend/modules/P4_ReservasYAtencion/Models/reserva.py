@@ -147,6 +147,8 @@ class Reserva(Base):
         SAEnum(EstadoReserva, name="estado_reserva"), nullable=False, default=EstadoReserva.PENDIENTE
     )
     fecha_creacion: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # CU11 -- Sincronización offline: UUID local para idempotencia
+    uuid_operacion_offline: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
 
     empresa: Mapped[Empresa] = relationship(lazy="joined")
     sucursal: Mapped[Sucursal] = relationship(lazy="joined")

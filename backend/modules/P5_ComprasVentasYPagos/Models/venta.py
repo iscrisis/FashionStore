@@ -135,6 +135,8 @@ class Venta(Base):
     reserva_id: Mapped[int | None] = mapped_column(
         ForeignKey("reservas.id", ondelete="SET NULL"), nullable=True
     )
+    # CU11 -- Sincronización offline: UUID local para idempotencia
+    uuid_operacion_offline: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
 
     empresa: Mapped[Empresa] = relationship(lazy="joined")
     sucursal: Mapped[Sucursal] = relationship(lazy="joined")

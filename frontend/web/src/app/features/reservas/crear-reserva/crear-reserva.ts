@@ -389,6 +389,7 @@ export class CrearReserva {
 
   private _crearReservaOnline(): void {
     this.submitting.set(true);
+    const reservaUuid = generarUUID();  // Generar UUID UNA SOLA VEZ
     this.service
       .crear({
         producto_variante_id: this.productoVarianteId()!,
@@ -408,9 +409,85 @@ export class CrearReserva {
         },
         error: (err) => {
           this.submitting.set(false);
+          console.log('[CU8 ERROR]', { status: err?.status, error: err?.error, message: err?.message });
+          // Si falla por error de transporte (status 0/null o sin respuesta del servidor), guardar offline
+          const esErrorTransporte = err?.status === 0 || err?.status === null || !err?.status;
+          if (esErrorTransporte) {
+            console.log('[CU8] Detectado error de transporte, activando fallback offline');
+            void this._guardarReservaComFallback(reservaUuid);
+            return;
+          }
           const detalle = typeof err?.error?.detail === 'string' ? err.error.detail : null;
           this.toast.error(detalle ?? 'No se pudo crear la reserva. Inténtalo nuevamente.');
         },
       });
+  }
+
+  private async _guardarReservaComFallback(reservaUuid: string): Promise<void> {
+    try {
+      const usuario = this.auth.usuario();
+      if (!usuario) {
+        this.toast.error('No hay sesión activa.');
+        return;
+      }
+
+      const empresaId = usuario.empresa_id || 0;
+      const sucursalId = this.sucursalId()!;
+      const productoVarianteId = this.productoVarianteId()!;
+      const fecha = this.fechaSeleccionada()!;
+      const hora = this.horaSeleccionada()!;
+
+      // Reutilizar validaciones del flujo offline
+      const preparacion = await this.offlineStorage.getPreparacionActual(empresaId, sucursalId);
+      if (!preparacion) {
+        this.toast.error('No hay datos locales disponibles. Descarga la información nuevamente.');
+        return;
+      }
+
+      const variante = this.offlineStorage.getVariantePorId(preparacion, productoVarianteId);
+      if (!variante || variante.stock_disponible < 1) {
+        this.toast.error(
+          `Stock insuficiente. Disponible: ${variante?.stock_disponible || 0}`
+        );
+        return;
+      }
+
+      const ahora = new Date().toISOString();
+
+      // Construir reserva offline con UUID reutilizado del intento online
+      const reservaOffline = {
+        uuid: reservaUuid,
+        empresa_id: empresaId,
+        cliente_id: usuario.id,
+        sucursal_id: sucursalId,
+        fecha_reserva: fecha,
+        hora_inicio: hora,
+        estado_general: 'PENDIENTE',
+        estado_sync: 'PENDIENTE_SYNC',
+        fecha_creacion_local: ahora,
+        detalles: [
+          {
+            uuid: generarUUID(),
+            producto_variante_id: productoVarianteId,
+            cantidad: 1,
+            estado: 'PENDIENTE',
+            estado_sync: 'PENDIENTE_SYNC',
+          },
+        ],
+      };
+
+      // Guardar en IndexedDB
+      await this.offlineStorage.saveReservaOffline(reservaOffline, empresaId);
+
+      // Éxito: cerrar modal y mostrar feedback
+      this.modalAbierto.set(false);
+      this.fechaSeleccionada.set(null);
+      this.horaSeleccionada.set(null);
+      this.toast.brand(`Reserva guardada offline. Se sincronizará cuando recuperes conexión.`);
+      this.reservado.emit();
+    } catch (error) {
+      console.error('[CU8 FALLBACK]', error);
+      this.toast.error('No se pudo guardar la reserva localmente. Inténtalo nuevamente.');
+    }
   }
 }

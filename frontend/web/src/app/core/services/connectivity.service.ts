@@ -19,13 +19,20 @@ export class ConnectivityService implements OnDestroy {
   private isCheckingHealth = false;
   private healthCheckUrl = `${environment.apiUrl}/health`;
 
+  // Sondeo periódico de FastAPI
+  private periodicCheckInterval: any = null;
+  private readonly periodicCheckIntervalMs = 5000; // 5 segundos
+  private isAppVisible = true;
+
   constructor() {
-    console.log(`%c[CONNECTIVITY] VERSIÓN CORREGIDA 2026-11-08 — Usando health check real + navigator.onLine`, 'background:green;color:white;font-weight:bold');
+    console.log(`%c[CONNECTIVITY] VERSIÓN CORREGIDA 2026-11-09 — Usando health check real + sondeo periódico + navigator.onLine`, 'background:green;color:white;font-weight:bold');
     console.log(`%c[CONNECTIVITY] Health check endpoint: ${this.healthCheckUrl}`, 'background:blue;color:white');
+    console.log(`%c[CONNECTIVITY] Sondeo periódico: cada ${this.periodicCheckIntervalMs}ms cuando app está visible`, 'background:blue;color:white');
 
     this.setupListeners();
     this.checkConnectivityOnInit();
     this.setupVisibilityListener();
+    this.startPeriodicHealthCheck();
   }
 
   private setupListeners(): void {
@@ -49,11 +56,43 @@ export class ConnectivityService implements OnDestroy {
 
   private setupVisibilityListener(): void {
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
+      this.isAppVisible = !document.hidden;
+
+      if (this.isAppVisible) {
         console.log('[CONNECTIVITY] Aplicación recuperada — revalidar conectividad');
+        // Reanudar sondeo periódico
+        this.startPeriodicHealthCheck();
+        // Verificación inmediata
         this.verifyBackendAvailability();
+      } else {
+        console.log('[CONNECTIVITY] Aplicación en segundo plano — pausar sondeo periódico');
+        // Pausar sondeo periódico mientras está en fondo
+        this.stopPeriodicHealthCheck();
       }
     });
+  }
+
+  private startPeriodicHealthCheck(): void {
+    // No iniciar múltiples intervalos
+    if (this.periodicCheckInterval) {
+      return;
+    }
+
+    console.log('[CONNECTIVITY] Iniciando sondeo periódico de FastAPI');
+    this.periodicCheckInterval = setInterval(() => {
+      // Solo hacer sondeo si la app está visible
+      if (this.isAppVisible) {
+        this.verifyBackendAvailability();
+      }
+    }, this.periodicCheckIntervalMs);
+  }
+
+  private stopPeriodicHealthCheck(): void {
+    if (this.periodicCheckInterval) {
+      console.log('[CONNECTIVITY] Deteniendo sondeo periódico');
+      clearInterval(this.periodicCheckInterval);
+      this.periodicCheckInterval = null;
+    }
   }
 
   private verifyBackendAvailability(): void {
@@ -122,6 +161,7 @@ export class ConnectivityService implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.stopPeriodicHealthCheck();
     this.destroy$.next();
     this.destroy$.complete();
   }

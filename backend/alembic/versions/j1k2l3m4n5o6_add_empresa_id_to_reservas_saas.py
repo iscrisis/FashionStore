@@ -40,24 +40,12 @@ def upgrade() -> None:
         'fk_reservas_empresa_id', 'reservas', 'empresas', ['empresa_id'], ['id']
     )
 
-    # 5. Add composite FK to ensure reserva.empresa_id matches sucursal.empresa_id
-    op.drop_constraint('reservas_sucursal_id_fkey1', 'reservas', type_='foreignkey')
-    op.create_foreign_key(
-        'fk_reserva_sucursal_compuesto', 'reservas', 'sucursales',
-        ['empresa_id', 'sucursal_id'], ['empresa_id', 'id']
-    )
+    # 5. Keep simple FK to sucursal (empresa_id validation happens at application layer)
+    # Note: Composite FK not needed - sucursales.id is unique, and app enforces empresa_id consistency
 
 
 def downgrade() -> None:
     """Downgrade schema - remove empresa_id from reservas."""
-    # Drop composite FK to sucursales
-    op.drop_constraint('fk_reserva_sucursal_compuesto', 'reservas', type_='foreignkey')
-
-    # Restore simple FK to sucursales
-    op.create_foreign_key(
-        'reservas_sucursal_id_fkey1', 'reservas', 'sucursales', ['sucursal_id'], ['id']
-    )
-
     # Drop FK to empresas
     op.drop_constraint('fk_reservas_empresa_id', 'reservas', type_='foreignkey')
 

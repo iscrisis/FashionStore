@@ -1,5 +1,6 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ConnectivityService } from '../../../core/services/connectivity.service';
 import { FiltroHistorial } from '../../historial-compras/filtro-historial/filtro-historial';
 import {
   FiltroHistorial as FiltroHistorialQuery,
@@ -51,12 +52,15 @@ const TABS: TabHistorial[] = [
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
 })
-export class Historial implements OnInit {
+export class Historial implements OnInit, OnDestroy {
   private readonly service = inject(HistorialComprasService);
+  private readonly connectivity = inject(ConnectivityService);
+  private connectivitySubscription: any;
 
   protected readonly cargando = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly ventas = signal<VentaHistorialOut[]>([]);
+  protected readonly estaOffline = signal(false);
 
   protected readonly tabs = TABS;
   protected readonly tabActiva = signal<TabKey>('pagadas');
@@ -79,6 +83,22 @@ export class Historial implements OnInit {
 
   ngOnInit(): void {
     this.cargar({});
+
+    // Suscribirse a cambios de conectividad para recargar automáticamente
+    this.connectivitySubscription = this.connectivity.isOnline$.subscribe((isOnline: boolean) => {
+      this.estaOffline.set(!isOnline);
+      // Al recuperar conexión, recargar historial
+      if (isOnline) {
+        console.log('[CU27 CAJERO] Conectividad recuperada — recargar historial');
+        this.cargar({});
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.connectivitySubscription) {
+      this.connectivitySubscription.unsubscribe();
+    }
   }
 
   seleccionarTab(key: TabKey): void {

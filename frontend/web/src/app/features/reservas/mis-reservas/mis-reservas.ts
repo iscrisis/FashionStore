@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { resolveMediaUrl } from '../../../core/utils/resolve-media-url';
 import { Icon } from '../../../core/ui/icon/icon';
 import { CancelarReserva } from '../cancelar-reserva/cancelar-reserva';
@@ -72,14 +72,16 @@ const TABS: TabReserva[] = [
   templateUrl: './mis-reservas.html',
   styleUrl: './mis-reservas.scss',
 })
-export class MisReservas implements OnInit {
+export class MisReservas implements OnInit, OnDestroy {
   private readonly service = inject(MisReservasService);
   private readonly connectivity = inject(ConnectivityService);
   private readonly auth = inject(AuthService);
+  private connectivitySubscription: any;
 
   protected readonly cargando = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly reservas = signal<any[]>([]);
+  protected readonly estaOffline = signal(false);
 
   protected readonly resolveMediaUrl = resolveMediaUrl;
   protected readonly etiquetaEstadoReserva = etiquetaEstadoReserva;
@@ -105,6 +107,22 @@ export class MisReservas implements OnInit {
 
   ngOnInit(): void {
     this.cargar();
+
+    // Suscribirse a cambios de conectividad para recargar automáticamente
+    this.connectivitySubscription = this.connectivity.isOnline$.subscribe((isOnline: boolean) => {
+      this.estaOffline.set(!isOnline);
+      // Al recuperar conexión, recargar historial
+      if (isOnline) {
+        console.log('[CU18] Conectividad recuperada — recargar reservas');
+        this.cargar();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.connectivitySubscription) {
+      this.connectivitySubscription.unsubscribe();
+    }
   }
 
   cargar(): void {

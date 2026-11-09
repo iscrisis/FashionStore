@@ -28,13 +28,41 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Add is_active column to producto_variantes."""
-    op.add_column(
-        'producto_variantes',
-        sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true')
-    )
+    """Add is_active column to producto_variantes if it doesn't exist."""
+    # Check if column already exists
+    context = op.get_context()
+    inspector = sa.inspect(context.bind)
+
+    columns = {col['name'] for col in inspector.get_columns('producto_variantes')}
+
+    if 'is_active' not in columns:
+        # Column doesn't exist - add it
+        op.add_column(
+            'producto_variantes',
+            sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true')
+        )
+    else:
+        # Column exists - verify it has correct attributes
+        col_info = next(
+            (col for col in inspector.get_columns('producto_variantes')
+             if col['name'] == 'is_active'),
+            None
+        )
+        if col_info:
+            # Verify type is Boolean and nullable is False
+            if col_info['type'].__class__.__name__ != 'BOOLEAN' or col_info['nullable']:
+                raise Exception(
+                    f"Column 'is_active' exists but has unexpected schema: {col_info}. "
+                    "Manual intervention required."
+                )
 
 
 def downgrade() -> None:
     """Remove is_active column from producto_variantes."""
-    op.drop_column('producto_variantes', 'is_active')
+    context = op.get_context()
+    inspector = sa.inspect(context.bind)
+
+    columns = {col['name'] for col in inspector.get_columns('producto_variantes')}
+
+    if 'is_active' in columns:
+        op.drop_column('producto_variantes', 'is_active')

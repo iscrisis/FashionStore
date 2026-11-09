@@ -97,3 +97,4 @@ class VentaPresencialOut(BaseModel):
     fecha_creacion: datetime
     reserva: ReservaResumenOut | None
     detalles: list[VentaDetalleOut]
+    uuid_operacion_offline: str | None = None
