@@ -1,32 +1,23 @@
-"""Integración con Gemini para la "consulta inteligente" de CU30 (segunda
-parte, dashboard del Administrador) -- interpreta la consulta en texto/voz
-y, después, redacta un resumen a partir de datos YA calculados por
-ReportesService (ver consulta_inteligente_service.py).
+"""Integración con Gemini u OpenRouter para la "consulta inteligente" de CU30.
 
-Reutiliza tal cual la infraestructura base ya existente de CU29
-(CU29_ObtenerRecomendacionesIA/gemini_client.py: cliente_gemini,
-generar_con_reintento, GeminiNoDisponibleError) -- misma
-GEMINI_API_KEY/GEMINI_MODEL (ver app/core/config.py), sin una segunda
-configuración independiente ni una segunda implementación del reintento.
-Los DOS prompts de este archivo son exclusivos de reportes -- no comparten
-nada con los del asistente/chatbot de CU29.
+Soporta dos proveedores configurables via app.core.config.IA_PROVIDER:
+  - "gemini": Google Gemini API (GEMINI_API_KEY + GEMINI_MODEL)
+  - "openrouter": OpenRouter API compatible con OpenAI (OPENROUTER_API_KEY + OPENROUTER_MODEL)
 
-Gemini NUNCA calcula reportes, NUNCA consulta PostgreSQL, NUNCA genera SQL:
-  1. interpretar_consulta_reporte -- lee la consulta del Administrador y
-     devuelve ÚNICAMENTE un JSON con la intención (de una lista CERRADA) y
-     los criterios mencionados (sucursal/periodo). FastAPI valida la
-     intención y resuelve sucursal_id/fechas reales SIEMPRE en
-     consulta_inteligente_service.py -- nunca confía ciegamente en lo que
-     Gemini haya escrito ahí (ver ese archivo, _resolver_periodo).
-  2. generar_resumen_reporte -- redacta el resumen final en lenguaje
-     natural a partir de un "Reporte" de texto que consulta_inteligente_
-     service.py arma con datos YA verificados contra PostgreSQL (los
-     mismos Services de la primera parte de CU30). Se le indica
-     explícitamente que no puede mencionar ni concluir nada fuera de eso.
+Ambos proveedores implementan la misma interfaz:
+  - interpretar_consulta_reporte(consulta: str) -> dict
+  - generar_resumen_reporte(contexto: str) -> str
 
-Cualquier fallo se traduce SIEMPRE a GeminiNoDisponibleError -- CU30 base
-(filtros manuales, KPIs, gráficos) sigue funcionando igual aunque esto
-falle (ver router.py/consulta_inteligente_service.py).
+Los DOS prompts de este archivo son exclusivos de reportes.
+
+IA NUNCA calcula reportes, NUNCA consulta PostgreSQL, NUNCA genera SQL:
+  1. interpretar_consulta_reporte -- lee la consulta y devuelve JSON con
+     intención (lista CERRADA) y criterios (sucursal/periodo). FastAPI
+     valida SIEMPRE en consulta_inteligente_service.py.
+  2. generar_resumen_reporte -- redacta resumen a partir de datos YA
+     verificados contra PostgreSQL.
+
+Cualquier fallo -> GeminiNoDisponibleError -> fallback amigable (ver router.py).
 """
 
 import json
@@ -108,10 +99,22 @@ Reporte:
 
 
 def interpretar_consulta_reporte(consulta: str) -> dict:
+    """Interpreta la consulta usando el proveedor configurado (Gemini u OpenRouter)."""
     prompt = _PROMPT_INTERPRETACION.format(
         intenciones=", ".join(f'"{i}"' for i in INTENCIONES_VALIDAS),
         consulta=consulta.strip()[:_MAX_CONSULTA],
     )
+
+    proveedor = settings.IA_PROVIDER.lower()
+
+    if proveedor == "openrouter":
+        # Usar OpenRouter - reemplazar {intenciones}, dejar {consulta} para openrouter_client
+        from .openrouter_client import interpretar_consulta_reporte_openrouter
+        intenciones_str = ", ".join(f'"{i}"' for i in INTENCIONES_VALIDAS)
+        prompt_template = _PROMPT_INTERPRETACION.replace("{intenciones}", intenciones_str)
+        return interpretar_consulta_reporte_openrouter(consulta.strip()[:_MAX_CONSULTA], prompt_template)
+
+    # Por defecto: Gemini
     client = cliente_gemini()
     try:
         respuesta = generar_con_reintento(
@@ -128,11 +131,28 @@ def interpretar_consulta_reporte(consulta: str) -> dict:
     except GeminiNoDisponibleError:
         raise
     except Exception as exc:
-        logger.warning("CU30 -- Gemini no pudo interpretar la consulta inteligente (%s).", type(exc).__name__)
+        exc_type = type(exc).__name__
+        exc_msg = str(exc)[:150]
+        http_code = getattr(exc, 'status_code', None) or getattr(exc, 'code', None)
+        logger.warning(
+            "[CU16/CU30] Gemini interpretación falló: %s (HTTP: %s) - %s",
+            exc_type,
+            http_code or "desconocido",
+            exc_msg,
+        )
         raise GeminiNoDisponibleError("Gemini no respondió a tiempo.") from exc
 
 
 def generar_resumen_reporte(contexto: str) -> str:
+    """Genera resumen usando el proveedor configurado (Gemini u OpenRouter)."""
+    proveedor = settings.IA_PROVIDER.lower()
+
+    if proveedor == "openrouter":
+        # Usar OpenRouter
+        from .openrouter_client import generar_resumen_reporte_openrouter
+        return generar_resumen_reporte_openrouter(contexto, _PROMPT_RESUMEN)
+
+    # Por defecto: Gemini
     prompt = _PROMPT_RESUMEN.format(contexto=contexto)
     client = cliente_gemini()
     try:
@@ -146,5 +166,13 @@ def generar_resumen_reporte(contexto: str) -> str:
     except GeminiNoDisponibleError:
         raise
     except Exception as exc:
-        logger.warning("CU30 -- Gemini no pudo generar el resumen (%s).", type(exc).__name__)
+        exc_type = type(exc).__name__
+        exc_msg = str(exc)[:150]
+        http_code = getattr(exc, 'status_code', None) or getattr(exc, 'code', None)
+        logger.warning(
+            "[CU16/CU30] Gemini resumen falló: %s (HTTP: %s) - %s",
+            exc_type,
+            http_code or "desconocido",
+            exc_msg,
+        )
         raise GeminiNoDisponibleError("Gemini no respondió a tiempo.") from exc

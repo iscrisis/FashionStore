@@ -156,7 +156,7 @@ def consulta_inteligente(
             capacidades = CapacidadesEmpresa(db, actor.empresa_id)
             capacidades.validar_acceso_a("reportes_generativos_ia")
 
-        return ConsultaInteligenteService(db).consultar(payload)
+        return ConsultaInteligenteService(db, actor.empresa_id).consultar(payload)
     except FuncionalidadNoHabilitadaError as exc:
         # Si la funcionalidad no está habilitada, rechazar con 403.
         raise HTTPException(

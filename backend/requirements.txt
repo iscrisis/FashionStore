@@ -28,10 +28,11 @@ stripe==15.6.1
 # modules/P5_ComprasVentasYPagos/CU31_EmitirComprobanteVenta/pdf.py.
 fpdf2==2.8.8
 
-# CU29 - Obtener recomendaciones mediante IA: SDK oficial de Gemini API. Ver
-# modules/P6_InnovacionYAnalisis/CU29_ObtenerRecomendacionesIA/gemini_client.py
-# -- único punto del backend que lo importa.
+# CU29/CU30 - IA para recomendaciones y reportes. Dos proveedores:
+# - Gemini: google-genai SDK
+# - OpenRouter: requests (compatible con OpenAI API)
 google-genai==1.51.0
+requests==2.31.0
 
 pytest==8.4.2
 httpx==0.28.1

@@ -3,7 +3,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from modules.dependencies import get_db, get_current_user
+from app.core.deps import get_current_usuario
+from app.db.session import get_db
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 
 from .service import ReintentoService
@@ -19,7 +20,7 @@ router = APIRouter(
 def reintentar_venta(
     uuid: str,
     request: ReintentoRequest,
-    usuario: Usuario = Depends(get_current_user),
+    usuario: Usuario = Depends(get_current_usuario),
     db: Session = Depends(get_db),
 ) -> ReintentoResultado:
     """Reintentar sincronización de una venta fallida.
@@ -44,7 +45,7 @@ def reintentar_venta(
 def reintentar_reserva(
     uuid: str,
     request: ReintentoRequest,
-    usuario: Usuario = Depends(get_current_user),
+    usuario: Usuario = Depends(get_current_usuario),
     db: Session = Depends(get_db),
 ) -> ReintentoResultado:
     """Reintentar sincronización de una reserva fallida.

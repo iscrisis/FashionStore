@@ -4,7 +4,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from modules.dependencies import get_db, get_current_user
+from app.core.deps import get_current_usuario
+from app.db.session import get_db
 from modules.P2_UsuariosYAccesos.Models.usuario import Usuario
 
 from .service import GestionarConflictosService
@@ -32,7 +33,7 @@ router = APIRouter(prefix="/conflictos", tags=["CU14 - Gestionar conflictos de s
 def consultar_conflictos_sin_resolver(
     limit: int = 100,
     db: Session = Depends(get_db),
-    actor: Usuario = Depends(get_current_user),
+    actor: Usuario = Depends(get_current_usuario),
 ) -> ListaConflictosSchema:
     """Obtener la lista de conflictos sin resolver para la empresa del usuario.
 
@@ -64,7 +65,7 @@ def consultar_conflictos_sin_resolver(
 def consultar_conflicto(
     uuid_operacion: str,
     db: Session = Depends(get_db),
-    actor: Usuario = Depends(get_current_user),
+    actor: Usuario = Depends(get_current_usuario),
 ) -> ConflictoConsultaSchema | None:
     """Obtener detalles de un conflicto específico por UUID de la operación original.
 
@@ -93,7 +94,7 @@ def resolver_conflicto(
     conflicto_id: int,
     request: ResolverConflictoRequest,
     db: Session = Depends(get_db),
-    actor: Usuario = Depends(get_current_user),
+    actor: Usuario = Depends(get_current_usuario),
 ) -> ResolverConflictoResponse:
     """Resolver un conflicto.
 

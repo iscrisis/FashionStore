@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, timeout, finalize } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { SuperadminService } from '../../superadmin/services/superadmin.service';
 import { SucursalAdmin } from '../../../sucursales-catalogo/cu06-gestionar-sucursales/sucursal-admin.model';
@@ -280,20 +280,24 @@ export class Reportes implements OnInit {
         fecha_desde_actual: this.filtroAplicado.fecha_desde,
         fecha_hasta_actual: this.filtroAplicado.fecha_hasta,
       })
+      .pipe(
+        timeout(30000),
+        finalize(() => {
+          // Garantizar que generandoConsulta SIEMPRE se resetee,
+          // incluso si la solicitud se aborta o causa timeout
+          if (this.generandoConsulta()) {
+            this.generandoConsulta.set(false);
+          }
+        })
+      )
       .subscribe({
         next: (respuesta) => {
-          this.generandoConsulta.set(false);
           this.resumenIA.set(respuesta.resumen);
 
           if (!respuesta.exito || !respuesta.filtros) {
-            // Mensaje amigable ya mostrado en `resumenIA` -- el dashboard
-            // (filtros/KPIs/gráficos) se deja intacto, nunca se toca con
-            // una consulta que no se pudo resolver.
             return;
           }
 
-          // La consulta inteligente CONTROLA los filtros ya existentes --
-          // nunca arma una vista aislada (ver reportes.html).
           const { sucursal_id, fecha_desde, fecha_hasta } = respuesta.filtros;
           this.sucursalIdDraft.set(sucursal_id);
           this.fechaDesdeDraft.set(fecha_desde ?? '');
@@ -303,7 +307,6 @@ export class Reportes implements OnInit {
           this.cargarDatos();
         },
         error: () => {
-          this.generandoConsulta.set(false);
           this.resumenIA.set(MSG_IA_NO_DISPONIBLE);
         },
       });

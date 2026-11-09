@@ -90,15 +90,20 @@ class Settings(BaseSettings):
     # a "usd") sin tocar código.
     STRIPE_CURRENCY: str = "bob"
 
-    # CU29 - Obtener recomendaciones mediante IA (Gemini API). Vacía por
-    # defecto: sin configurar,
-    # modules/P6_InnovacionYAnalisis/CU29_ObtenerRecomendacionesIA/gemini_client.py
-    # falla de forma explícita (mismo criterio que STRIPE_SECRET_KEY/CU23) en
-    # vez de intentar llamar a Gemini con una clave inválida -- el asistente
-    # cae a su respuesta de fallback, el catálogo nunca se cae. NUNCA se
-    # expone a Angular ni se imprime en logs.
+    # CU29/CU30 - IA para recomendaciones y reportes. Dos proveedores soportados:
+    # 1. Gemini (por defecto) - GEMINI_API_KEY + GEMINI_MODEL
+    # 2. OpenRouter - OPENROUTER_API_KEY + OPENROUTER_MODEL + OPENROUTER_BASE_URL
+    # Vacías por defecto: sin configurar, cae a fallback. NUNCA se exponen a Angular.
+    IA_PROVIDER: str = "gemini"  # "gemini" o "openrouter"
+
+    # Gemini (Google Cloud)
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-3.7-flash"
+
+    # OpenRouter (LLM agnostic, compatible con OpenAI API)
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_MODEL: str = "openrouter/free"
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 
     @property
     def cors_origins_list(self) -> list[str]:

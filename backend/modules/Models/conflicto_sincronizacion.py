@@ -3,7 +3,7 @@
 from datetime import datetime
 from sqlalchemy import Integer, String, DateTime, Index, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
-from .base import Base
+from .reconciliacion_inventario import Base
 
 
 class ConflictoSincronizacion(Base):

@@ -35,6 +35,7 @@ esta misma base.
 import json
 import logging
 import time
+import socket
 
 from app.core.config import settings
 
@@ -49,6 +50,7 @@ _MAX_TURNOS_HISTORIAL = 6
 # medio segundo después (ver _con_reintento).
 _INTENTOS_MAXIMOS = 2
 _ESPERA_ENTRE_INTENTOS_SEGUNDOS = 0.6
+_TIMEOUT_GEMINI_SEGUNDOS = 30  # Timeout por intento (evita bloqueo indefinido)
 
 
 class GeminiNoDisponibleError(Exception):
@@ -137,15 +139,17 @@ Contexto comercial (datos reales y verificados de FashionStore):
 
 
 def generar_con_reintento(client, **kwargs):
-    """`client.models.generate_content` con un reintento corto -- 503 (alta
+    """`client.models.generate_content` con un reintento corto y timeout -- 503 (alta
     demanda) y 429 (cuota) son frecuentes en Gemini incluso con una clave
     válida y suelen resolverse solos medio segundo después. Sin esto, CU29/
     CU30 caerían al fallback por algo transitorio que un segundo intento ya
     resuelve (importante para no verse frágil en una demo en vivo). Utilidad
-    base compartida -- ver docstring del módulo."""
+    base compartida -- ver docstring del módulo. Timeout de 30s evita bloqueos indefinidos."""
     ultimo_error: Exception | None = None
     for intento in range(1, _INTENTOS_MAXIMOS + 1):
         try:
+            # Agregar timeout para evitar bloqueo indefinido de Gemini API
+            kwargs["request_options"] = {"timeout_seconds": _TIMEOUT_GEMINI_SEGUNDOS}
             return client.models.generate_content(**kwargs)
         except Exception as exc:  # noqa: BLE001 - cualquier fallo de red/SDK es candidato a reintento
             ultimo_error = exc

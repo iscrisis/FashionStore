@@ -107,6 +107,9 @@ from modules.P6_InnovacionYAnalisis.CU29_ObtenerRecomendacionesIA.router import 
 from modules.P6_InnovacionYAnalisis.CU30_ConsultarReportesIndicadores.router import (
     router as cu30_reportes_router,
 )
+from modules.PK10_ReportesGenerativosYAnaliticaInteligente.CU16_SolicitarReporteGenerativo.router import (
+    router as cu16_solicitar_reporte_router,
+)
 from modules.PK08_OperacionOfflineWebYMovil.CU06_PrepararInformacionOffline.router import (
     router as cu06_offline_router,
 )
@@ -186,6 +189,7 @@ app.include_router(cu31_comprobante_venta_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu32_promociones_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu29_asistente_ia_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu30_reportes_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cu16_solicitar_reporte_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu06_offline_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu11_sincronizar_operaciones_router, prefix=settings.API_V1_PREFIX)
 app.include_router(cu12_consultar_resultado_router, prefix=settings.API_V1_PREFIX)
