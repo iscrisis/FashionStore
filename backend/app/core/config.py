@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     BACKEND_PORT: int = 8000
 
     # Comma-separated list of allowed origins, e.g. "http://localhost:4200,https://app.example.com"
+    # Si está vacío, se generan automáticamente según el entorno (localhost en dev, dominios Vercel en prod)
     CORS_ORIGINS: str = ""
 
     # CU01 - Iniciar sesión (modules/P2_UsuariosYAccesos)
@@ -107,7 +108,22 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> list[str]:
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        # Si CORS_ORIGINS está configurado explícitamente, usarlo
+        if self.CORS_ORIGINS.strip():
+            return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
+        # Si no está configurado, permitir basado en entorno
+        if self.APP_ENV == "development":
+            return [
+                "http://localhost:4200",
+                "http://127.0.0.1:4200",
+                "http://localhost:5000",
+                "http://127.0.0.1:5000",
+            ]
+
+        # En Vercel: aceptar cualquier origen *.vercel.app
+        # (Production, Preview de cualquier rama, etc.)
+        return ["https://*.vercel.app"]
 
 
 @lru_cache
