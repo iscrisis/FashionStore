@@ -66,4 +66,17 @@ export class ReportesService {
   consultaInteligente(payload: ConsultaInteligenteRequest): Observable<ConsultaInteligenteResponse> {
     return this.http.post<ConsultaInteligenteResponse>(`${this.baseUrl}/consulta-inteligente`, payload);
   }
+
+  // CU17 -- Generar reporte dinámico integrado en esta misma pantalla.
+  // Reutiliza ReportesService de CU30 en backend sin duplicación.
+  generarReporteDinamico(filtros: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/generar-dinamico`, filtros);
+  }
+
+  // CU18 -- Exportar reporte dinámico a PDF o Excel.
+  // Devuelve blob para descarga de archivo.
+  exportarReporte(payload: any, formato: 'pdf' | 'xlsx'): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/exportar`, { ...payload, formato },
+      { responseType: 'blob' });
+  }
 }

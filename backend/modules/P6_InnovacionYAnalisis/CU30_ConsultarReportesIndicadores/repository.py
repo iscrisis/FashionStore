@@ -40,24 +40,25 @@ class SucursalLecturaRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def listar_activas(self) -> list[Sucursal]:
-        stmt = select(Sucursal).where(Sucursal.is_active.is_(True)).order_by(Sucursal.nombre)
+    def listar_activas(self, empresa_id: int) -> list[Sucursal]:
+        stmt = select(Sucursal).where(Sucursal.is_active.is_(True), Sucursal.empresa_id == empresa_id).order_by(Sucursal.nombre)
         return list(self.db.execute(stmt).scalars().all())
 
     def get_activa(self, sucursal_id: int, empresa_id: int) -> Sucursal | None:
         stmt = select(Sucursal).where(Sucursal.id == sucursal_id, Sucursal.empresa_id == empresa_id, Sucursal.is_active.is_(True))
         return self.db.execute(stmt).scalar_one_or_none()
 
-    def buscar_por_nombre(self, nombre: str) -> Sucursal | None:
+    def buscar_por_nombre(self, nombre: str, empresa_id: int) -> Sucursal | None:
         """Resuelve el nombre libre que devuelve Gemini (CU30, segunda
         parte -- consulta inteligente) contra las sucursales REALES activas
-        -- coincidencia exacta primero, luego por contención en cualquier
-        sentido (mismo criterio ya usado en CU29 para categoría/color/
-        talla/colección). Nunca inventa un id que no exista."""
+        DE LA EMPRESA AUTENTICADA -- coincidencia exacta primero, luego por
+        contención en cualquier sentido (mismo criterio ya usado en CU29 para
+        categoría/color/talla/colección). Nunca inventa un id que no exista
+        ni busca fuera de la empresa del usuario."""
         objetivo = nombre.strip().lower()
         if not objetivo:
             return None
-        activas = self.listar_activas()
+        activas = self.listar_activas(empresa_id)  # Filtrar por empresa_id
         for sucursal in activas:
             if sucursal.nombre.strip().lower() == objetivo:
                 return sucursal
@@ -77,7 +78,8 @@ class VentasReporteRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def _filtros(self, stmt, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int):
+    def _filtros(self, stmt, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int,
+                 categoria_id: int | None = None, producto_id: int | None = None):
         stmt = stmt.where(Venta.estado == EstadoVenta.PAGADA, Venta.empresa_id == empresa_id)
         if desde is not None:
             stmt = stmt.where(Venta.fecha_creacion >= _inicio_del_dia(desde))
@@ -85,6 +87,10 @@ class VentasReporteRepository:
             stmt = stmt.where(Venta.fecha_creacion < _inicio_del_dia_siguiente(hasta))
         if sucursal_id is not None:
             stmt = stmt.where(Venta.sucursal_id == sucursal_id)
+        if categoria_id is not None:
+            stmt = stmt.where(Producto.categoria_id == categoria_id)
+        if producto_id is not None:
+            stmt = stmt.where(ProductoVariante.producto_id == producto_id)
         return stmt
 
     def totales(self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int) -> tuple[Decimal, int]:
@@ -193,6 +199,47 @@ class VentasReporteRepository:
         )
         filas = self.db.execute(stmt).all()
         return [(pid, nombre, int(unidades), Decimal(ingresos)) for pid, nombre, unidades, ingresos in filas]
+
+    def ventas_por_semana(
+        self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int
+    ) -> list[tuple[str, Decimal, int]]:
+        """Ventas agrupadas por semana (ISO 8601) del rango de fechas."""
+        columna = (
+            func.to_char(Venta.fecha_creacion, "YYYY-IW")
+            .label("semana")
+        )
+        stmt = self._filtros(
+            select(columna, func.sum(Venta.total), func.count(Venta.id)), desde, hasta, sucursal_id, empresa_id
+        )
+        stmt = stmt.group_by(columna).order_by(columna)
+        filas = self.db.execute(stmt).all()
+        return [(semana, Decimal(ingresos), int(conteo)) for semana, ingresos, conteo in filas]
+
+    def ventas_por_categoria(
+        self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int
+    ) -> list[tuple[int, str, int, Decimal]]:
+        """Ventas agrupadas por categoría de producto."""
+        from modules.P1_SucursalesYCatalogos.Models.categoria import Categoria
+        stmt = (
+            select(
+                Producto.categoria_id,
+                Categoria.nombre,
+                func.sum(VentaDetalle.cantidad),
+                func.sum(VentaDetalle.subtotal),
+            )
+            .select_from(VentaDetalle)
+            .join(Venta, Venta.id == VentaDetalle.venta_id)
+            .join(ProductoVariante, ProductoVariante.id == VentaDetalle.producto_variante_id)
+            .join(Producto, Producto.id == ProductoVariante.producto_id)
+            .join(Categoria, Categoria.id == Producto.categoria_id)
+        )
+        stmt = self._filtros(stmt, desde, hasta, sucursal_id, empresa_id)
+        stmt = (
+            stmt.group_by(Producto.categoria_id, Categoria.nombre)
+            .order_by(func.sum(VentaDetalle.subtotal).desc())
+        )
+        filas = self.db.execute(stmt).all()
+        return [(cid, nombre, int(unidades), Decimal(ingresos)) for cid, nombre, unidades, ingresos in filas]
 
 
 class InventarioReporteRepository:

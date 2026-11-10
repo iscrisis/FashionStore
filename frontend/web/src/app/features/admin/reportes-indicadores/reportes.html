@@ -106,6 +106,55 @@
         <input type="date" [ngModel]="fechaHastaDraft()" (ngModelChange)="fechaHastaDraft.set($event)" />
       </label>
 
+      <!-- CU17 -- Filtros adicionales para reporte dinámico con selectores -->
+      <label class="field">
+        <span class="field__label">Categoría (opcional)</span>
+        @if (cargandoCategorias()) {
+          <select class="status-select" disabled>
+            <option>Cargando categorías...</option>
+          </select>
+        } @else {
+          <select
+            class="status-select"
+            [ngModel]="categoriaIdDraft()"
+            (ngModelChange)="onCategoriaChange($event)"
+          >
+            <option [ngValue]="null">Todas las categorías</option>
+            @for (cat of categorias(); track cat.id) {
+              <option [ngValue]="cat.id">{{ cat.nombre }}</option>
+            }
+          </select>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field__label">Producto (opcional)</span>
+        @if (cargandoProductos()) {
+          <select class="status-select" disabled>
+            <option>Cargando productos...</option>
+          </select>
+        } @else {
+          <select
+            class="status-select"
+            [ngModel]="productoIdDraft()"
+            (ngModelChange)="productoIdDraft.set($event)"
+          >
+            <option [ngValue]="null">Todos los productos</option>
+            @if (categoriaIdDraft()) {
+              <!-- Mostrar solo productos de la categoría seleccionada -->
+              @for (prod of productosFiltrados(); track prod.id) {
+                <option [ngValue]="prod.id">{{ prod.nombre }}</option>
+              }
+            } @else {
+              <!-- Mostrar todos los productos si no hay categoría seleccionada -->
+              @for (prod of productos(); track prod.id) {
+                <option [ngValue]="prod.id">{{ prod.nombre }}</option>
+              }
+            }
+          </select>
+        }
+      </label>
+
       <div class="filtros-acciones">
         <button type="button" class="btn btn--ghost" (click)="limpiarFiltros()">LIMPIAR</button>
         <button type="button" class="btn btn--primary" (click)="aplicarFiltros()">APLICAR</button>
@@ -365,5 +414,99 @@
         </div>
       </div>
     </section>
+
+    <!-- CU17 -- Reporte dinámico integrado: datos adicionales con categoría/producto -->
+    @if (reporteDinamico()) {
+      <section class="admin-card analisis-dinamico">
+        <div class="analisis-dinamico__header">
+          <h3 class="analisis-dinamico__titulo">Análisis Dinámico</h3>
+          <!-- CU18 -- Botones de exportación -->
+          <div class="analisis-dinamico__acciones">
+            <button
+              class="btn btn--secondary"
+              (click)="exportarReportePDF()"
+              [disabled]="exportandoPDF() || exportandoXLSX()"
+            >
+              {{ exportandoPDF() ? '⏳ Generando PDF...' : '📄 Exportar PDF' }}
+            </button>
+            <button
+              class="btn btn--secondary"
+              (click)="exportarReporteXLSX()"
+              [disabled]="exportandoPDF() || exportandoXLSX()"
+            >
+              {{ exportandoXLSX() ? '⏳ Generando Excel...' : '📊 Exportar Excel' }}
+            </button>
+          </div>
+        </div>
+
+        @if (errorExportacion()) {
+          <div class="analisis-dinamico__error">
+            <p>{{ errorExportacion() }}</p>
+          </div>
+        }
+
+        <div class="analisis-dinamico__grid">
+          <!-- Ventas por Semana -->
+          <div class="analisis-dinamico__tabla">
+            @if (reporteDinamico()?.por_semana?.semanas?.length > 0) {
+              <h4>Ventas por Semana</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Semana</th>
+                    <th>Ventas</th>
+                    <th>Ingresos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (semana of reporteDinamico()!.por_semana!.semanas; track semana.semana) {
+                    <tr>
+                      <td>{{ semana.semana }}</td>
+                      <td>{{ semana.ventas }}</td>
+                      <td>Bs {{ semana.ingresos.toFixed(2) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <h4>Ventas por Semana</h4>
+              <div class="analisis-dinamico__vacio">
+                <p>Sin datos en el período seleccionado</p>
+              </div>
+            }
+          </div>
+
+          <!-- Ingresos por Categoría -->
+          <div class="analisis-dinamico__tabla">
+            @if (reporteDinamico()?.por_categoria?.categorias?.length > 0) {
+              <h4>Ingresos por Categoría</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Categoría</th>
+                    <th>Unidades</th>
+                    <th>Ingresos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (cat of reporteDinamico()!.por_categoria!.categorias; track cat.categoria_id) {
+                    <tr>
+                      <td>{{ cat.nombre }}</td>
+                      <td>{{ cat.unidades }}</td>
+                      <td>Bs {{ cat.ingresos.toFixed(2) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <h4>Ingresos por Categoría</h4>
+              <div class="analisis-dinamico__vacio">
+                <p>Sin datos en el período seleccionado</p>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    }
   }
 </div>

@@ -321,8 +321,9 @@ export const routes: Routes = [
         },
       },
       {
-        // CU30 -- Consultar reportes e indicadores (primera parte: dashboard
-        // analítico, sin voz/IA todavía).
+        // CU30/CU17 -- Consultar reportes e indicadores y generar reportes dinámicos.
+        // CU17 integrada en la misma pantalla con filtros adicionales (categoría, producto)
+        // y nuevas visualizaciones (ventas por semana, ingresos por categoría).
         path: 'reportes',
         loadComponent: () =>
           import('./features/admin/reportes-indicadores/reportes').then((m) => m.Reportes),

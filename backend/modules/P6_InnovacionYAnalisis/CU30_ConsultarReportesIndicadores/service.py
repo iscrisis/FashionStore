@@ -67,7 +67,7 @@ from .schemas import (
 # Angular.
 UMBRAL_STOCK_BAJO = 3
 _LIMITE_STOCK_BAJO = 20
-_LIMITE_TOP_PRODUCTOS = 5
+_LIMITE_TOP_PRODUCTOS = 10
 # Con un rango más ancho que esto, agrupar "por día" produciría demasiados
 # puntos para que el gráfico de tendencia siga siendo útil -- se pasa a
 # agrupar por mes (ver _granularidad).
@@ -122,7 +122,8 @@ class ReportesService:
             stock_bajo=stock_bajo,
         )
 
-    def ventas(self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int) -> VentasReporteOut:
+    def ventas(self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int,
+               categoria_id: int | None = None, producto_id: int | None = None) -> VentasReporteOut:
         self._validar(desde, hasta, sucursal_id, empresa_id)
 
         ingresos_totales, ventas_totales = self._ventas.totales(desde, hasta, sucursal_id, empresa_id)
@@ -219,3 +220,29 @@ class ReportesService:
                 for pid, nombre, unidades, ingresos in filas
             ]
         )
+
+    def ventas_por_semana(
+        self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int
+    ) -> dict:
+        """Ventas agrupadas por semana ISO 8601."""
+        self._validar(desde, hasta, sucursal_id, empresa_id)
+        filas = self._ventas.ventas_por_semana(desde, hasta, sucursal_id, empresa_id)
+        return {
+            "semanas": [
+                {"semana": semana, "ingresos": float(ingresos), "ventas": conteo}
+                for semana, ingresos, conteo in filas
+            ]
+        }
+
+    def ventas_por_categoria(
+        self, desde: date | None, hasta: date | None, sucursal_id: int | None, empresa_id: int
+    ) -> dict:
+        """Ventas agrupadas por categoría de producto."""
+        self._validar(desde, hasta, sucursal_id, empresa_id)
+        filas = self._ventas.ventas_por_categoria(desde, hasta, sucursal_id, empresa_id)
+        return {
+            "categorias": [
+                {"categoria_id": cid, "nombre": nombre, "unidades": unidades, "ingresos": float(ingresos)}
+                for cid, nombre, unidades, ingresos in filas
+            ]
+        }

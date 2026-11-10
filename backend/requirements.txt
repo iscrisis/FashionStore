@@ -28,6 +28,9 @@ stripe==15.6.1
 # modules/P5_ComprasVentasYPagos/CU31_EmitirComprobanteVenta/pdf.py.
 fpdf2==2.8.8
 
+# CU18 - Exportar reporte generado a Excel XLSX
+openpyxl==3.1.5
+
 # CU29/CU30 - IA para recomendaciones y reportes. Dos proveedores:
 # - Gemini: google-genai SDK
 # - OpenRouter: requests (compatible con OpenAI API)

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, timeout, finalize } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
@@ -8,6 +8,8 @@ import { SucursalAdminService } from '../../../sucursales-catalogo/cu06-gestiona
 import { BarraItem, GraficoBarras } from './grafico-barras/grafico-barras';
 import { GraficoLineas, PuntoLinea } from './grafico-lineas/grafico-lineas';
 import { ReconocimientoVozService } from './reconocimiento-voz.service';
+import { CategoryService } from '../../../sucursales-catalogo/atributos/services/category.service';
+import { ProductoService } from '../../../sucursales-catalogo/cu08-gestionar-productos/producto.service';
 import {
   InventarioReporte,
   ProductoMasVendido,
@@ -95,6 +97,9 @@ export class Reportes implements OnInit {
   private readonly voz = inject(ReconocimientoVozService);
   private readonly authService = inject(AuthService);
   private readonly superadminService = inject(SuperadminService);
+  // CU17 -- Servicios para cargar categorías y productos
+  private readonly categoryService = inject(CategoryService);
+  private readonly productoService = inject(ProductoService);
 
   protected readonly ejemplosConsulta = EJEMPLOS_CONSULTA;
   protected readonly vozDisponible = this.voz.disponible;
@@ -102,7 +107,24 @@ export class Reportes implements OnInit {
 
   protected readonly sucursales = signal<SucursalAdmin[]>([]);
 
+  // CU17 -- Categorías y productos para selectores
+  protected readonly categorias = signal<any[]>([]);
+  protected readonly productos = signal<any[]>([]);
+  protected readonly cargandoCategorias = signal(false);
+  protected readonly cargandoProductos = signal(false);
+
   protected readonly sucursalIdDraft = signal<number | null>(null);
+  // CU17 -- Nuevos filtros para reporte dinámico (ahora selectores en lugar de inputs)
+  protected readonly categoriaIdDraft = signal<number | null>(null);
+  protected readonly productoIdDraft = signal<number | null>(null);
+
+  // CU17 -- Productos filtrados por categoría seleccionada
+  protected readonly productosFiltrados = computed(() => {
+    const categoriaId = this.categoriaIdDraft();
+    if (!categoriaId) return this.productos();
+    return this.productos().filter((p: any) => p.categoria?.id === categoriaId);
+  });
+
   protected readonly fechaDesdeDraft = signal<string>(primerDiaDelMes());
   protected readonly fechaHastaDraft = signal<string>(hoyComoTexto());
   protected readonly errorFiltro = signal<string | null>(null);
@@ -112,6 +134,14 @@ export class Reportes implements OnInit {
     fecha_hasta: this.fechaHastaDraft(),
     sucursal_id: null,
   };
+
+  // CU17 -- Datos adicionales del reporte dinámico
+  protected readonly reporteDinamico = signal<any>(null);
+
+  // CU18 -- Estado de exportación
+  protected readonly exportandoPDF = signal(false);
+  protected readonly exportandoXLSX = signal(false);
+  protected readonly errorExportacion = signal<string | null>(null);
 
   // -- CU30, segunda parte: consulta inteligente ------------------------
   protected readonly consultaTexto = signal('');
@@ -135,6 +165,10 @@ export class Reportes implements OnInit {
       error: () => this.sucursales.set([]),
     });
 
+    // CU17 -- Cargar categorías y productos para los selectores
+    this.cargarCategorias();
+    this.cargarProductos();
+
     const usuario = this.authService.usuario();
     if (usuario?.empresa_id) {
       this.superadminService.getSuscripcionEmpresa(usuario.empresa_id).subscribe({
@@ -147,6 +181,34 @@ export class Reportes implements OnInit {
     }
 
     this.cargarDatos();
+  }
+
+  private cargarCategorias(): void {
+    this.cargandoCategorias.set(true);
+    this.categoryService.list({ estado: 'active' }).subscribe({
+      next: (categorias: any[]) => {
+        this.categorias.set(categorias);
+        this.cargandoCategorias.set(false);
+      },
+      error: () => {
+        this.categorias.set([]);
+        this.cargandoCategorias.set(false);
+      },
+    });
+  }
+
+  private cargarProductos(): void {
+    this.cargandoProductos.set(true);
+    this.productoService.list({ estado: 'active' }).subscribe({
+      next: (productos: any[]) => {
+        this.productos.set(productos);
+        this.cargandoProductos.set(false);
+      },
+      error: () => {
+        this.productos.set([]);
+        this.cargandoProductos.set(false);
+      },
+    });
   }
 
   protected etiquetaTipo(tipo: string): string {
@@ -202,16 +264,59 @@ export class Reportes implements OnInit {
     }
     this.errorFiltro.set(null);
     this.filtroAplicado = { fecha_desde: desde, fecha_hasta: hasta, sucursal_id: this.sucursalIdDraft() };
+
+    // CU17 -- Si hay filtros de categoría o producto, generar reporte dinámico
+    if (this.categoriaIdDraft() || this.productoIdDraft()) {
+      this.generarReporteDinamico();
+    } else {
+      this.reporteDinamico.set(null);
+    }
+
     this.cargarDatos();
+  }
+
+  protected generarReporteDinamico(): void {
+    const filtros = {
+      fecha_desde: this.fechaDesdeDraft() || null,
+      fecha_hasta: this.fechaHastaDraft() || null,
+      sucursal_id: this.sucursalIdDraft(),
+      categoria_id: this.categoriaIdDraft(),
+      producto_id: this.productoIdDraft(),
+      tipo_reporte: 'completo',
+    };
+
+    this.service.generarReporteDinamico(filtros).subscribe({
+      next: (respuesta: any) => {
+        this.reporteDinamico.set(respuesta.datos);
+      },
+      error: (err: any) => {
+        console.error('Error generando reporte dinámico:', err);
+        this.reporteDinamico.set(null);
+      },
+    });
   }
 
   limpiarFiltros(): void {
     this.sucursalIdDraft.set(null);
+    this.categoriaIdDraft.set(null);
+    this.productoIdDraft.set(null);
     this.fechaDesdeDraft.set(primerDiaDelMes());
     this.fechaHastaDraft.set(hoyComoTexto());
     this.errorFiltro.set(null);
     this.filtroAplicado = { fecha_desde: primerDiaDelMes(), fecha_hasta: hoyComoTexto(), sucursal_id: null };
+    this.reporteDinamico.set(null);
     this.cargarDatos();
+  }
+
+  // CU17 -- Cuando cambia la categoría, resetear el producto si no está en la nueva categoría
+  protected onCategoriaChange(nuevaCategoria: number | null): void {
+    this.categoriaIdDraft.set(nuevaCategoria);
+    if (nuevaCategoria && this.productoIdDraft()) {
+      const producto = this.productos().find((p: any) => p.id === this.productoIdDraft());
+      if (producto?.categoria?.id !== nuevaCategoria) {
+        this.productoIdDraft.set(null);
+      }
+    }
   }
 
   // -----------------------------------------------------------------
@@ -336,5 +441,78 @@ export class Reportes implements OnInit {
         this.cargando.set(false);
       },
     });
+  }
+
+  // CU18 -- Exportar reporte dinámico
+  protected exportarReportePDF(): void {
+    if (!this.reporteDinamico()) {
+      this.errorExportacion.set('No hay reporte generado para exportar');
+      return;
+    }
+
+    this.exportandoPDF.set(true);
+    this.errorExportacion.set(null);
+
+    const payload = {
+      fecha_desde: this.fechaDesdeDraft() || null,
+      fecha_hasta: this.fechaHastaDraft() || null,
+      sucursal_id: this.sucursalIdDraft(),
+      categoria_id: this.categoriaIdDraft(),
+      producto_id: this.productoIdDraft(),
+      tipo_reporte: 'completo',
+    };
+
+    this.service.exportarReporte(payload, 'pdf').pipe(
+      finalize(() => this.exportandoPDF.set(false))
+    ).subscribe({
+      next: (blob: Blob) => {
+        this._descargarArchivo(blob, 'application/pdf', `reporte_${new Date().getTime()}.pdf`);
+      },
+      error: (err: any) => {
+        console.error('Error exportando PDF:', err);
+        this.errorExportacion.set('Error al exportar PDF. Inténtalo nuevamente.');
+      },
+    });
+  }
+
+  protected exportarReporteXLSX(): void {
+    if (!this.reporteDinamico()) {
+      this.errorExportacion.set('No hay reporte generado para exportar');
+      return;
+    }
+
+    this.exportandoXLSX.set(true);
+    this.errorExportacion.set(null);
+
+    const payload = {
+      fecha_desde: this.fechaDesdeDraft() || null,
+      fecha_hasta: this.fechaHastaDraft() || null,
+      sucursal_id: this.sucursalIdDraft(),
+      categoria_id: this.categoriaIdDraft(),
+      producto_id: this.productoIdDraft(),
+      tipo_reporte: 'completo',
+    };
+
+    this.service.exportarReporte(payload, 'xlsx').pipe(
+      finalize(() => this.exportandoXLSX.set(false))
+    ).subscribe({
+      next: (blob: Blob) => {
+        this._descargarArchivo(blob, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          `reporte_${new Date().getTime()}.xlsx`);
+      },
+      error: (err: any) => {
+        console.error('Error exportando Excel:', err);
+        this.errorExportacion.set('Error al exportar Excel. Inténtalo nuevamente.');
+      },
+    });
+  }
+
+  private _descargarArchivo(blob: Blob, tipo: string, nombre: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nombre;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 }

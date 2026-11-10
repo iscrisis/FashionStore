@@ -219,15 +219,16 @@ class ConsultaInteligenteService:
         """Devuelve (sucursal_id, sucursal_nombre) -- ambos None cuando no
         aplica ningún filtro de sucursal. Lanza
         SucursalMencionadaNoEncontradaError cuando SÍ mencionó un nombre
-        pero no coincide con ninguna sucursal activa real."""
+        pero no coincide con ninguna sucursal ACTIVA DE LA EMPRESA
+        AUTENTICADA (nunca busca fuera del tenant)."""
         if isinstance(nombre_mencionado, str) and nombre_mencionado.strip():
-            sucursal = self._sucursales.buscar_por_nombre(nombre_mencionado)
+            sucursal = self._sucursales.buscar_por_nombre(nombre_mencionado, self._empresa_id)
             if sucursal is None:
                 raise SucursalMencionadaNoEncontradaError
             return sucursal.id, sucursal.nombre
 
         if sucursal_id_actual is not None:
-            sucursal = self._sucursales.get_activa(sucursal_id_actual)
+            sucursal = self._sucursales.get_activa(sucursal_id_actual, self._empresa_id)
             if sucursal is not None:
                 return sucursal.id, sucursal.nombre
 
