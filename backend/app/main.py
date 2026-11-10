@@ -149,16 +149,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:4200",
-        "http://localhost:5000",
-        "http://127.0.0.1:4200",
-        "http://127.0.0.1:5000",
-        "https://fashionstore-web.vercel.app",
-        "https://fashionstore-api.vercel.app",
-        "https://fashionstore-web-git-revision-iscrisis-projects.vercel.app",
-        "https://fashionstore-api-git-revision-iscrisis-projects.vercel.app",
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
