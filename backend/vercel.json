@@ -1,1 +1,13 @@
-{}
+{
+  "public": true,
+  "buildCommand": "cd .. && python -m pip install -q -r backend/requirements.txt",
+  "routes": [
+    {
+      "src": "/api/v1/(.*)",
+      "dest": "api/index.py",
+      "headers": {
+        "Cache-Control": "no-store, max-age=0"
+      }
+    }
+  ]
+}
