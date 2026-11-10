@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from app.core.config import settings
 from app.core.image_storage import UPLOADS_ROOT
@@ -163,7 +164,6 @@ class OptionsMiddleware(BaseHTTPMiddleware):
             )
         return await call_next(request)
 
-from starlette.responses import Response
 app.add_middleware(OptionsMiddleware)
 
 app.add_middleware(
